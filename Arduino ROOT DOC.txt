@@ -128,5 +128,11 @@ Subtleties:
 
 	► We notice that ALL files are compiled, including the "core library" files since we find files like "main.cpp.o" and "Stream.cpp.o" that are the compiled versions of the files found in the arduino\avr\cores directory!
 
-	
-	
+	► I'm still wondering how it knows where to find the "core files"?
+		• What if I want to add my own root library? Do I have to adde my files to the "<INSTALL DIR>\arduino\avr\" directory?
+		• I think I found the solution!!!
+			1) Install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html
+			2) Pick the folder of your custom library as "link source"
+			3) Drop as junction into the "<INSTALL DIR>\arduino\avr\cores\" directory
+			4) Voilà! VMicro will compile your cpp files along regular core library files each time!
+
