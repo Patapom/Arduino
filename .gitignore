@@ -1,0 +1,13 @@
+*.filters
+*.log
+*.suo
+Debug
+/ArduinoTutorials/Projects/Temperature/__vm
+/ArduinoTutorials/Projects/Speaker/__vm
+/ArduinoTutorials/Projects/IR Module/__vm
+/ArduinoTutorials/Projects/BlinkFaster/__vm
+/ArduinoTutorials/Projects/Joystick/__vm
+/ArduinoTutorials/Projects/Keypad/__vm
+Factures + Justificatifs
+/Doc/Arduino IDE
+Elegoo Dev Kits
