@@ -1,0 +1,443 @@
+/*  PERSONALISATION PIERRE */
+
+.Print{margin-left:10px;background-color:red}
+
+/*  ORIGINAL */
+
+.Form_NAME
+{
+top:8px; left:7px; width:392px; height:15px;
+color: #808080;font-Size: 8pt;font-family: arial,helvetica, arial,verdana,sans-serif;font-weight: normal;text-decoration:none;
+margin:0px;padding:0px;background-color:transparent;padding-left:3px;outline:none;border:0px;
+}
+ 
+.Form_PHONE
+{
+top:43px; left:7px; width:260px; height:15px;
+color: #808080;font-Size: 8pt;font-family: arial,helvetica, arial,verdana,sans-serif;font-weight: normal;text-decoration:none;
+margin:0px;padding:0px;background-color:transparent;border:0px;padding-left:3px;outline:none;
+}
+
+.Form_EMAIL
+{
+top:78px; left:7px; width:392px; height:15px;
+color: #808080;font-Size: 8pt;font-family: arial,helvetica, arial,verdana,sans-serif;font-weight: normal;text-decoration:none;
+margin:0px;padding:0px;background-color:transparent;border:0px;padding-left:3px;outline:none;
+}
+
+.Form_COMPANY
+{
+top:113px; left:7px; width:260px; height:15px;
+color: #808080;font-Size: 8pt;font-family: arial,helvetica, arial,verdana,sans-serif;font-weight: normal;text-decoration:none;
+margin:0px;padding:0px;background-color:transparent;border:0px;padding-left:3px;outline:none;
+}
+
+.Form_MESSAGE
+{
+top:148px; left:7px; width:390px; height:67px;
+resize:none; margin:0px;padding:0px;background-color:transparent;border:0px;height:21px;padding-left:3px;outline:none;
+color: #808080;font-Size: 8pt;font-family: arial,helvetica, arial,verdana,sans-serif;font-weight: normal;text-decoration:none;
+overflow:hidden;
+}
+
+.Form_CALLBACK
+{
+top:35px; left:284px; width:123px; height:29px;
+vertical-align:top;text-align:center;cursor:pointer;padding-top:6px;
+color: #ffffff;font-size: 9pt;font-family: Helvetica,Arial,Verdana,sans-serif;font-weight: normal;
+}
+
+.Form_SEND
+{
+top:223px; right:0px; width:133px; height:36px;
+color: #ffffff;font-size: 12pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;
+border:0px;background-color:transparent;margin:0px;padding:0px;text-decoration:none;
+cursor:pointer;padding-top : 10px;text-align:center;
+}
+.Form_SEND:hover
+{
+top:223px; right:0px; width:133px; height:36px;
+color: #ffffff;font-size: 12pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;border:0px;background-color:transparent ;
+margin:0px;padding:0px;text-decoration:underline;
+cursor:pointer;padding-top : 10px;text-align:center;
+}
+
+.CB_CALL_ME_BACK
+{
+top:5px; left:0px; width:100%; height:50px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;width :100%;Text-align:left;border:0px;padding-left:10px;
+color: #91a1c4;font-size: 20pt;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: bold;
+}
+.CB_CALL_ME_BACK_ON
+{
+top:43px; left:158px; width:144px; height:30px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;text-align:left;border:0px;
+color: #808080;font-size: 21pt;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+
+
+.CB_CALL_FREE
+{
+top:232px; left:0px; width:422px; height:42px;
+border:0px;background-color:transparent;margin:0px;padding:0px;text-decoration:none;
+cursor:pointer;
+}
+.CB_CALL_FREE:hover
+{
+top:232px; left:0px; width:422px; height:42px;
+border:0px;background-color:transparent;margin:0px;padding:0px;text-decoration:none;
+cursor:pointer;text-decoration:underline;
+}
+.CB_CALL_FREE_TEXT_1
+{
+	top:8px; left:46px; width:216px; height:42px;
+	color: #6a6b6c;font-size: 12pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;
+	text-align:left;
+	vertical-align:top;
+	color:#787575;
+}
+.CB_CALL_FREE_TEXT_2
+{
+	top:2px; right:5px; width:200px; height:42px;
+	color: #989595;font-size: 7pt;font-family: Segoe UI, Verdana, tahoma, arial;
+	text-align:right;
+	vertical-align:top;
+}
+
+.CB_CALL_TEXT_3
+{
+top:81px; left:40px; width:220px; height:20px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_CALL_TEXT_4
+{
+top:119px; left:40px; width:100px; height:20px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_CALL_TEXT_5
+{
+top:157px; left:40px; width:100px; height:20px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_CALL_TEXT_6
+{
+top:193px; left:90px; width:24px; height:20px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}			
+.CB_CALL_TEXT_7
+{
+top:193px; left:165px; width:24px; height:20px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_CALL_TEXT_8
+{
+top:118px; left:96px; width:100px; height:21px;cursor : n-resize;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_CALL_TEXT_9
+{
+top:156px; left:98px; width:100px; height:21px;cursor : n-resize;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_PHONE
+{
+top:48px; left:219px; width:166px; height:23px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_HH{top:191px; left:112px; width:40px; height:23px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:center;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_MM{top:191px; left:187px; width:40px; height:23px;
+text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:center;border:0px;outline:none;color: #b0b0b0;font-size: 18px;font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;
+}
+.CB_OPT1{top:82px; left:18px; width:17px; height:17px;cursor:pointer; padding:6px;}
+.CB_OPT2{top:120px; left:18px; width:17px; height:17px;cursor:pointer; padding:6px;}
+.CB_OPT3{top:158px; left:18px; width:17px; height:17px;cursor:pointer; padding:6px;}
+.CB_INC1{top:116px; left:207px; width:22px; height:10px;cursor:pointer;}
+.CB_DEC1{top:127px; left:207px; width:22px; height:10px;cursor:pointer;}
+.CB_INC2{top:154px; left:207px; width:22px; height:10px;cursor:pointer;}
+.CB_DEC2{top:165px; left:207px; width:22px; height:10px;cursor:pointer;}
+
+.Surfer_Post_Button{color: #ffffff; font-size: 10pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: normal;text-transform:capitalize;
+cursor:pointer;width:71px;height:21px;border:0px;background-color:transparent;text-align:center;margin:0px;padding:0px;
+}
+
+.CHAT_LM_S
+{
+bottom:306px; right:8px; height:12px;
+border:0px;margin:0px;padding:0px;background:transparent;  
+color: #b0b0b0; font-Size: 8pt;font-family: tahoma,verdana,Arial Rounded MT Bold,Arial;font-weight: normal; text-decoration:none; 
+}
+.CHAT_LM_L
+{
+bottom:512px; right:8px; height:12px;
+border:0px;margin:0px;padding:0px;background:transparent;  
+color: #b0b0b0; font-Size: 8pt;font-family: tahoma,verdana,Arial Rounded MT Bold,Arial;font-weight: normal; text-decoration:none;text-align:right; 
+}
+
+.CHAT_HEADER_AGENT
+{
+width:100%;height:18px;margin:0px; padding:0px;text-align:right;vertical-align:middle;border:0px;
+color: #6a6b6c; background-color:#f9f9f9;font-Size: 8pt;font-family: Arial-BoldMT,Arial,Helvetica,Verdana,sans-serif;font-weight: bold;text-decoration:none;
+}
+.CHAT_TEXT_AGENT
+{
+width:272px;height:20px;margin:0px; padding:0px;text-align:right;vertical-align:top; padding-left:0px; border:0px;padding-right : 5px;background-color:transparent;
+color: #6a6b6c;font-Size: 9pt;font-family: Arial-BoldMT,Arial,Helvetica,Verdana,sans-serif;font-weight: normal; text-decoration:none;
+}
+.CHAT_HEADER_SURFER
+{
+width:272px; height:20px; margin:0px;padding:0px;text-align:left;vertical-align:middle;padding-left:0px;border:0px; padding-left:5px;
+color: #f0f0f0; background-color:#bcb5ad;font-Size: 9pt;font-family: Arial-BoldMT,Arial,Helvetica,Verdana,sans-serif;font-weight: bold;text-decoration:none;
+}
+.CHAT_TEXT_SURFER
+{
+color: #787575;font-Size: 9pt;font-family: Arial-BoldMT,tahoma,Arial,Helvetica,Verdana,sans-serif;font-weight: normal;text-decoration:none;
+width:272px;height:20px;margin:0px;padding:0px;text-align:left;vertical-align:top;padding-left:0px;border:0px;padding-top :1px; padding-left :13px;background-color:transparent;
+}
+
+.CHAT_TEXT_PROACTIV
+{
+padding:10px; text-align:right;vertical-align:middle; text-decoration:none;width:100%;
+color: #6a6b6c; background-color:#ffcf74;font-size: 9pt;font-family: Arial,Helvetica,Verdana,sans-serif;font-weight: normal;text-decoration:none;border-top:5px double white ;border-bottom:5px double white ;border-left:2px solid white;
+}
+
+.CHAT_SEND
+{
+bottom:20px; right:20px; width:133px; height:36px;
+border:0px;background-color:transparent;margin:0px;padding:0px;text-decoration:none;
+color: #ffffff;font-size: 12pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;
+text-align:center;vertical-align:top;padding-top:7px;cursor:pointer;
+}
+.CHAT_SEND:hover
+{
+bottom:20px; right:20px; width:133px; height:36px;
+border:0px;background-color:transparent ;margin:0px;padding:0px;text-decoration:underline;
+color: #ffffff;font-size: 12pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;
+text-align:center;vertical-align:top;padding-top:7px;cursor:pointer;
+}
+.CHAT_CALL_BACK
+{
+bottom:23px; left:17px; width:123px; height:29px;
+color: #ffffff;font-size: 9pt;font-family: Helvetica,Arial,Verdana,sans-serif;font-weight: normal;
+vertical-Align:top;text-Align:center;cursor:pointer;
+padding-top :7px;
+
+}
+.CHAT_TEXT_INPUT
+{
+bottom:70px; left:25px; width:400px; height:37px; 
+resize:none;outline:none;border:0px;background-color:transparent;margin:0px;padding:0px;text-align:left;vertical-align:top;display:inline;text-decoration:none;overflow-X :hidden;overflow-Y:hidden;padding-Left :2px;
+color: #b0b0b0;font-size: 10pt;font-family: Arial-BoldMT,Arial,Helvetica,Verdana,sans-serif;font-weight: normal;
+}
+.CHAT_EXIT
+{
+top:4px; left:20px; width:133px; height:36px; 
+border:0px;background-color:transparent;margin:0px;padding:0px;text-decoration:none;
+color: #ffffff;font-size: 12pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;
+cursor:pointer;padding-top:5px;text-align:center;
+}
+.CHAT_EXIT:hover
+{
+top:4px; left:20px; width:133px; height:36px; 
+border:0px;background-color:transparent ;margin:0px;padding:0px;text-decoration:underline;
+color: #ffffff; font-size: 12pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;
+cursor:pointer;padding-top:5px;text-align:center;
+}
+.CHAT_CANCEL
+{
+top:10px; left:250px; width:123px; height:29px; 
+vertical-Align:top;text-Align:center;cursor:pointer;
+color: #ffffff;font-size: 9pt;font-family: Helvetica,Arial,Verdana,sans-serif;font-weight: normal;
+padding-top:7px;
+}
+.CHAT_AGENT_TYPING
+{
+height:12px;border:0px;margin:0px;padding:0px;background:transparent;
+color: #505050;font-Size: 8pt;font-family: tahoma,verdana,Arial Rounded MT Bold,Arial;font-weight: normal;text-decoration:none;  
+text-align:right;
+}
+.VDO_CURRENTLY
+{
+    padding:0px;margin:0px; background-color:transparent;width :100%; Text-align:left;padding-Left:3px;padding-Top:3px;border:0px;
+    color: #6a6b6c;font-Size: 10pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: bold;
+}
+.VDO_PREV
+{
+    padding:0px;margin:0px; background-color:transparent;border:0px;width:100%;text-align:left;vertical-align:middle;
+    color: #6a6b6c;font-Size: 9pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: normal;text-decoration:none;
+    padding-bottom:3px;
+}
+.VDO_NEXT
+{
+padding:0px;margin:0px; background-color:transparent;border:0px;width:100%;text-align:right;vertical-align:middle;
+color: #6a6b6c;font-Size: 9pt;font-family: Segoe UI, Verdana, tahoma, arial;font-weight: normal;text-decoration:none;
+    padding-bottom:3px;
+}
+.VDO_POS
+{
+top:3px; left:4px; width:100%; height:11px; 
+color: #787575;font-size: 11pt;font-family: Arial, Helvetica, Verdana, sans-serif;font-weight: bold;
+}
+.VDO_CHOICE
+{
+top:83px; left:0px; width:286px; height:20px; 
+color: #808080;font-size: 8pt;font-family: Arial, Helvetica, Verdana, sans-serif;font-weight: normal;text-decoration:none;text-align:center;
+}
+.VDO_OPTIONS
+{
+top:3px; left:4px; width:100%; height:11px; 
+color: #787575;font-size: 11pt;font-family: Arial, Helvetica, Verdana, sans-serif;font-weight: bold;
+}
+
+
+/* 
+
+CONFIG SPECIFIQUE 1
+
+*/
+.OptionsConfig1
+{
+    /* MESSAGE DE LA ZONE DE TEXTE DU CHAT, DE LA BARRE */
+    /* Doit commencer par OPTION , le caractères suivants sont remplacés > iivirgule = "," , iiagrave = "à" , iiapos = "'" , iipoint = "." , iieaigu = "é" */
+    /*
+	font-family : OPTIONDialoguez avec un conseiller Vocalcom;
+    */
+	
+    /* AFFICHER OU NON LES BULLES */
+    /* 1px = OUI , 2 px = NON */
+    padding-top : 1px;
+    
+    /* TEMPS AVANT LA DISPARITION DU PANEL DE PREDICTIVE */
+    /* NB seconde , -1px = pas de timer*/
+    left : -1px;
+    
+    /* RE-AFFICHER LE PANEL DE SATISFACTION APRES CHAQUE CHAT */
+    /* non = 1px, oui = 2px */
+    top : 2px;    
+}
+
+/* 
+
+CONFIG SPECIFIQUE 2
+
+*/
+.OptionsConfig2
+{
+    /* ID DE L'ELEMENT HTML OU PLACER LE BOUTON DE DEMANDE DE CHAT*/
+    /* Id de l'element ou Vide > pas de bouton de demande*/
+    /* Doit commencer par OPTION. L'iD de l'élément est la chaine suivant OPTION*/
+    font-family : OPTIONDIV_BTN_CALL_CHAT; 
+   
+    /* AFFICHER LE BOUTON DE DEMANDE DE CHAT UNIQUEMENT SUR LE PROACTIF */
+    /* 1px = NON , 2 px = OUI */
+    padding-top : 2px;
+    
+}
+
+.BTN_CALL_CHAT
+{
+    width   : 126px;
+    height  : 128px;
+    top     : 0px;
+    left    : 0px;
+    position: absolute;
+    cursor  : pointer;
+}
+
+/*  NEEDED */
+.MG2C_Img{border:0px; background:transparent; margin:0px;padding-left:0px;vertical-Align:top;}
+.MG2C_Href{display:none;border:0px;text-decoration :none;}
+.ScrollChat{vertical-align :top; overflow-X :hidden;overflow-Y :hidden;}
+.MessageFader{height:20px;border:0px;font-family:Segoe UI,tahoma, arial, verdana;font-size:9pt;font-weight:normal;color:#222;text-decoration:none;padding:0px;margin:0px;cursor:pointer;vertical-align:middle;}	
+.ShowID_Text{position:absolute;border:1px solid gray;background-Color:#fffdd4;color:#000000;padding:3px;width:150px;font-family : tahoma, arial, verdana;font-Size:8pt;}
+.ShowID{position :absolute;background-Repeat:no-repeat;height:37px;width:40px;}
+.CellChat{vertical-align:bottom; padding-right:6px;padding-bottom:5px;}
+.MoveIt{}
+.ClosePanelArrow{padding:0px;margin:0px;border:0px;background-color: transparent;cursor:pointer;}
+.ClosePanelArrow img{padding:0px;margin:0px;border:0px;background-color:transparent;}
+.Icon_Chat{padding-Top:2px;text-Align:center;vertical-Align:top;} 
+.Td_vide{text-decoration:none;padding:0px;margin:0px;background-color:transparent;border:0px;font-size:0pt;}
+.Title_Help{border:0px;background-color:transparent ;margin:0px;padding:0px;text-decoration:none;height:20px;}
+.Text_Help{height:20px;vertical-align:top;border:0px;background-color:transparent;margin: 0px;padding:0px;padding-left:20px;text-decoration:none;}
+.A_Title_Help{border:0px;background-color:transparent;margin:0px;padding:0px;text-decoration:none;}
+.A_Title_Help:hover{border:0px;background-color:transparent ;margin:0px;padding:0px;text-decoration:underline;}
+.Min_Button{vertical-Align:middle;text-Align:left;cursor:pointer;}
+.Surfer_Text{width:100%;height:20px;border:0px;background-color	:transparent;line-height:16px;outline:none;text-decoration:none;padding:0px;margin:0px;cursor:text;}
+.Surfer_Text_Chat{width:100%;height:20px;border:0px;background-color:transparent;outline:none;text-decoration:none;padding:0px;margin:0px;cursor:text;}
+.Surfer_Text_Welcome{width:100%;border:0px;background-color:transparent;text-decoration:none;padding:0px;margin:0px;padding-left:10px;cursor:default;padding-bottom:15px;}
+.Surfer_Text_Popup_Pred{line-height:20px;text-decoration:none;padding:0px;margin:0px;cursor:default;}
+.Surfer_Text:focus{outline:none;}
+.Title_Panels{vertical-Align:middle;padding-left:60px;padding-top:5px;margin:0px;border:0px;cursor:pointer;left:0px;top:0px;width:100%;height:24px;position:relative;background-color:transparent;}
+.Status_Text_Agent{text-Align:right;}
+.Input_NoB{margin:0px;padding:0px;background-color:transparent;border:0px;height:21px;padding-left:3px;outline:none;}
+.Textarea_NoB{resize:none; margin:0px;padding:0px;background-color:transparent;border:0px;height:21px;padding-left:3px;outline:none;}
+.Href_Surfer{width:272px;height:20px;margin:0px;padding:0px;background-color:transparent;text-Align:left; vertical-Align:top;padding-Left:0px;display:inline;border:0px;}
+.TitleInfo{padding:0px;margin:0px; background-color	:transparent;width :100%; Text-align:left;padding-Left:3px;padding-Top:3px;border:0px;}
+.TextInfo{padding:0px;margin:0px; background-color	:transparent;border:0px;width:100%;text-align:center;padding-top:10px;}
+.StatusAgent{height:12px;border:0px;margin:0px;padding:0px;background:transparent;}  
+.Agent_Name{width:100%;height:18px;margin:0px; padding:0px;text-align:right;vertical-align:middle;border:0px;}
+.Agent_Text{width:272px;height:20px;margin:0px; padding:0px;text-align:right;vertical-align:top; padding-left:0px; border:0px;padding-right : 5px;background-color:transparent;}
+.Surfer_Name{width:272px; height:20px; margin:0px;padding:0px;text-align:left;vertical-align:middle;padding-left:0px;border:0px; padding-left:5px;}
+.Surfer_Chat_Text{width:272px;height:20px;margin:0px;padding:0px;text-align:left;vertical-align:top;padding-left:0px;border:0px;padding-top :1px; padding-left :13px;background-color:transparent;}
+.System_Name{color:#a0a0a0;font-family:Arial,Helvetica,Verdana,sans-serif;font-size:9pt;font-weight:bold;width:272px;height:12px;margin:0px;padding:0px;background-color:transparent;text-align:left;vertical-align:top;padding-left:5px;display:block;border:0px;text-decoration:none;}
+.Text_Surfer_Popup {resize:none;outline:none;border:0px;background-color:transparent;margin:0px;padding:0px;text-align:left;vertical-align:top;display:inline;text-decoration:none;overflow-X :hidden;overflow-Y:hidden;padding-Left :2px;}
+.ProActive_Text{ padding:10px; text-align:right;vertical-align:middle; text-decoration:none;width:100%;}
+.Attach_Text{height:20px;width:250px;text-align:left;vertical-Align:middle;}
+.Attach_Text:hover{height:20px;width:250px;text-align:left;vertical-Align:middle;}
+.TextSatisfaction  {text-decoration:none;padding:0px;margin:0px;background-color:transparent;width:100%;text-align:left;padding-Left:4px;padding-Top:3px;padding-Bottom:6px;border:0px;}
+.TS_1{text-decoration:none;padding:0px;margin:0px;background-color:transparent;width :100%;Text-align:left;border:0px;}
+.TS_2{text-decoration:none;padding:0px;margin:0px;background-color:transparent;width :100%;Text-align:left;border:0px;}
+.TS_3{text-decoration:none;padding:0px;margin:0px;background-color:transparent;width :100%;Text-align:left;border:0px;padding-left:10px}
+.TS_31{text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:center;border:0px;height:40px;vertical-align:bottom;}
+.TS_4{text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;}
+.TS_5{text-decoration:none;padding:0px;margin:0px;background-color:transparent;Text-align:left;border:0px;outline:none;}
+ 
+.Title_Help{                    color: #808080;                              font-size: 10pt;    font-family: Segoe UI, Verdana, tahoma, arial;                                          font-weight: bold;}
+.Input_NoB{                     color: #808080;                              font-Size: 8pt;     font-family: arial,helvetica, arial,verdana,sans-serif;                                 font-weight: normal;    text-decoration:none;}
+.Textarea_NoB{                  color: #808080;                              font-Size: 8pt;     font-family: arial,helvetica, arial,verdana,sans-serif;                                 font-weight: normal;    text-decoration:none;}
+.TS_2{            color: #808080;                              font-size: 14pt;    font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: bold;}
+.TS_4{            color: #808080;                              font-size: 21pt;    font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: bold;}
+
+.A_Title_Help{                  color: #ffffff;                              font-size: 12pt;    font-family: Segoe UI, Verdana, tahoma, arial;                                          font-weight: bold;}
+.A_Title_Help:hover{            color: #ffffff;                              font-size: 12pt;    font-family: Segoe UI, Verdana, tahoma, arial;                                          font-weight: bold;}
+.Text_Help{                     color: #6a6b6c;                              font-size: 9pt;     font-family: Segoe UI, Verdana, tahoma, arial;                                          font-weight: normal;}
+.Status_Text_Agent{             color: #6a6b6c;                              font-Size: 8pt;     font-family: Arial Rounded MT Bold, Arial, tahoma, verdana;}
+.TitleInfo{                     color: #6a6b6c;                              font-Size: 10pt;    font-family: Segoe UI, Verdana, tahoma, arial;                                          font-weight: bold;}
+.TextInfo{                      color: #6a6b6c;                              font-Size: 9pt;     font-family: Segoe UI, Verdana, tahoma, arial;                                          font-weight: normal;    text-decoration:none;}
+.StatusAgent{                   color: #6a6b6c;                              font-Size: 8pt;     font-family: tahoma,verdana,Arial Rounded MT Bold,Arial;                                font-weight: normal;    text-decoration:none;}  
+.Agent_Name{                    color: #6a6b6c; background-color:#f9f9f9;    font-Size: 8pt;     font-family: Arial,Helvetica,Verdana,sans-serif;                                        font-weight: bold;      text-decoration:none;}
+.Agent_Text{                    color: #6a6b6c;                              font-Size: 9pt;     font-family: Arial,Helvetica,Verdana,sans-serif;                                        font-weight: normal;    text-decoration:none;}
+.TextSatisfaction  {            color: #6a6b6c;                              font-size: 9pt;     font-family: Segoe UI,tahoma,verdana,Arial Rounded MT Bold,Arial;                       font-weight: normal;}
+.TS_1{                          color: #ffffff;                              font-size: 10pt;    font-family: Segoe UI,tahoma, verdana, Arial Rounded MT Bold, Arial;                    font-weight: normal;}
+
+.Surfer_Text{                   color: #787575;                              font-size: 9pt;     font-family: Segoe UI,tahoma, arial, verdana;                                           font-weight: normal;}
+.Surfer_Chat_Text{              color: #787575;                              font-Size: 9pt;     font-family: tahoma,Arial,Helvetica,Verdana,sans-serif;                                 font-weight: normal;    text-decoration:none;}
+.Text_Vdo {                     color: #787575;                              font-size: 11pt;    font-family: Arial, Helvetica, Verdana, sans-serif;                                     font-weight: bold;}
+.P_Text_Vdo {                   color: #787575;                              font-size: 8pt;     font-family: Arial, Helvetica, Verdana, sans-serif;                                     font-weight: normal;    text-decoration:none;}
+.href_Vdo {                     color: #787575;                              font-size: 8pt;     font-family: Arial, Helvetica, Verdana, sans-serif;                                     font-weight: normal;    text-decoration:none;}
+.href_Vdo:hover{                color: #787575;                              font-size: 8pt;     font-family: Arial, Helvetica, Verdana, sans-serif;                                     font-weight: normal;    text-decoration:underline;}
+
+.Min_Button{                    color: #ffffff;                              font-size: 9pt;     font-family: Helvetica,Arial,Verdana,sans-serif;                                        font-weight: normal;}
+.Title_Panels{                  color: #444444;                              font-size: 12pt;    font-family: Segoe UI, Verdana, tahoma, arial;                                          font-weight: bold;      text-decoration:none;       text-transform:capitalize;		}
+.Surfer_Text_Welcome{           color: #ffffff;                              font-size: 11pt;    font-family: helvetica, Segoe UI, Arial,  UI,tahoma, verdana;                           font-weight: bold;}
+
+.Surfer_Text_Chat{              color: #5f5f5f;                              font-size: 10pt;    font-family: Segoe UI,Arial,  UI,tahoma, verdana;                                       font-weight: bold;}
+
+.Surfer_Text_Popup_Pred{        color: #101010;                              font-size: 10pt;    font-family: Segoe UI,Arial,UI,tahoma, verdana;                                         font-weight: bold;      font-style:italic;}
+
+.Href_Surfer{                   color: blue;                                 font-Size: 8pt;     font-family: tahoma, verdana, Arial Rounded MT Bold, Arial;                             font-weight: normal;    text-decoration:underline;}
+.Attach_Text{                   color: blue;                                 font-Size: 10pt;    font-family: Segoe UI, tahoma, verdana, Arial Rounded MT Bold, Arial;                   font-weight: normal;    text-decoration:none;}
+.Attach_Text:hover{             color: blue;                                 font-Size: 10pt;     font-family: Segoe UI, tahoma, verdana, Arial Rounded MT Bold, Arial;                   font-weight: normal;    text-decoration:underline;}
+
+.Surfer_Name{                   color: #d0d0d0; background-color:#5b5b5b;    font-Size: 9pt;     font-family: Arial,Helvetica,Verdana,sans-serif;                                        font-weight: bold;      text-decoration:none;}
+
+.Text_Surfer_Popup {            color: #b0b0b0;                              font-size: 10pt;    font-family: Arial,Helvetica,Verdana,sans-serif;                                        font-weight: normal;}
+.TS_5{            color: #b0b0b0;                              font-size: 18px;    font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: normal;}
+
+.ProActive_Text{                color: #6a6b6c; background-color:#ffcf74;    font-size: 9pt;     font-family: Arial,Helvetica,Verdana,sans-serif;                                        font-weight: normal;    text-decoration:none;border-top:5px double white ;border-bottom:5px double white ;border-left:2px solid white;}
+
+/* BLUE */
+.TS_3{            color: #91a1c4;                              font-size: 20pt;    font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: bold;	display: none;}
+.TS_31{           color: #91a1c4;                              font-size: 13pt;    font-family: Arial, Helvetica, Verdana, Lucida Grande, Lucida Sans Unicode, sans-serif; font-weight: bold;}
+

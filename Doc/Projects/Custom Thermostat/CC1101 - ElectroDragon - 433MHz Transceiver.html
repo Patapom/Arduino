@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<!-- saved from url=(0037)http://www.electrodragon.com/w/CC1101 -->
+<html lang="en" dir="ltr" class="client-js"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/cb=gapi.loaded_1" async=""></script><script src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/cb=gapi.loaded_0" async=""></script><script type="text/javascript" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/plusone.js.download" gapi_processed="true"></script><script type="text/javascript" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/300lo.json"></script><script type="text/javascript" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/_ate.track.config_resp"></script>
+
+<title>CC1101 - ElectroDragon</title>
+<meta name="generator" content="MediaWiki 1.25.1">
+<link rel="shortcut icon" href="http://www.electrodragon.com/favicon.ico">
+<link rel="search" type="application/opensearchdescription+xml" href="http://www.electrodragon.com/w/opensearch_desc.php" title="ElectroDragon (en)">
+<link rel="EditURI" type="application/rsd+xml" href="http://www.electrodragon.com/w/api.php?action=rsd">
+<link rel="alternate" hreflang="x-default" href="http://www.electrodragon.com/w/CC1101">
+<link rel="alternate" type="application/atom+xml" title="ElectroDragon Atom feed" href="http://www.electrodragon.com/w/index.php?title=Special:RecentChanges&amp;feed=atom">
+<link rel="stylesheet" href="./CC1101 - ElectroDragon - 433MHz Transceiver_files/load.php">
+<style>
+.mw-collapsible-toggle{float:right;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;user-select:none}  .mw-content-ltr .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr .mw-collapsible-toggle{float:right} .mw-content-rtl .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl .mw-collapsible-toggle{float:left}.mw-customtoggle,.mw-collapsible-toggle{cursor:pointer} caption .mw-collapsible-toggle,.mw-content-ltr caption .mw-collapsible-toggle,.mw-content-rtl caption .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr caption .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl caption .mw-collapsible-toggle{float:none} li .mw-collapsible-toggle,.mw-content-ltr li .mw-collapsible-toggle,.mw-content-rtl li .mw-collapsible-toggle,.mw-content-rtl .mw-content-ltr li .mw-collapsible-toggle,.mw-content-ltr .mw-content-rtl li .mw-collapsible-toggle{float:none} .mw-collapsible-toggle-li{list-style:none}
+/* cache key: edwiki:resourceloader:filter:minify-css:7:e1ffd603cbaaa5f1a36e0d13fe843535 */
+.suggestions{overflow:hidden;position:absolute;top:0;left:0;width:0;border:none;z-index:1099;padding:0;margin:-1px 0 0 0}.suggestions-special{position:relative;background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0;margin-top:-2px;display:none;padding:0.25em 0.25em;line-height:1.25em}.suggestions-results{background-color:white;cursor:pointer;border:solid 1px #aaaaaa;padding:0;margin:0}.suggestions-result{color:black;margin:0;line-height:1.5em;padding:0.01em 0.25em;text-align:left; overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}.suggestions-result-current{background-color:#4C59A6;color:white}.suggestions-special .special-label{color:gray;text-align:left}.suggestions-special .special-query{color:black;font-style:italic;text-align:left}.suggestions-special .special-hover{background-color:silver}.suggestions-result-current .special-label,.suggestions-result-current .special-query{color:white}.highlight{font-weight:bold}
+/* cache key: edwiki:resourceloader:filter:minify-css:7:f8d0c6895ce3ae14434c16b8fca59432 */
+.postedit-container{margin:0 auto;position:fixed;top:0;height:0;left:50%;z-index:1000;font-size:13px}.postedit-container:hover{cursor:pointer}.postedit{position:relative;top:0.6em;left:-50%;padding:.6em 3.6em .6em 1.1em;line-height:1.5625em;color:#626465;background-color:#f4f4f4;border:1px solid #dcd9d9;text-shadow:0 0.0625em 0 rgba(255,255,255,0.5);border-radius:5px;box-shadow:0 2px 5px 0 #ccc;-webkit-transition:all 0.25s ease-in-out;-moz-transition:all 0.25s ease-in-out;-ms-transition:all 0.25s ease-in-out;-o-transition:all 0.25s ease-in-out;transition:all 0.25s ease-in-out}.skin-monobook .postedit{top:6em !important}.postedit-faded{opacity:0}.postedit-icon{padding-left:41px;  line-height:25px;background-repeat:no-repeat;background-position:8px 50%}.postedit-icon-checkmark{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAABblBMVEUAAAD///////9PfTf///80aRdTgjn///9Feij///////////9Rfzf///////////9PfjZRgDh1o1xOfTb///////+bwYqLtnj///////9PfTa82K////9WhT6YxIL///9QgDdTgzr////////j7uDl7eLq8efi693k7OH///////9UhjuBr2rp9uRUhjr///9YljVKgir///9WiTlYjT3////9/v57vFlbkT5PjC9dlD/5/fhuq09stUTs9uhxuElctCpfnT1huDFloEZloUZmpENmvDZpvDxpvTxqvjxrvT5rvT9rwTxsqktswD5uwkBvuUdxw0NztFBztU9ztVBzwkp0tlJ1xkd2t1R3uVR4w1F4xk54x014yE15uVZ5v1R5xVB6v1R7yFJ8wVh9xVl9yFR9yVd9ylN+xVh+yFd/x1l/yFeAylmEx1+Ny2uY0Hqe04Wj1Ymv3Ze33qLD47TJ5L3O6cPU7Mrq9eb2+/Q4j37OAAAAQHRSTlMAAQIEBAUFBQwPFB4fJCUoKiosQEhJS01RUlZZXmdydXaChYuSlJSWmJmoq6uur8LExcvM19fg5ejt8fX2+Pr7SljgewAAAKpJREFUGBkFwQNCAwAAAMDLtl3LtrG4rWXbtvX77gAgZ6grFwC0bhwNVgKgdPZx8b0dgLi+s7Wn0VoAqpfOI9+BNADZI7fLrz2pSEwGHZuH+78lSK8ZLkLezF3ooyUG3VPXq2USei9WngeyoG195yBYWDF3E/2pAhl1e9Gr8bGT+bfOFCC2fnvh4X7rcqIAQNNu+HT6sxkAjceTL/2ZAIhv+PorBwBJxfkA//dFHSCBy/UTAAAAAElFTkSuQmCC);background-image:url(http://www.electrodragon.com/w/resources/src/mediawiki.action/images/green-checkmark.png?2015-06-03T12:35:00Z)!ie;background-position:left}.postedit-close{position:absolute;padding:0 .8em;right:0;top:0;font-size:1.25em;font-weight:bold;line-height:2.3em;color:black;text-shadow:0 0.0625em 0 white;text-decoration:none;opacity:0.2;filter:alpha(opacity=20)}.postedit-close:hover{color:black;text-decoration:none;opacity:0.4;filter:alpha(opacity=40)}
+/* cache key: edwiki:resourceloader:filter:minify-css:7:801ff1b9bd0abab79c66b174a61f7f6f */</style><style>
+.suggestions a.mw-searchSuggest-link,.suggestions a.mw-searchSuggest-link:hover,.suggestions a.mw-searchSuggest-link:active,.suggestions a.mw-searchSuggest-link:focus{color:black;text-decoration:none}.suggestions-result-current a.mw-searchSuggest-link,.suggestions-result-current a.mw-searchSuggest-link:hover,.suggestions-result-current a.mw-searchSuggest-link:active,.suggestions-result-current a.mw-searchSuggest-link:focus{color:white}.suggestions a.mw-searchSuggest-link .special-query{ overflow:hidden;-o-text-overflow:ellipsis; text-overflow:ellipsis;white-space:nowrap}
+/* cache key: edwiki:resourceloader:filter:minify-css:7:ae3fa4570b5ac0c6cf7b3776c8ae4d6f */</style><style>
+table.jquery-tablesorter th.headerSort{background-image:url(data:image/gif;base64,R0lGODlhFQAJAIABAAAAAAAAACH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjAgNjEuMTM0Nzc3LCAyMDEwLzAyLzEyLTE3OjMyOjAwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjAxODAxMTc0MDcyMDY4MTE4OEM2REYyN0ExMDhBNDJFIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjdCNTAyODcwMEY4NjExRTBBMzkyQzAyM0E1RDk3RDc3IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjdCNTAyODZGMEY4NjExRTBBMzkyQzAyM0E1RDk3RDc3IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzUgTWFjaW50b3NoIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MDE4MDExNzQwNzIwNjgxMTg4QzZERjI3QTEwOEE0MkUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MDE4MDExNzQwNzIwNjgxMTg4QzZERjI3QTEwOEE0MkUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4B//79/Pv6+fj39vX08/Lx8O/u7ezr6uno5+bl5OPi4eDf3t3c29rZ2NfW1dTT0tHQz87NzMvKycjHxsXEw8LBwL++vby7urm4t7a1tLOysbCvrq2sq6qpqKempaSjoqGgn56dnJuamZiXlpWUk5KRkI+OjYyLiomIh4aFhIOCgYB/fn18e3p5eHd2dXRzcnFwb25tbGtqaWhnZmVkY2JhYF9eXVxbWllYV1ZVVFNSUVBPTk1MS0pJSEdGRURDQkFAPz49PDs6OTg3NjU0MzIxMC8uLSwrKikoJyYlJCMiISAfHh0cGxoZGBcWFRQTEhEQDw4NDAsKCQgHBgUEAwIBAAAh+QQBAAABACwAAAAAFQAJAAACF4yPgMsJ2mJ4VDKKrd4GVz5lYPeMiVUAADs=);background-image:url(http://www.electrodragon.com/w/resources/src/jquery/images/sort_both.gif?2015-06-03T12:35:00Z)!ie;cursor:pointer;background-repeat:no-repeat;background-position:center right;padding-right:21px}table.jquery-tablesorter th.headerSortUp{background-image:url(data:image/gif;base64,R0lGODlhFQAEAIABAAAAAAAAACH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjAgNjEuMTM0Nzc3LCAyMDEwLzAyLzEyLTE3OjMyOjAwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjAzODAxMTc0MDcyMDY4MTE4OEM2REYyN0ExMDhBNDJFIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjdCNTAyODc0MEY4NjExRTBBMzkyQzAyM0E1RDk3RDc3IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjdCNTAyODczMEY4NjExRTBBMzkyQzAyM0E1RDk3RDc3IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzUgTWFjaW50b3NoIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MDM4MDExNzQwNzIwNjgxMTg4QzZERjI3QTEwOEE0MkUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MDM4MDExNzQwNzIwNjgxMTg4QzZERjI3QTEwOEE0MkUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4B//79/Pv6+fj39vX08/Lx8O/u7ezr6uno5+bl5OPi4eDf3t3c29rZ2NfW1dTT0tHQz87NzMvKycjHxsXEw8LBwL++vby7urm4t7a1tLOysbCvrq2sq6qpqKempaSjoqGgn56dnJuamZiXlpWUk5KRkI+OjYyLiomIh4aFhIOCgYB/fn18e3p5eHd2dXRzcnFwb25tbGtqaWhnZmVkY2JhYF9eXVxbWllYV1ZVVFNSUVBPTk1MS0pJSEdGRURDQkFAPz49PDs6OTg3NjU0MzIxMC8uLSwrKikoJyYlJCMiISAfHh0cGxoZGBcWFRQTEhEQDw4NDAsKCQgHBgUEAwIBAAAh+QQBAAABACwAAAAAFQAEAAACDYwfoAvoz9qbZ9FrJC0AOw==);background-image:url(http://www.electrodragon.com/w/resources/src/jquery/images/sort_up.gif?2015-06-03T12:35:00Z)!ie}table.jquery-tablesorter th.headerSortDown{background-image:url(data:image/gif;base64,R0lGODlhFQAEAIABAAAAAAAAACH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjAgNjEuMTM0Nzc3LCAyMDEwLzAyLzEyLTE3OjMyOjAwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ4bXAuZGlkOjAyODAxMTc0MDcyMDY4MTE4OEM2REYyN0ExMDhBNDJFIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjhFNzNGQjI3MEY4NjExRTBBMzkyQzAyM0E1RDk3RDc3IiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjhFNzNGQjI2MEY4NjExRTBBMzkyQzAyM0E1RDk3RDc3IiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCBDUzUgTWFjaW50b3NoIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MDI4MDExNzQwNzIwNjgxMTg4QzZERjI3QTEwOEE0MkUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MDI4MDExNzQwNzIwNjgxMTg4QzZERjI3QTEwOEE0MkUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4B//79/Pv6+fj39vX08/Lx8O/u7ezr6uno5+bl5OPi4eDf3t3c29rZ2NfW1dTT0tHQz87NzMvKycjHxsXEw8LBwL++vby7urm4t7a1tLOysbCvrq2sq6qpqKempaSjoqGgn56dnJuamZiXlpWUk5KRkI+OjYyLiomIh4aFhIOCgYB/fn18e3p5eHd2dXRzcnFwb25tbGtqaWhnZmVkY2JhYF9eXVxbWllYV1ZVVFNSUVBPTk1MS0pJSEdGRURDQkFAPz49PDs6OTg3NjU0MzIxMC8uLSwrKikoJyYlJCMiISAfHh0cGxoZGBcWFRQTEhEQDw4NDAsKCQgHBgUEAwIBAAAh+QQBAAABACwAAAAAFQAEAAACDYyPAcmtsJyDVDKKWQEAOw==);background-image:url(http://www.electrodragon.com/w/resources/src/jquery/images/sort_down.gif?2015-06-03T12:35:00Z)!ie}
+/* cache key: edwiki:resourceloader:filter:minify-css:7:b93042d2bc6f94a85dfa2738a95cc608 */</style><meta name="ResourceLoaderDynamicStyles" content="">
+<link rel="stylesheet" href="./CC1101 - ElectroDragon - 433MHz Transceiver_files/load(1).php">
+<style>a:lang(ar),a:lang(kk-arab),a:lang(mzn),a:lang(ps),a:lang(ur){text-decoration:none}
+/* cache key: edwiki:resourceloader:filter:minify-css:7:d421138b4aaddd669fdf2e14079e4feb */</style>
+<script src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/load(2).php"></script><script src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/load(3).php"></script>
+<script>if(window.mw){
+mw.config.set({"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":false,"wgNamespaceNumber":0,"wgPageName":"CC1101","wgTitle":"CC1101","wgCurRevisionId":13169,"wgRevisionId":13169,"wgArticleId":1298,"wgIsArticle":true,"wgIsRedirect":false,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":["Wireless"],"wgBreakFrames":false,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"CC1101","wgRelevantArticleId":1298,"wgIsProbablyEditable":false,"wgRestrictionEdit":[],"wgRestrictionMove":[],"wgWikiEditorEnabledModules":{"toolbar":false,"dialogs":false,"hidesig":true,"preview":false,"publish":false}});
+}</script><script>if(window.mw){
+mw.loader.implement("user.options",function($,jQuery){mw.user.options.set({"variant":"en"});});mw.loader.implement("user.tokens",function($,jQuery){mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\"});});
+/* cache key: edwiki:resourceloader:filter:minify-js:7:a5c52c063dc436c1ca7c9f456936a5e9 */
+}</script>
+<script>if(window.mw){
+mw.loader.load(["mediawiki.page.startup","mediawiki.legacy.wikibits","mediawiki.legacy.ajax","skins.vector.js"]);
+}</script><script src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/load(4).php"></script>
+<!--[if lt IE 7]><style type="text/css">body{behavior:url("/w/skins/Vector/csshover.min.htc")}</style><![endif]-->
+<style type="text/css">.at-icon{fill:#fff;border:0}.at-icon-wrapper{display:inline-block;overflow:hidden}a .at-icon-wrapper{cursor:pointer}.at-rounded,.at-rounded-element .at-icon-wrapper{border-radius:12%}.at-circular,.at-circular-element .at-icon-wrapper{border-radius:50%}.addthis_32x32_style .at-icon{width:2pc;height:2pc}.addthis_24x24_style .at-icon{width:24px;height:24px}.addthis_20x20_style .at-icon{width:20px;height:20px}.addthis_16x16_style .at-icon{width:1pc;height:1pc}#at16lb{display:none;position:absolute;top:0;left:0;width:100%;height:100%;z-index:1001;background-color:#000;opacity:.001}#at_complete,#at_error,#at_share,#at_success{position:static!important}.at15dn{display:none}#at15s,#at16p,#at16p form input,#at16p label,#at16p textarea,#at_share .at_item{font-family:arial,helvetica,tahoma,verdana,sans-serif!important;font-size:9pt!important;outline-style:none;outline-width:0;line-height:1em}* html #at15s.mmborder{position:absolute!important}#at15s.mmborder{position:fixed!important;width:250px!important}#at15s{background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABtJREFUeNpiZGBgaGAgAjAxEAlGFVJHIUCAAQDcngCUgqGMqwAAAABJRU5ErkJggg==);float:none;line-height:1em;margin:0;overflow:visible;padding:5px;text-align:left;position:absolute}#at15s a,#at15s span{outline:0;direction:ltr;text-transform:none}#at15s .at-label{margin-left:5px}#at15s .at-icon-wrapper{width:1pc;height:1pc;vertical-align:middle}#at15s .at-icon{width:1pc;height:1pc}.at4-icon{display:inline-block;background-repeat:no-repeat;background-position:top left;margin:0;overflow:hidden;cursor:pointer}.addthis_16x16_style .at4-icon,.addthis_default_style .at4-icon,.at4-icon,.at-16x16{width:1pc;height:1pc;line-height:1pc;background-size:1pc!important}.addthis_32x32_style .at4-icon,.at-32x32{width:2pc;height:2pc;line-height:2pc;background-size:2pc!important}.addthis_24x24_style .at4-icon,.at-24x24{width:24px;height:24px;line-height:24px;background-size:24px!important}.addthis_20x20_style .at4-icon,.at-20x20{width:20px;height:20px;line-height:20px;background-size:20px!important}.at4-icon.circular,.circular .at4-icon,.circular.aticon{border-radius:50%}.at4-icon.rounded,.rounded .at4-icon{border-radius:4px}.at4-icon-left{float:left}#at15s .at4-icon{text-indent:20px;padding:0;overflow:visible;white-space:nowrap;background-size:1pc;width:1pc;height:1pc;background-position:top left;display:inline-block;line-height:1pc}.addthis_vertical_style .at4-icon,.at4-follow-container .at4-icon{margin-right:5px}html>body #at15s{width:250px!important}#at15s.atm{background:none!important;padding:0!important;width:10pc!important}#at15s_inner{background:#fff;border:1px solid #fff;margin:0}#at15s_head{position:relative;background:#f2f2f2;padding:4px;cursor:default;border-bottom:1px solid #e5e5e5}.at15s_head_success{background:#cafd99!important;border-bottom:1px solid #a9d582!important}.at15s_head_success a,.at15s_head_success span{color:#000!important;text-decoration:none}#at15s_brand,#at15sptx,#at16_brand{position:absolute}#at15s_brand{top:4px;right:4px}.at15s_brandx{right:20px!important}a#at15sptx{top:4px;right:4px;text-decoration:none;color:#4c4c4c;font-weight:700}#at15sptx:hover{text-decoration:underline}#at16_brand{top:5px;right:30px;cursor:default}#at_hover{padding:4px}#at_hover .at_item,#at_share .at_item{background:#fff!important;float:left!important;color:#4c4c4c!important}#at_share .at_item .at-icon-wrapper{margin-right:5px}#at_hover .at_bold{font-weight:700;color:#000!important}#at_hover .at_item{width:7pc!important;padding:2px 3px!important;margin:1px;text-decoration:none!important}#at_hover .at_item.athov,#at_hover .at_item:focus,#at_hover .at_item:hover{margin:0!important}#at_hover .at_item.athov,#at_hover .at_item:focus,#at_hover .at_item:hover,#at_share .at_item.athov,#at_share .at_item:hover{background:#f2f2f2!important;border:1px solid #e5e5e5;color:#000!important;text-decoration:none}.ipad #at_hover .at_item:focus{background:#fff!important;border:1px solid #fff}.at15t{display:block!important;height:1pc!important;line-height:1pc!important;padding-left:20px!important;background-position:0 0;text-align:left}.addthis_button,.at15t{cursor:pointer}.addthis_toolbox a.at300b,.addthis_toolbox a.at300m{width:auto}.addthis_toolbox a{margin-bottom:5px;line-height:initial}.addthis_toolbox.addthis_vertical_style{width:200px}.addthis_button_facebook_like .fb_iframe_widget{line-height:100%}.addthis_button_facebook_like iframe.fb_iframe_widget_lift{max-width:none}.addthis_toolbox a.addthis_button_counter,.addthis_toolbox a.addthis_button_facebook_like,.addthis_toolbox a.addthis_button_facebook_send,.addthis_toolbox a.addthis_button_facebook_share,.addthis_toolbox a.addthis_button_foursquare,.addthis_toolbox a.addthis_button_google_plusone,.addthis_toolbox a.addthis_button_linkedin_counter,.addthis_toolbox a.addthis_button_pinterest_pinit,.addthis_toolbox a.addthis_button_stumbleupon_badge,.addthis_toolbox a.addthis_button_tweet{display:inline-block}.at-share-tbx-element .google_plusone_iframe_widget>span>div{vertical-align:top!important}.addthis_toolbox span.addthis_follow_label{display:none}.addthis_toolbox.addthis_vertical_style span.addthis_follow_label{display:block;white-space:nowrap}.addthis_toolbox.addthis_vertical_style a{display:block}.addthis_toolbox.addthis_vertical_style.addthis_32x32_style a{line-height:2pc;height:2pc}.addthis_toolbox.addthis_vertical_style .at300bs{margin-right:4px;float:left}.addthis_toolbox.addthis_20x20_style span{line-height:20px}.addthis_toolbox.addthis_32x32_style span{line-height:2pc}.addthis_toolbox.addthis_pill_combo_style .addthis_button_compact .at15t_compact,.addthis_toolbox.addthis_pill_combo_style a{float:left}.addthis_toolbox.addthis_pill_combo_style a.addthis_button_tweet{margin-top:-2px}.addthis_toolbox.addthis_pill_combo_style .addthis_button_compact .at15t_compact{margin-right:4px}.addthis_default_style .addthis_separator{margin:0 5px;display:inline}div.atclear{clear:both}.addthis_default_style .addthis_separator,.addthis_default_style .at4-icon,.addthis_default_style .at300b,.addthis_default_style .at300bo,.addthis_default_style .at300bs,.addthis_default_style .at300m{float:left}.at300b img,.at300bo img{border:0}a.at300b .at4-icon,a.at300m .at4-icon{display:block}.addthis_default_style .at300b,.addthis_default_style .at300bo,.addthis_default_style .at300m{padding:0 2px}.at300b,.at300bo,.at300bs,.at300m{cursor:pointer}.addthis_button_facebook_like.at300b:hover,.addthis_button_facebook_like.at300bs:hover,.addthis_button_facebook_send.at300b:hover,.addthis_button_facebook_send.at300bs:hover{opacity:1}.addthis_20x20_style .at15t,.addthis_20x20_style .at300bs{overflow:hidden;display:block;height:20px!important;width:20px!important;line-height:20px!important}.addthis_32x32_style .at15t,.addthis_32x32_style .at300bs{overflow:hidden;display:block;height:2pc!important;width:2pc!important;line-height:2pc!important}.at300bs{overflow:hidden;display:block;background-position:0 0;height:1pc;width:1pc;line-height:1pc!important}.addthis_default_style .at15t_compact,.addthis_default_style .at15t_expanded{margin-right:4px}#at_share .at_item{width:123px!important;padding:4px;margin-right:2px;border:1px solid #fff}#at16p{background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABtJREFUeNpiZGBgaGAgAjAxEAlGFVJHIUCAAQDcngCUgqGMqwAAAABJRU5ErkJggg==);z-index:10000001;position:absolute;top:50%;left:50%;width:300px;padding:10px;margin:0 auto;margin-top:-185px;margin-left:-155px;font-family:arial,helvetica,tahoma,verdana,sans-serif;font-size:9pt;color:#5e5e5e}#at_share{margin:0;padding:0}#at16pt{position:relative;background:#f2f2f2;height:13px;padding:5px 10px}#at16pt a,#at16pt h4{font-weight:700}#at16pt h4{display:inline;margin:0;padding:0;font-size:9pt;color:#4c4c4c;cursor:default}#at16pt a{position:absolute;top:5px;right:10px;color:#4c4c4c;text-decoration:none;padding:2px}#at15sptx:focus,#at16pt a:focus{outline:thin dotted}#at15s #at16pf a{top:1px}#_atssh{width:1px!important;height:1px!important;border:0!important}.atm{width:10pc!important;padding:0;margin:0;line-height:9pt;letter-spacing:normal;font-family:arial,helvetica,tahoma,verdana,sans-serif;font-size:9pt;color:#444;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABtJREFUeNpiZGBgaGAgAjAxEAlGFVJHIUCAAQDcngCUgqGMqwAAAABJRU5ErkJggg==);padding:4px}.atm-f{text-align:right;border-top:1px solid #ddd;padding:5px 8px}.atm-i{background:#fff;border:1px solid #d5d6d6;padding:0;margin:0;box-shadow:1px 1px 5px rgba(0,0,0,.15)}.atm-s{margin:0!important;padding:0!important}.atm-s a:focus{border:transparent;outline:0;transition:none}#at_hover.atm-s a,.atm-s a{display:block;text-decoration:none;padding:4px 10px;color:#235dab!important;font-weight:400;font-style:normal;transition:none}#at_hover.atm-s .at_bold{color:#235dab!important}#at_hover.atm-s a:hover,.atm-s a:hover{background:#2095f0;text-decoration:none;color:#fff!important}#at_hover.atm-s .at_bold{font-weight:700}#at_hover.atm-s a:hover .at_bold{color:#fff!important}.atm-s a .at-label{vertical-align:middle;margin-left:5px;direction:ltr}.at_PinItButton{display:block;width:40px;height:20px;padding:0;margin:0;background-image:url(//s7.addthis.com/static/t00/pinit00.png);background-repeat:no-repeat}.at_PinItButton:hover{background-position:0 -20px}.addthis_toolbox .addthis_button_pinterest_pinit{position:relative}.at-share-tbx-element .fb_iframe_widget span{vertical-align:baseline!important}#at16pf{height:auto;text-align:right;padding:4px 8px}.at-privacy-info{position:absolute;left:7px;bottom:7px;cursor:pointer;text-decoration:none;font-family:helvetica,arial,sans-serif;font-size:10px;line-height:9pt;letter-spacing:.2px;color:#666}.at-privacy-info:hover{color:#000}.body .wsb-social-share .wsb-social-share-button-vert{padding-top:0;padding-bottom:0}.body .wsb-social-share.addthis_counter_style .addthis_button_tweet.wsb-social-share-button{padding-top:40px}.body .wsb-social-share.addthis_counter_style .addthis_button_google_plusone.wsb-social-share-button{padding-top:0}.body .wsb-social-share.addthis_counter_style .addthis_button_facebook_like.wsb-social-share-button{padding-top:21px}@media print{#at4-follow,#at4-share,#at4-thankyou,#at4-whatsnext,#at4m-mobile,#at15s,.at4,.at4-recommended{display:none!important}}@media screen and (max-width:400px){.at4win{width:100%}}@media screen and (max-height:700px) and (max-width:400px){.at4-thankyou-inner .at4-recommended-container{height:122px;overflow:hidden}.at4-thankyou-inner .at4-recommended .at4-recommended-item:first-child{border-bottom:1px solid #c5c5c5}}</style><style type="text/css">.at-branding-logo{font-family:helvetica,arial,sans-serif;text-decoration:none;font-size:10px;display:inline-block;margin:2px 0;letter-spacing:.2px}.at-branding-logo .at-branding-icon{background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRF////+GlNUkcc1QAAAB1JREFUeNpiYIQDBjQmAwMmkwEM0JnY1WIxFyDAABGeAFEudiZsAAAAAElFTkSuQmCC")}.at-branding-logo .at-branding-icon,.at-branding-logo .at-privacy-icon{display:inline-block;height:10px;width:10px;margin-left:4px;margin-right:3px;margin-bottom:-1px;background-repeat:no-repeat}.at-branding-logo .at-privacy-icon{background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAKCAMAAABR24SMAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAABhQTFRF8fr9ot/xXcfn2/P5AKva////////AKTWodjhjAAAAAd0Uk5T////////ABpLA0YAAAA6SURBVHjaJMzBDQAwCAJAQaj7b9xifV0kUKJ9ciWxlzWEWI5gMF65KUTv0VKkjVeTerqE/x7+9BVgAEXbAWI8QDcfAAAAAElFTkSuQmCC")}.at-branding-logo span{text-decoration:none}.at-branding-logo .at-branding-addthis,.at-branding-logo .at-branding-powered-by{color:#666}.at-branding-logo .at-branding-addthis:hover{color:#333}.at-cv-with-image .at-branding-addthis,.at-cv-with-image .at-branding-addthis:hover{color:#fff}a.at-branding-logo:visited{color:initial}.at-branding-info{display:inline-block;padding:0 5px;color:#666;border:1px solid #666;border-radius:50%;font-size:10px;line-height:9pt;opacity:.7;transition:all .3s ease;text-decoration:none}.at-branding-info span{border:0;clip:rect(0 0 0 0);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px}.at-branding-info:before{content:'i';font-family:Times New Roman}.at-branding-info:hover{color:#0780df;border-color:#0780df}</style></head>
+<body class="mediawiki ltr sitedir-ltr ns-0 ns-subject page-CC1101 skin-vector action-view">
+		<div id="mw-page-base" class="noprint"></div>
+		<div id="mw-head-base" class="noprint"></div>
+		<div id="content" class="mw-body" role="main">
+			<a id="top"></a>
+
+						<div class="mw-indicators">
+</div>
+			<h1 id="firstHeading" class="firstHeading" lang="en">CC1101</h1>
+						<div id="bodyContent" class="mw-body-content">
+									<div id="siteSub">From ElectroDragon</div>
+								<div id="contentSub"></div>
+												<div id="jump-to-nav" class="mw-jump">
+					Jump to:					<a href="http://www.electrodragon.com/w/CC1101#mw-head">navigation</a>, 					<a href="http://www.electrodragon.com/w/CC1101#p-search">search</a>
+				</div>
+				<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><!-- AddThis Button BEGIN -->
+			<div class="addthis_toolbox addthis_default_style" id="addthistoolbar" style="background:#f6f6f6; border-color:#a7d7f9;">
+			<a href="http://www.addthis.com/bookmark.php?v=250&amp;pubid=ra-5036496927df2238" class="addthis_button_compact at300m"><span class="at-icon-wrapper" style="background-color: rgb(255, 101, 80); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-addthis-1" title="More" alt="More" style="width: 16px; height: 16px;" class="at-icon at-icon-addthis"><title id="at-svg-addthis-1">Addthis</title><g><path d="M18 14V8h-4v6H8v4h6v6h4v-6h6v-4h-6z" fill-rule="evenodd"></path></g></svg></span>&nbsp;Share</a><span class="addthis_separator">&nbsp;</span><a class="addthis_button_facebook at300b" title="Facebook" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(59, 89, 152); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-facebook-2" title="Facebook" alt="Facebook" style="width: 16px; height: 16px;" class="at-icon at-icon-facebook"><title id="at-svg-facebook-2">Facebook</title><g><path d="M22 5.16c-.406-.054-1.806-.16-3.43-.16-3.4 0-5.733 1.825-5.733 5.17v2.882H9v3.913h3.837V27h4.604V16.965h3.823l.587-3.913h-4.41v-2.5c0-1.123.347-1.903 2.198-1.903H22V5.16z" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_twitter at300b" title="Twitter" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(29, 161, 242); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-twitter-3" title="Twitter" alt="Twitter" style="width: 16px; height: 16px;" class="at-icon at-icon-twitter"><title id="at-svg-twitter-3">Twitter</title><g><path d="M27.996 10.116c-.81.36-1.68.602-2.592.71a4.526 4.526 0 0 0 1.984-2.496 9.037 9.037 0 0 1-2.866 1.095 4.513 4.513 0 0 0-7.69 4.116 12.81 12.81 0 0 1-9.3-4.715 4.49 4.49 0 0 0-.612 2.27 4.51 4.51 0 0 0 2.008 3.755 4.495 4.495 0 0 1-2.044-.564v.057a4.515 4.515 0 0 0 3.62 4.425 4.52 4.52 0 0 1-2.04.077 4.517 4.517 0 0 0 4.217 3.134 9.055 9.055 0 0 1-5.604 1.93A9.18 9.18 0 0 1 6 23.85a12.773 12.773 0 0 0 6.918 2.027c8.3 0 12.84-6.876 12.84-12.84 0-.195-.005-.39-.014-.583a9.172 9.172 0 0 0 2.252-2.336" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_google_plusone at300b" g:plusone:count="false" style="margin-top:1px;"><div class="google_plusone_iframe_widget" style="width: 90px; height: 25px;"><span><div id="___plusone_0" style="text-indent: 0px; margin: 0px; padding: 0px; background: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 24px; height: 15px;"><iframe ng-non-bindable="" frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 24px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 15px;" tabindex="0" vspace="0" width="100%" id="I0_1507391739563" name="I0_1507391739563" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/fastbutton.html" data-gapiattached="true" title="G+"></iframe></div></span></div></a><a class="addthis_button_linkedin at300b" target="_blank" title="LinkedIn" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(0, 119, 181); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-linkedin-4" title="LinkedIn" alt="LinkedIn" style="width: 16px; height: 16px;" class="at-icon at-icon-linkedin"><title id="at-svg-linkedin-4">LinkedIn</title><g><path d="M26 25.963h-4.185v-6.55c0-1.56-.027-3.57-2.175-3.57-2.18 0-2.51 1.7-2.51 3.46v6.66h-4.182V12.495h4.012v1.84h.058c.558-1.058 1.924-2.174 3.96-2.174 4.24 0 5.022 2.79 5.022 6.417v7.386zM8.23 10.655a2.426 2.426 0 0 1 0-4.855 2.427 2.427 0 0 1 0 4.855zm-2.098 1.84h4.19v13.468h-4.19V12.495z" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_tumblr at300b" target="_blank" title="Tumblr" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(55, 69, 92); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-tumblr-5" title="Tumblr" alt="Tumblr" style="width: 16px; height: 16px;" class="at-icon at-icon-tumblr"><title id="at-svg-tumblr-5">Tumblr</title><g><path d="M19.59 22.176c-.392.186-1.14.348-1.695.362-1.682.045-2.008-1.18-2.022-2.07V13.93h4.218v-3.18H15.89V5.403h-3.076c-.05 0-.138.044-.15.157-.18 1.636-.947 4.51-4.133 5.66v2.71h2.124v6.862c0 2.35 1.733 5.688 6.308 5.61 1.544-.028 3.258-.674 3.637-1.23l-1.01-2.996" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_stumbleupon at300b" target="_blank" title="StumbleUpon" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(235, 73, 36); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-stumbleupon-6" title="StumbleUpon" alt="StumbleUpon" style="width: 16px; height: 16px;" class="at-icon at-icon-stumbleupon"><title id="at-svg-stumbleupon-6">StumbleUpon</title><g><path d="M17.17 14.29l1.5.7 2.234-.665v-1.558C20.904 10.12 18.67 8 16 8c-2.658 0-4.904 2.108-4.904 4.732v7.104c0 .654-.527 1.17-1.17 1.17-.64 0-1.168-.516-1.168-1.17v-3.002H5v3.048c0 2.716 2.2 4.916 4.916 4.916 2.692 0 4.915-2.166 4.915-4.847v-7.01c0-.643.528-1.17 1.17-1.17.642 0 1.17.527 1.17 1.17v1.35zm6.072 2.544v3.15c0 .643-.527 1.16-1.17 1.16-.64 0-1.168-.517-1.168-1.16v-3.092l-2.234.664-1.5-.7v3.072c0 2.693 2.21 4.87 4.914 4.87 2.716 0 4.916-2.2 4.916-4.916v-3.048h-3.758z" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_reddit at300b" target="_blank" title="Reddit" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(255, 87, 0); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-reddit-7" title="Reddit" alt="Reddit" style="width: 16px; height: 16px;" class="at-icon at-icon-reddit"><title id="at-svg-reddit-7">Reddit</title><g><path d="M27 15.5a2.452 2.452 0 0 1-1.338 2.21c.098.38.147.777.147 1.19 0 1.283-.437 2.47-1.308 3.563-.872 1.092-2.06 1.955-3.567 2.588-1.506.634-3.143.95-4.91.95-1.768 0-3.403-.316-4.905-.95-1.502-.632-2.69-1.495-3.56-2.587-.872-1.092-1.308-2.28-1.308-3.562 0-.388.045-.777.135-1.166a2.47 2.47 0 0 1-1.006-.912c-.253-.4-.38-.842-.38-1.322 0-.678.237-1.26.712-1.744a2.334 2.334 0 0 1 1.73-.726c.697 0 1.29.26 1.78.782 1.785-1.258 3.893-1.928 6.324-2.01l1.424-6.467a.42.42 0 0 1 .184-.26.4.4 0 0 1 .32-.063l4.53 1.006c.147-.306.368-.553.662-.74a1.78 1.78 0 0 1 .97-.278c.508 0 .94.18 1.302.54.36.36.54.796.54 1.31 0 .512-.18.95-.54 1.315-.36.364-.794.546-1.302.546-.507 0-.94-.18-1.295-.54a1.793 1.793 0 0 1-.533-1.308l-4.1-.92-1.277 5.86c2.455.074 4.58.736 6.37 1.985a2.315 2.315 0 0 1 1.757-.757c.68 0 1.256.242 1.73.726.476.484.713 1.066.713 1.744zm-16.868 2.47c0 .513.178.95.534 1.315.356.365.787.547 1.295.547.508 0 .942-.182 1.302-.547.36-.364.54-.802.54-1.315 0-.513-.18-.95-.54-1.31-.36-.36-.794-.54-1.3-.54-.5 0-.93.183-1.29.547a1.79 1.79 0 0 0-.54 1.303zm9.944 4.406c.09-.09.135-.2.135-.323a.444.444 0 0 0-.44-.447c-.124 0-.23.042-.32.124-.336.348-.83.605-1.486.77a7.99 7.99 0 0 1-1.964.248 7.99 7.99 0 0 1-1.964-.248c-.655-.165-1.15-.422-1.486-.77a.456.456 0 0 0-.32-.124.414.414 0 0 0-.306.124.41.41 0 0 0-.135.317.45.45 0 0 0 .134.33c.352.355.837.636 1.455.843.617.207 1.118.33 1.503.366a11.6 11.6 0 0 0 1.117.056c.36 0 .733-.02 1.117-.056.385-.037.886-.16 1.504-.366.62-.207 1.104-.488 1.456-.844zm-.037-2.544c.507 0 .938-.182 1.294-.547.356-.364.534-.802.534-1.315 0-.505-.18-.94-.54-1.303a1.75 1.75 0 0 0-1.29-.546c-.506 0-.94.18-1.3.54-.36.36-.54.797-.54 1.31s.18.95.54 1.315c.36.365.794.547 1.3.547z" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_email at300b" target="_blank" title="Email" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(132, 132, 132); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-email-8" title="Email" alt="Email" style="width: 16px; height: 16px;" class="at-icon at-icon-email"><title id="at-svg-email-8">Email</title><g><g fill-rule="evenodd"></g><path d="M27 22.757c0 1.24-.988 2.243-2.19 2.243H7.19C5.98 25 5 23.994 5 22.757V13.67c0-.556.39-.773.855-.496l8.78 5.238c.782.467 1.95.467 2.73 0l8.78-5.238c.472-.28.855-.063.855.495v9.087z"></path><path d="M27 9.243C27 8.006 26.02 7 24.81 7H7.19C5.988 7 5 8.004 5 9.243v.465c0 .554.385 1.232.857 1.514l9.61 5.733c.267.16.8.16 1.067 0l9.61-5.733c.473-.283.856-.96.856-1.514v-.465z"></path></g></svg></span></a><div class="atclear"></div></div>
+			<script type="text/javascript" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/addthis_widget.js.download"></script><div id="toc" class="toc"><div id="toctitle"><h2>Contents</h2><span class="toctoggle">&nbsp;[<a href="http://www.electrodragon.com/w/CC1101#" id="togglelink">hide</a>]&nbsp;</span></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="http://www.electrodragon.com/w/CC1101#Using_With_Arduino"><span class="tocnumber">1</span> <span class="toctext">Using With Arduino</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="http://www.electrodragon.com/w/CC1101#Arduino_Library_Panstamp_Use_Guide"><span class="tocnumber">2</span> <span class="toctext">Arduino Library Panstamp Use Guide</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="http://www.electrodragon.com/w/CC1101#Demo_Sketch"><span class="tocnumber">2.1</span> <span class="toctext">Demo Sketch</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="http://www.electrodragon.com/w/CC1101#CC1101_UART_Board"><span class="tocnumber">3</span> <span class="toctext">CC1101 UART Board</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="http://www.electrodragon.com/w/CC1101#Documents"><span class="tocnumber">4</span> <span class="toctext">Documents</span></a></li>
+</ul>
+</div>
+
+<h2><span class="mw-headline" id="Using_With_Arduino">Using With Arduino</span></h2>
+<table class="wikitable sortable jquery-tablesorter" align="right">
+
+<thead><tr>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> CC1101 Pins </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Arduino Pins </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Description
+</th></tr></thead><tbody>
+<tr>
+<td> SCK </td>
+<td> Arduino SCK PIN13</td>
+<td> Clock Pin
+</td></tr>
+<tr>
+<td> SI </td>
+<td> Arduino MISO Pin12 </td>
+<td> Data input
+</td></tr>
+<tr>
+<td> SO </td>
+<td> Arduino MOSI Pin11 </td>
+<td> Data output
+</td></tr>
+<tr>
+<td> SS </td>
+<td> Arduino SS Pin10 </td>
+<td> Chip select
+</td></tr>
+<tr>
+<td> GDO2 </td>
+<td> Arduino Pin 9 </td>
+<td> output as a symbol of receiving or sending data
+</td></tr>
+<tr>
+<td> GDO0 </td>
+<td> Arduino Pin 2</td>
+<td> serial clock output
+</td></tr>
+<tr>
+<td> VCC 3.3/5V </td>
+<td> Arduino VCC 3.3/5V </td>
+<td> VCC
+</td></tr>
+<tr>
+<td> GND </td>
+<td> GND </td>
+<td> Ground
+</td></tr></tbody><tfoot></tfoot></table>
+<ul><li> Connect SPI to arduino SPI pins</li>
+<li> Demo code available in documents section below</li>
+<li> This is the demo code, you may need to add some delays (delay(3000);) to slow down the serial output</li></ul>
+<ul class="gallery mw-gallery-traditional">
+		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
+			<div class="thumb" style="width: 150px;"><div style="margin:30px auto;"><a href="http://www.electrodragon.com/w/File:Cc1101_to_arduino_wiring.jpg" class="image"><img alt="Cc1101 to arduino wiring.jpg" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/120px-Cc1101_to_arduino_wiring.jpg" width="120" height="90" srcset="/w/images/thumb/f/fd/Cc1101_to_arduino_wiring.jpg/180px-Cc1101_to_arduino_wiring.jpg 1.5x, /w/images/thumb/f/fd/Cc1101_to_arduino_wiring.jpg/240px-Cc1101_to_arduino_wiring.jpg 2x"></a></div></div>
+			<div class="gallerytext">
+			</div>
+		</div></li>
+		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
+			<div class="thumb" style="width: 150px;"><div style="margin:37px auto;"><a href="http://www.electrodragon.com/w/File:CC1101_pinouts.JPG" class="image"><img alt="CC1101 pinouts.JPG" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/120px-CC1101_pinouts.JPG" width="120" height="76" srcset="/w/images/thumb/d/dc/CC1101_pinouts.JPG/180px-CC1101_pinouts.JPG 1.5x, /w/images/thumb/d/dc/CC1101_pinouts.JPG/240px-CC1101_pinouts.JPG 2x"></a></div></div>
+			<div class="gallerytext">
+			</div>
+		</div></li>
+		<li class="gallerybox" style="width: 155px"><div style="width: 155px">
+			<div class="thumb" style="width: 150px;"><div style="margin:15px auto;"><a href="http://www.electrodragon.com/w/File:CC1101_output.png" class="image"><img alt="" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/89px-CC1101_output.png" width="89" height="120" srcset="/w/images/thumb/d/d1/CC1101_output.png/134px-CC1101_output.png 1.5x, /w/images/thumb/d/d1/CC1101_output.png/179px-CC1101_output.png 2x"></a></div></div>
+			<div class="gallerytext">
+<p>The demo code generate number from 0-60
+</p>
+			</div>
+		</div></li>
+</ul>
+<h2><span class="mw-headline" id="Arduino_Library_Panstamp_Use_Guide">Arduino Library Panstamp Use Guide</span></h2>
+<ul><li> Wiring to arduino, use the same pin as the table above, only NC for GDO2<br></li></ul>
+<div class="thumb tright"><div class="thumbinner" style="width:302px;"><a href="http://www.electrodragon.com/w/File:Cc1101_2_bb.png" class="image"><img alt="Cc1101 2 bb.png" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/300px-Cc1101_2_bb.png" width="300" height="252" class="thumbimage" srcset="/w/images/thumb/a/a7/Cc1101_2_bb.png/450px-Cc1101_2_bb.png 1.5x, /w/images/thumb/a/a7/Cc1101_2_bb.png/600px-Cc1101_2_bb.png 2x"></a>  <div class="thumbcaption"><div class="magnify"><a href="http://www.electrodragon.com/w/File:Cc1101_2_bb.png" class="internal" title="Enlarge"></a></div></div></div></div>
+<ul><li> Find panstamp arduino library below</li></ul>
+<h3><span class="mw-headline" id="Demo_Sketch">Demo Sketch</span></h3>
+<p><b> Transmitting </b>
+The demo code will send a counter from 0 - 50 in hex to the receiver, data length of 10, counter on second byte
+</p>
+<div dir="ltr" class="mw-geshi mw-code mw-content-ltr"><div class="arduino source-arduino"><pre class="de1">&nbsp;
+<span class="co2">#include "EEPROM.h"</span>
+<span class="co2">#include "cc1101.h"</span>
+&nbsp;
+CC1101 cc1101<span class="sy0">;</span>
+&nbsp;
+<span class="co1">// The LED is wired to the Arduino Output 4 (physical panStamp pin 19)</span>
+<span class="co2">#define LEDOUTPUT 13</span>
+&nbsp;
+<span class="co1">// counter to get increment in each loop</span>
+<span class="kw4">byte</span> counter<span class="sy0">;</span>
+<span class="kw4">byte</span> b<span class="sy0">;</span>
+<span class="kw4">byte</span> syncWord <span class="sy0">=</span> <span class="nu0">199</span><span class="sy0">;</span>
+&nbsp;
+<span class="kw4">void</span> blinker<span class="br0">(</span><span class="br0">)</span><span class="br0">{</span>
+<span class="kw3">digitalWrite</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">HIGH</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">delay</span><span class="br0">(</span><span class="nu0">100</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">digitalWrite</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">LOW</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">delay</span><span class="br0">(</span><span class="nu0">100</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">void</span> setup<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+<span class="kw3">Serial</span>.<span class="me1">begin</span><span class="br0">(</span><span class="nu0">9600</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"start"</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+<span class="co1">// setup the blinker output</span>
+<span class="kw3">pinMode</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">OUTPUT</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">digitalWrite</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">LOW</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+<span class="co1">// blink once to signal the setup</span>
+blinker<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+<span class="co1">// reset the counter</span>
+counter<span class="sy0">=</span><span class="nu0">0</span><span class="sy0">;</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"initializing..."</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="co1">// initialize the RF Chip</span>
+cc1101.<span class="me1">init</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+cc1101.<span class="me1">setSyncWord</span><span class="br0">(</span><span class="sy0">&amp;</span>syncWord<span class="sy0">,</span> <span class="kw2">false</span><span class="br0">)</span><span class="sy0">;</span>
+cc1101.<span class="me1">setCarrierFreq</span><span class="br0">(</span>CFREQ_433<span class="br0">)</span><span class="sy0">;</span>
+cc1101.<span class="me1">disableAddressCheck</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="co1">//cc1101.setTxPowerAmp(PA_LowPower);</span>
+&nbsp;
+<span class="kw3">delay</span><span class="br0">(</span><span class="nu0">1000</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+<span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_PARTNUM "</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">//cc1101=0</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_PARTNUM<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_VERSION "</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">//cc1101=4</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_VERSION<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_MARCSTATE "</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_MARCSTATE<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span> <span class="sy0">&amp;</span> <span class="nu12">0x1f</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"device initialized"</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="co1">//Serial.println("done");</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">void</span> send_data<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+CCPACKET data<span class="sy0">;</span>
+data.<span class="me1">length</span><span class="sy0">=</span><span class="nu0">10</span><span class="sy0">;</span>
+<span class="kw4">byte</span> blinkCount<span class="sy0">=</span>counter<span class="sy0">++;</span>
+data.<span class="me1">data</span><span class="br0">[</span><span class="nu0">0</span><span class="br0">]</span><span class="sy0">=</span><span class="nu0">5</span><span class="sy0">;</span>
+data.<span class="me1">data</span><span class="br0">[</span><span class="nu0">1</span><span class="br0">]</span><span class="sy0">=</span>blinkCount<span class="sy0">;</span>data.<span class="me1">data</span><span class="br0">[</span><span class="nu0">2</span><span class="br0">]</span><span class="sy0">=</span><span class="nu0">0</span><span class="sy0">;</span>
+data.<span class="me1">data</span><span class="br0">[</span><span class="nu0">3</span><span class="br0">]</span><span class="sy0">=</span><span class="nu0">1</span><span class="sy0">;</span>data.<span class="me1">data</span><span class="br0">[</span><span class="nu0">4</span><span class="br0">]</span><span class="sy0">=</span><span class="nu0">0</span><span class="sy0">;</span>
+<span class="co1">//cc1101.flushTxFifo ();</span>
+<span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_MARCSTATE "</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_MARCSTATE<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span> <span class="sy0">&amp;</span> <span class="nu12">0x1f</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw1">if</span><span class="br0">(</span>cc1101.<span class="me1">sendData</span><span class="br0">(</span>data<span class="br0">)</span><span class="br0">)</span><span class="br0">{</span>
+<span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span>blinkCount<span class="sy0">,</span>HEX<span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">" sent ok&nbsp;:)"</span><span class="br0">)</span><span class="sy0">;</span>
+blinker<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span><span class="kw1">else</span><span class="br0">{</span>
+<span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"sent failed&nbsp;:("</span><span class="br0">)</span><span class="sy0">;</span>
+blinker<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+blinker<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">void</span> loop<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+send_data<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="kw3">delay</span><span class="br0">(</span><span class="nu0">4000</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span></pre></div></div>
+<p><b> Receiving </b>
+</p>
+<div dir="ltr" class="mw-geshi mw-code mw-content-ltr"><div class="arduino source-arduino"><pre class="de1"><span class="co2">#include "EEPROM.h"</span>
+<span class="co2">#include "cc1101.h"</span>
+&nbsp;
+<span class="co1">// The LED is wired to the Arduino Output 4 (physical panStamp pin 19)</span>
+<span class="co2">#define LEDOUTPUT 4</span>
+&nbsp;
+<span class="co1">// The connection to the hardware chip CC1101 the RF Chip</span>
+CC1101 cc1101<span class="sy0">;</span>
+&nbsp;
+<span class="kw4">byte</span> b<span class="sy0">;</span>
+<span class="kw4">byte</span> i<span class="sy0">;</span>
+<span class="kw4">byte</span> syncWord <span class="sy0">=</span> <span class="nu0">199</span><span class="sy0">;</span>
+<span class="kw4">long</span> counter <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+<span class="kw4">byte</span> chan <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+&nbsp;
+<span class="co1">// a flag that a wireless packet has been received</span>
+<span class="kw4">boolean</span> packetAvailable <span class="sy0">=</span> <span class="kw2">false</span><span class="sy0">;</span>
+&nbsp;
+<span class="kw4">void</span> blinker<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw3">digitalWrite</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">HIGH</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">delay</span><span class="br0">(</span><span class="nu0">100</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">digitalWrite</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">LOW</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">delay</span><span class="br0">(</span><span class="nu0">100</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="coMULTI">/* Handle interrupt from CC1101 (INT0) gdo0 on pin2 */</span>
+<span class="kw4">void</span> cc1101signalsInterrupt<span class="br0">(</span><span class="kw4">void</span><span class="br0">)</span> <span class="br0">{</span>
+  <span class="co1">// set the flag that a package is available</span>
+  packetAvailable <span class="sy0">=</span> <span class="kw2">true</span><span class="sy0">;</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">void</span> setup<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+  <span class="kw3">Serial</span>.<span class="me1">begin</span><span class="br0">(</span><span class="nu0">9600</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"start"</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+  <span class="co1">// setup the blinker output</span>
+  <span class="kw3">pinMode</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">OUTPUT</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">digitalWrite</span><span class="br0">(</span>LEDOUTPUT<span class="sy0">,</span> <span class="kw2">LOW</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+  <span class="co1">// blink once to signal the setup</span>
+  blinker<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="co1">// initialize the RF Chip</span>
+  cc1101.<span class="me1">init</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+  cc1101.<span class="me1">setSyncWord</span><span class="br0">(</span><span class="sy0">&amp;</span>syncWord<span class="sy0">,</span> <span class="kw2">false</span><span class="br0">)</span><span class="sy0">;</span>
+  cc1101.<span class="me1">setCarrierFreq</span><span class="br0">(</span>CFREQ_433<span class="br0">)</span><span class="sy0">;</span>
+  cc1101.<span class="me1">disableAddressCheck</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">//if not specified, will only display "packet received"</span>
+  <span class="co1">//cc1101.setTxPowerAmp(PA_LowPower);</span>
+&nbsp;
+  <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_PARTNUM "</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">//cc1101=0</span>
+  <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_PARTNUM<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_VERSION "</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">//cc1101=4</span>
+  <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_VERSION<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_MARCSTATE "</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_MARCSTATE<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span> <span class="sy0">&amp;</span> <span class="nu12">0x1f</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+  <span class="kw3">attachInterrupt</span><span class="br0">(</span><span class="nu0">0</span><span class="sy0">,</span> cc1101signalsInterrupt<span class="sy0">,</span> FALLING<span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+  <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"device initialized"</span><span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">void</span> ReadLQI<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+  <span class="kw4">byte</span> lqi <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+  <span class="kw4">byte</span> value <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+  lqi <span class="sy0">=</span> <span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_LQI<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+  value <span class="sy0">=</span> <span class="nu12">0x3F</span> <span class="sy0">-</span> <span class="br0">(</span>lqi <span class="sy0">&amp;</span> <span class="nu12">0x3F</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_LQI "</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>value<span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">void</span> ReadRSSI<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+  <span class="kw4">byte</span> rssi <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+  <span class="kw4">byte</span> value <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+&nbsp;
+  rssi <span class="sy0">=</span> <span class="br0">(</span>cc1101.<span class="me1">readReg</span><span class="br0">(</span>CC1101_RSSI<span class="sy0">,</span> CC1101_STATUS_REGISTER<span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+  <span class="kw1">if</span> <span class="br0">(</span>rssi <span class="sy0">&gt;=</span> <span class="nu0">128</span><span class="br0">)</span>
+  <span class="br0">{</span>
+    value <span class="sy0">=</span> <span class="nu0">255</span> <span class="sy0">-</span> rssi<span class="sy0">;</span>
+    value <span class="sy0">/=</span> <span class="nu0">2</span><span class="sy0">;</span>
+    value <span class="sy0">+=</span> <span class="nu0">74</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+  <span class="kw1">else</span>
+  <span class="br0">{</span>
+    value <span class="sy0">=</span> rssi <span class="sy0">/</span> <span class="nu0">2</span><span class="sy0">;</span>
+    value <span class="sy0">+=</span> <span class="nu0">74</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+  <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"CC1101_RSSI "</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span>value<span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+&nbsp;
+<span class="kw4">void</span> loop<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+  <span class="kw1">if</span> <span class="br0">(</span>packetAvailable<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"packet received"</span><span class="br0">)</span><span class="sy0">;</span>
+    <span class="co1">// Disable wireless reception interrupt</span>
+    <span class="kw3">detachInterrupt</span><span class="br0">(</span><span class="nu0">0</span><span class="br0">)</span><span class="sy0">;</span>
+&nbsp;
+    ReadRSSI<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    ReadLQI<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    <span class="co1">// clear the flag</span>
+    packetAvailable <span class="sy0">=</span> <span class="kw2">false</span><span class="sy0">;</span>
+&nbsp;
+    CCPACKET packet<span class="sy0">;</span>
+&nbsp;
+    <span class="kw1">if</span> <span class="br0">(</span>cc1101.<span class="me1">receiveData</span><span class="br0">(</span><span class="sy0">&amp;</span>packet<span class="br0">)</span> <span class="sy0">&gt;</span> <span class="nu0">0</span><span class="br0">)</span> <span class="br0">{</span>
+      <span class="kw1">if</span> <span class="br0">(</span><span class="sy0">!</span>packet.<span class="me1">crc_ok</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"crc not ok"</span><span class="br0">)</span><span class="sy0">;</span>
+      <span class="br0">}</span>
+&nbsp;
+      <span class="kw1">if</span> <span class="br0">(</span>packet.<span class="me1">length</span> <span class="sy0">&gt;</span> <span class="nu0">0</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"packet: len "</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span>packet.<span class="me1">length</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">" data: "</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="kw1">for</span> <span class="br0">(</span><span class="kw4">int</span> j <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span> j <span class="sy0">&lt;</span> packet.<span class="me1">length</span><span class="sy0">;</span> j<span class="sy0">++</span><span class="br0">)</span> <span class="br0">{</span>
+          <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span>packet.<span class="me1">data</span><span class="br0">[</span>j<span class="br0">]</span><span class="sy0">,</span> HEX<span class="br0">)</span><span class="sy0">;</span>
+          <span class="kw3">Serial</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">" "</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+        <span class="kw3">Serial</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"."</span><span class="br0">)</span><span class="sy0">;</span>
+      <span class="br0">}</span>
+    <span class="br0">}</span>
+    <span class="co1">// Enable wireless reception interrupt</span>
+    <span class="kw3">attachInterrupt</span><span class="br0">(</span><span class="nu0">0</span><span class="sy0">,</span> cc1101signalsInterrupt<span class="sy0">,</span> FALLING<span class="br0">)</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+<span class="br0">}</span></pre></div></div>
+<h2><span class="mw-headline" id="CC1101_UART_Board">CC1101 UART Board</span></h2>
+<p>Pin definition from Front View, From left to right
+</p>
+<table class="wikitable sortable jquery-tablesorter">
+
+<thead><tr>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Pins </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Definition </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Description </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> connect to </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> P.S
+</th></tr></thead><tbody>
+<tr>
+<td> 1 </td>
+<td> Sleep </td>
+<td> Sleep mode </td>
+<td> - </td>
+<td> This function is not designed yet
+</td></tr>
+<tr>
+<td> 2 </td>
+<td> Reset </td>
+<td> Reset </td>
+<td> Not necessary to connect </td>
+<td> -
+</td></tr>
+<tr>
+<td> 3 </td>
+<td> VCC </td>
+<td> Power </td>
+<td> +2.7V~5.5V </td>
+<td> Recommended +4.5~+5.5V
+</td></tr>
+<tr>
+<td> 4 </td>
+<td> Rx </td>
+<td> Data input </td>
+<td> UART data input </td>
+<td> TTL
+</td></tr>
+<tr>
+<td> 5 </td>
+<td> Tx </td>
+<td> Data output </td>
+<td> UART data output </td>
+<td> TTL
+</td></tr>
+<tr>
+<td> 6 </td>
+<td> GND </td>
+<td> GND </td>
+<td> GND </td>
+<td> -
+</td></tr></tbody><tfoot></tfoot></table>
+<p><b>Setting </b>
+</p>
+<table class="wikitable sortable jquery-tablesorter">
+
+<thead><tr>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Commands </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Commands + Data </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> Example </th>
+<th class="headerSort" tabindex="0" role="columnheader button" title="Sort ascending"> note
+</th></tr></thead><tbody>
+<tr>
+<td> Set operation frequency</td>
+<td> A7,7A + 00 </td>
+<td> send A7 7A 06, the channel will be set to 6 </td>
+<td> Channel value from 0×00~0xEE, 238 channels in total
+</td></tr>
+<tr>
+<td> Set baud rate</td>
+<td> A3, 3A + 01 </td>
+<td> send A3 3A 03 set the baud rate to 19200 </td>
+<td> 01：4800, 02：9600, 03：19200
+</td></tr>
+<tr>
+<td> Set operation power </td>
+<td> AB,BA + 00 </td>
+<td> send AB BA 0A, set the operation transmission power to 10dBM </td>
+<td> Transmission power can be 0、5、7、10dBM
+</td></tr>
+<tr>
+<td> Set module ID </td>
+<td> A9, 9A + 00 09 </td>
+<td> send A9 9A 00 08, set the module ID to 8, this ID are stored in EEPROM </td>
+<td> If the ID need to be converted into hex first
+</td></tr>
+<tr>
+<td> Read module specification </td>
+<td> A6, 6A </td>
+<td> send A6, 6A, return A6 00 64 02 0A 00 00 = The initial code returned, Operation channels, Data speed 100Kbps, 02 Means the baud rate is 9600, Transmission Power is 10dBm, Module ID
+</td></tr></tbody><tfoot></tfoot></table>
+<ul><li> Default settings, Operation channel = 0, Data speed = 100kbps, Baud rate = 9600, Transmission Power = 10mW, Module ID = 00 00</li>
+<li> Note: Send only less than 30 bytes data each time, otherwise it will not succeed<br></li></ul>
+<h2><span class="mw-headline" id="Documents">Documents</span></h2>
+<p>Demo Code for Arduino
+</p>
+<ul><li> <a href="http://www.electrodragon.com/w/File:CC1101.zip" title="File:CC1101.zip">Code here.</a></li></ul>
+<p>Panstamp arduino Library
+</p>
+<ul><li> Download the library here: <a href="http://www.electrodragon.com/w/File:Panstamp.zip" title="File:Panstamp.zip">File:Panstamp.zip</a>, please only use this file, the new version of panstamp can not work well.</li>
+<li> The initial <a rel="nofollow" class="external text" href="http://forum.arduino.cc/index.php?topic=169829.0">thread</a> on the Arduino forum.</li></ul>
+<p>CC1101 datasheet
+</p>
+<ul><li> <a rel="nofollow" class="external text" href="http://focus.ti.com.cn/cn/lit/ds/symlink/cc1101.pdf">CC1101 datasheet</a></li></ul>
+<p>CC1101 UART version
+</p>
+<ul><li> <a rel="nofollow" class="external text" href="http://www.electrodragon.com/wp-content/uploads/2011/11/CC1101-Module-Manual.pdf">Datasheet of CC1101</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.elechouse.com/elechouse/images/product/CC1101%20Wirless%20Data%20Transmittion%20Module/CC1101%20Module%20Manual.pdf">User manual</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.electrodragon.com/wp-content/uploads/2011/11/Code.rar">Arduino Code and Lirary</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.electrodragon.com/wp-content/uploads/2011/11/CC1100-with-atmega8.rar">Demo code for atmega8</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.electrodragon.com/wp-content/uploads/2011/11/CC1101-example-code-for-ATmega16-AVR-GCC-compiler.rar">CC1101 example code for ATmega16 (AVR GCC compiler)</a></li>
+<li> <a rel="nofollow" class="external text" href="http://www.electrodragon.com/wp-content/uploads/2011/11/RS232-Atmega-48-CC1100.rar.rar">Code for Atemga48</a> </li></ul>
+<p>SmartRF
+</p>
+<ul><li> <a rel="nofollow" class="external free" href="http://www.ti.com/tool/smartrftm-studio">http://www.ti.com/tool/smartrftm-studio</a> find the SmartRF tool to adjust the parapmeters of CC1101, such as frequency 433, 915, modulation ask, fsk, etc.</li></ul>
+
+<!-- 
+NewPP limit report
+CPU time usage: 0.073 seconds
+Real time usage: 0.086 seconds
+Preprocessor visited node count: 49/1000000
+Preprocessor generated node count: 94/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+-->
+
+<!-- 
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 - -total
+-->
+
+<!-- Saved in parser cache with key edwiki:pcache:idhash:1298-0!*!*!!en!5!* and timestamp 20171007110706 and revision id 13169
+ -->
+</div>									<div class="printfooter">
+						Retrieved from "<a dir="ltr" href="http://www.electrodragon.com/w/index.php?title=CC1101&amp;oldid=13169">http://www.electrodragon.com/w/index.php?title=CC1101&amp;oldid=13169</a>"					</div>
+													<div id="catlinks" class="catlinks"><div id="mw-normal-catlinks" class="mw-normal-catlinks"><a href="http://www.electrodragon.com/w/Special:Categories" title="Special:Categories">Category</a>: <ul><li><a href="http://www.electrodragon.com/w/Category:Wireless" title="Category:Wireless">Wireless</a></li></ul></div></div>												<div class="visualClear"></div>
+							</div>
+		</div><div id="_atssh" style="visibility: hidden; height: 1px; width: 1px; position: absolute; top: -9999px; z-index: 100000;"><iframe id="_atssh908" title="AddThis utility frame" style="height: 1px; width: 1px; position: absolute; top: 0px; z-index: 100000; border: 0px; left: 0px;" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/sh.c7f897d92405181bbe1705e3.html"></iframe></div><style id="service-icons-0"></style>
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" class="" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-login"><a href="http://www.electrodragon.com/w/index.php?title=Special:UserLogin&amp;returnto=CC1101" title="You are encouraged to log in; however, it is not mandatory [alt-shift-o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+															<li id="ca-nstab-main" class="selected"><span><a href="http://www.electrodragon.com/w/CC1101" title="View the content page [alt-shift-c]" accesskey="c">Page</a></span></li>
+															<li id="ca-talk" class="new"><span><a href="http://www.electrodragon.com/w/index.php?title=Talk:CC1101&amp;action=edit&amp;redlink=1" title="Discussion about the content page [alt-shift-t]" accesskey="t">Discussion</a></span></li>
+													</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<h3 id="p-variants-label" tabindex="0"><span>Variants</span><a href="http://www.electrodragon.com/w/CC1101#" tabindex="-1"></a></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+															<li id="ca-view" class="selected"><span><a href="http://www.electrodragon.com/w/CC1101">Read</a></span></li>
+															<li id="ca-viewsource"><span><a href="http://www.electrodragon.com/w/index.php?title=CC1101&amp;action=edit" title="This page is protected.
+You can view its source [alt-shift-e]" accesskey="e">View source</a></span></li>
+															<li id="ca-history" class="collapsible"><span><a href="http://www.electrodragon.com/w/index.php?title=CC1101&amp;action=history" title="Past revisions of this page [alt-shift-h]" accesskey="h">View history</a></span></li>
+													</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label" style="">
+						<h3 id="p-cactions-label" tabindex="0"><span>More</span><a href="http://www.electrodragon.com/w/CC1101#" tabindex="-1"></a></h3>
+
+						<div class="menu">
+							<ul>
+															</ul>
+						</div>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+
+						<form action="http://www.electrodragon.com/w/index.php" id="searchform">
+														<div id="simpleSearch">
+															<input type="search" name="search" placeholder="Search" title="Search ElectroDragon [alt-shift-f]" accesskey="f" id="searchInput" tabindex="1" autocomplete="off"><input type="hidden" value="Special:Search" name="title"><input type="submit" name="go" value="Go" title="Go to a page with this exact name if exists" id="searchButton" class="searchButton">								</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="http://www.electrodragon.com/w/Main_Page" title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id="p-navigation" aria-labelledby="p-navigation-label">
+			<h3 id="p-navigation-label">Navigation</h3>
+
+			<div class="body">
+									<ul>
+													<li id="n-Electrodragon-Home"><a href="http://www.electrodragon.com/" rel="nofollow">Electrodragon Home</a></li>
+													<li id="n-Electrodragon-Store"><a href="http://store.electrodragon.com/" rel="nofollow">Electrodragon Store</a></li>
+													<li id="n-Wiki-Home"><a href="http://www.electrodragon.com/w/Main_Page">Wiki Home</a></li>
+													<li id="n-portal"><a href="http://www.electrodragon.com/w/ElectroDragon:Community_portal" title="About the project, what you can do, where to find things">Community portal</a></li>
+													<li id="n-currentevents"><a href="http://www.electrodragon.com/w/ElectroDragon:Current_events" title="Find background information on current events">Current events</a></li>
+													<li id="n-recentchanges"><a href="http://www.electrodragon.com/w/Special:RecentChanges" title="A list of recent changes in the wiki [alt-shift-r]" accesskey="r">Recent changes</a></li>
+													<li id="n-randompage"><a href="http://www.electrodragon.com/w/Special:Random" title="Load a random page [alt-shift-x]" accesskey="x">Random page</a></li>
+													<li id="n-Mediawiki"><a href="http://www.electrodragon.com/w/Mediawiki">Mediawiki</a></li>
+													<li id="n-help"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Contents" title="The place to find out">Help</a></li>
+											</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-tb" aria-labelledby="p-tb-label">
+			<h3 id="p-tb-label">Tools</h3>
+
+			<div class="body">
+									<ul>
+													<li id="t-whatlinkshere"><a href="http://www.electrodragon.com/w/Special:WhatLinksHere/CC1101" title="A list of all wiki pages that link here [alt-shift-j]" accesskey="j">What links here</a></li>
+													<li id="t-recentchangeslinked"><a href="http://www.electrodragon.com/w/Special:RecentChangesLinked/CC1101" title="Recent changes in pages linked from this page [alt-shift-k]" accesskey="k">Related changes</a></li>
+													<li id="t-specialpages"><a href="http://www.electrodragon.com/w/Special:SpecialPages" title="A list of all special pages [alt-shift-q]" accesskey="q">Special pages</a></li>
+													<li id="t-print"><a href="http://www.electrodragon.com/w/index.php?title=CC1101&amp;printable=yes" rel="alternate" title="Printable version of this page [alt-shift-p]" accesskey="p">Printable version</a></li>
+													<li id="t-permalink"><a href="http://www.electrodragon.com/w/index.php?title=CC1101&amp;oldid=13169" title="Permanent link to this revision of the page">Permanent link</a></li>
+													<li id="t-info"><a href="http://www.electrodragon.com/w/index.php?title=CC1101&amp;action=info" title="More information about this page">Page information</a></li>
+											</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-addthis" aria-labelledby="p-addthis-label">
+			<h3 id="p-addthis-label">Share</h3>
+
+			<div class="body">
+									<!-- AddThis Button BEGIN -->
+			<div class="addthis_toolbox addthis_default_style" id="addthissidebar"><a class="addthis_button_compact at300m" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(255, 101, 80); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-addthis-9" title="More" alt="More" style="width: 16px; height: 16px;" class="at-icon at-icon-addthis"><title id="at-svg-addthis-9">Addthis</title><g><path d="M18 14V8h-4v6H8v4h6v6h4v-6h6v-4h-6z" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_facebook at300b" title="Facebook" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(59, 89, 152); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-facebook-10" title="Facebook" alt="Facebook" style="width: 16px; height: 16px;" class="at-icon at-icon-facebook"><title id="at-svg-facebook-10">Facebook</title><g><path d="M22 5.16c-.406-.054-1.806-.16-3.43-.16-3.4 0-5.733 1.825-5.733 5.17v2.882H9v3.913h3.837V27h4.604V16.965h3.823l.587-3.913h-4.41v-2.5c0-1.123.347-1.903 2.198-1.903H22V5.16z" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_twitter at300b" title="Twitter" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(29, 161, 242); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-twitter-11" title="Twitter" alt="Twitter" style="width: 16px; height: 16px;" class="at-icon at-icon-twitter"><title id="at-svg-twitter-11">Twitter</title><g><path d="M27.996 10.116c-.81.36-1.68.602-2.592.71a4.526 4.526 0 0 0 1.984-2.496 9.037 9.037 0 0 1-2.866 1.095 4.513 4.513 0 0 0-7.69 4.116 12.81 12.81 0 0 1-9.3-4.715 4.49 4.49 0 0 0-.612 2.27 4.51 4.51 0 0 0 2.008 3.755 4.495 4.495 0 0 1-2.044-.564v.057a4.515 4.515 0 0 0 3.62 4.425 4.52 4.52 0 0 1-2.04.077 4.517 4.517 0 0 0 4.217 3.134 9.055 9.055 0 0 1-5.604 1.93A9.18 9.18 0 0 1 6 23.85a12.773 12.773 0 0 0 6.918 2.027c8.3 0 12.84-6.876 12.84-12.84 0-.195-.005-.39-.014-.583a9.172 9.172 0 0 0 2.252-2.336" fill-rule="evenodd"></path></g></svg></span></a><a class="addthis_button_google_plusone at300b" g:plusone:count="false" style="margin-top:1px;"><div class="google_plusone_iframe_widget" style="width: 90px; height: 25px;"><span><div id="___plusone_1" style="text-indent: 0px; margin: 0px; padding: 0px; background: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 24px; height: 15px;"><iframe ng-non-bindable="" frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 24px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 15px;" tabindex="0" vspace="0" width="100%" id="I1_1507391739566" name="I1_1507391739566" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/fastbutton(1).html" data-gapiattached="true" title="G+"></iframe></div></span></div></a><a class="addthis_button_email at300b" target="_blank" title="Email" href="http://www.electrodragon.com/w/CC1101#"><span class="at-icon-wrapper" style="background-color: rgb(132, 132, 132); line-height: 16px; height: 16px; width: 16px;"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" version="1.1" role="img" aria-labelledby="at-svg-email-12" title="Email" alt="Email" style="width: 16px; height: 16px;" class="at-icon at-icon-email"><title id="at-svg-email-12">Email</title><g><g fill-rule="evenodd"></g><path d="M27 22.757c0 1.24-.988 2.243-2.19 2.243H7.19C5.98 25 5 23.994 5 22.757V13.67c0-.556.39-.773.855-.496l8.78 5.238c.782.467 1.95.467 2.73 0l8.78-5.238c.472-.28.855-.063.855.495v9.087z"></path><path d="M27 9.243C27 8.006 26.02 7 24.81 7H7.19C5.988 7 5 8.004 5 9.243v.465c0 .554.385 1.232.857 1.514l9.61 5.733c.267.16.8.16 1.067 0l9.61-5.733c.473-.283.856-.96.856-1.514v-.465z"></path></g></svg></span></a><div class="atclear"></div></div>
+			<script type="text/javascript" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/addthis_widget.js.download"></script>			</div>
+		</div>
+				</div>
+		</div>
+		<div id="footer" role="contentinfo">
+							<ul id="footer-info">
+											<li id="footer-info-lastmod"> This page was last modified on 19 December 2016, at 04:37.</li>
+									</ul>
+							<ul id="footer-places">
+											<li id="footer-places-privacy"><a href="http://www.electrodragon.com/w/ElectroDragon:Privacy_policy" title="ElectroDragon:Privacy policy">Privacy policy</a></li>
+											<li id="footer-places-about"><a href="http://www.electrodragon.com/w/ElectroDragon:About" title="ElectroDragon:About">About ElectroDragon</a></li>
+											<li id="footer-places-disclaimer"><a href="http://www.electrodragon.com/w/ElectroDragon:General_disclaimer" title="ElectroDragon:General disclaimer">Disclaimers</a></li>
+									</ul>
+										<ul id="footer-icons" class="noprint">
+											<li id="footer-poweredbyico">
+															<a href="http://www.mediawiki.org/"><img src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/w/resources/assets/poweredby_mediawiki_132x47.png 1.5x, /w/resources/assets/poweredby_mediawiki_176x62.png 2x" width="88" height="31"></a>
+													</li>
+									</ul>
+						<div style="clear:both"></div>
+		</div>
+		<script>if(window.jQuery)jQuery.ready();</script><script>if(window.mw){
+mw.loader.state({"site":"loading","user":"ready","user.groups":"ready"});
+}</script>
+<script>if(window.mw){
+mw.loader.load(["mediawiki.toc","mediawiki.action.view.postEdit","mediawiki.user","mediawiki.hidpi","mediawiki.page.ready","mediawiki.searchSuggest"],null,true);
+}</script>
+<script>if(window.mw){
+document.write("\u003Cscript src=\"http://www.electrodragon.com/w/load.php?debug=false\u0026amp;lang=en\u0026amp;modules=site\u0026amp;only=scripts\u0026amp;skin=vector\u0026amp;*\"\u003E\u003C/script\u003E");
+}</script><script src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/load(5).php"></script>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/ga.js.download" type="text/javascript"></script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-31709319-3");
+pageTracker._trackPageview();
+</script><script>if(window.mw){
+mw.config.set({"wgBackendResponseTime":98});
+}</script>
+	
+
+<iframe name="oauth2relay1778540239" id="oauth2relay1778540239" src="./CC1101 - ElectroDragon - 433MHz Transceiver_files/postmessageRelay.html" tabindex="-1" aria-hidden="true" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe><div class="suggestions" style="display: none; font-size: 13px;"><div class="suggestions-results"></div><div class="suggestions-special"></div></div></body></html>

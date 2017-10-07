@@ -1,0 +1,2 @@
+$(".twitsha").click(function(){var link=$('meta[property="og:url"]').attr("content"),text=$('meta[name="xtl:twitter-categ"]').attr("content")+" / "+link;void 0==text&&(text=link);var tags="Deltadore",textURI="&text="+encodeURIComponent(text),tagURI="&hashtags="+encodeURIComponent(tags),url="https://twitter.com/intent/tweet?"+textURI+tagURI;return!window.open(url,"Twitter","width=1080,height=540")});
+//# sourceMappingURL=share.twitter.js.map

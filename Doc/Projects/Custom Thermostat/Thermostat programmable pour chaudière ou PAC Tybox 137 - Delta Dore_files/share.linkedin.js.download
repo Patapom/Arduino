@@ -1,0 +1,2 @@
+$(".linkedin-share").click(function(event){event.preventDefault();var url="https://www.linkedin.com/shareArticle?mini=true&url="+encodeURIComponent($(this).attr("href"));return!window.open(url,"Linkedin-share","width=1080,height=540")});
+//# sourceMappingURL=share.linkedin.js.map

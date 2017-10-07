@@ -1,0 +1,1 @@
+MyG2C.ReturnCommandFromServer('1507391490734','{IdPageHisto:\'13826457\'}',false);
