@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Temperature", "Projects\Temperature\Temperature.vcxproj", "{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Joystick", "Projects\Joystick\Joystick.vcxproj", "{1D9DF740-53EE-47D6-B114-1B492B561064}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Keypad", "Projects\Keypad\Keypad.vcxproj", "{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IR Module", "Projects\IR Module\IR Module.vcxproj", "{8B9DA153-8CCB-49BA-AAA2-0D3679E1CDAC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BlinkFaster", "Projects\BlinkFaster\BlinkFaster.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "..\Libraries\Core\Core.vcxproj", "{49B272EE-00C8-4AC9-A6A6-2FC4931D3B8B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Speaker", "Projects\Speaker\Speaker.vcxproj", "{4A00317A-38CD-492B-AFEB-BF496DCB0497}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}.Debug|Win32.Build.0 = Debug|Win32
+		{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}.Release|Win32.ActiveCfg = Release|Win32
+		{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}.Release|Win32.Build.0 = Release|Win32
+		{1D9DF740-53EE-47D6-B114-1B492B561064}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1D9DF740-53EE-47D6-B114-1B492B561064}.Debug|Win32.Build.0 = Debug|Win32
+		{1D9DF740-53EE-47D6-B114-1B492B561064}.Release|Win32.ActiveCfg = Release|Win32
+		{1D9DF740-53EE-47D6-B114-1B492B561064}.Release|Win32.Build.0 = Release|Win32
+		{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}.Debug|Win32.Build.0 = Debug|Win32
+		{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}.Release|Win32.ActiveCfg = Release|Win32
+		{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}.Release|Win32.Build.0 = Release|Win32
+		{8B9DA153-8CCB-49BA-AAA2-0D3679E1CDAC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8B9DA153-8CCB-49BA-AAA2-0D3679E1CDAC}.Release|Win32.ActiveCfg = Release|Win32
+		{8B9DA153-8CCB-49BA-AAA2-0D3679E1CDAC}.Release|Win32.Build.0 = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|Win32.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|Win32.ActiveCfg = Release|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|Win32.Build.0 = Release|Win32
+		{49B272EE-00C8-4AC9-A6A6-2FC4931D3B8B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{49B272EE-00C8-4AC9-A6A6-2FC4931D3B8B}.Debug|Win32.Build.0 = Debug|Win32
+		{49B272EE-00C8-4AC9-A6A6-2FC4931D3B8B}.Release|Win32.ActiveCfg = Release|Win32
+		{49B272EE-00C8-4AC9-A6A6-2FC4931D3B8B}.Release|Win32.Build.0 = Release|Win32
+		{4A00317A-38CD-492B-AFEB-BF496DCB0497}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4A00317A-38CD-492B-AFEB-BF496DCB0497}.Debug|Win32.Build.0 = Debug|Win32
+		{4A00317A-38CD-492B-AFEB-BF496DCB0497}.Release|Win32.ActiveCfg = Release|Win32
+		{4A00317A-38CD-492B-AFEB-BF496DCB0497}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,292 @@
+	.file	"pulseTrainInLOW.cpp"
+__SP_H__ = 0x3e
+__SP_L__ = 0x3d
+__SREG__ = 0x3f
+__tmp_reg__ = 0
+__zero_reg__ = 1
+ ;  GNU C++ (GCC) version 4.9.2 (avr)
+ ; 	compiled by GNU C version 4.9.3, GMP version 5.0.2, MPFR version 3.0.0, MPC version 0.9
+ ;  GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ ;  options passed: 
+ ;  -iprefix c:\program files (x86)\arduino\hardware\tools\avr\bin\../lib/gcc/avr/4.9.2/
+ ;  D:\Workspaces\Electro\ArduinoTutorials\Projects\IR Module\pulseTrainInLOW.cpp
+ ;  -mn-flash=6
+ ;  -auxbase-strip D:\Workspaces\Electro\ArduinoTutorials\Projects\IR Module\pulseTrainInLOW.a
+ ;  -gstabs -O2 -fverbose-asm -mn-flash=6 -mskip-bug -fno-rtti
+ ;  -fno-enforce-eh-specs -fno-exceptions
+ ;  options enabled:  -Wmisspelled-isr -faggressive-loop-optimizations
+ ;  -fauto-inc-dec -fbranch-count-reg -fcaller-saves
+ ;  -fcombine-stack-adjustments -fcommon -fcompare-elim -fcprop-registers
+ ;  -fcrossjumping -fcse-follow-jumps -fdefer-pop -fdevirtualize
+ ;  -fdevirtualize-speculatively -fdwarf2-cfi-asm -fearly-inlining
+ ;  -feliminate-unused-debug-types -fexpensive-optimizations
+ ;  -fforward-propagate -ffunction-cse -fgcse -fgcse-lm -fgnu-runtime
+ ;  -fgnu-unique -fguess-branch-probability -fhoist-adjacent-loads -fident
+ ;  -fif-conversion -fif-conversion2 -findirect-inlining -finline
+ ;  -finline-atomics -finline-functions-called-once
+ ;  -finline-small-functions -fipa-cp -fipa-profile -fipa-pure-const
+ ;  -fipa-reference -fipa-sra -fira-hoist-pressure -fira-share-save-slots
+ ;  -fira-share-spill-slots -fisolate-erroneous-paths-dereference -fivopts
+ ;  -fkeep-static-consts -fleading-underscore -fmath-errno
+ ;  -fmerge-constants -fmerge-debug-strings -fmove-loop-invariants
+ ;  -fomit-frame-pointer -foptimize-sibling-calls -foptimize-strlen
+ ;  -fpartial-inlining -fpeephole -fpeephole2 -fprefetch-loop-arrays
+ ;  -freg-struct-return -freorder-blocks -freorder-functions
+ ;  -frerun-cse-after-loop -fsched-critical-path-heuristic
+ ;  -fsched-dep-count-heuristic -fsched-group-heuristic -fsched-interblock
+ ;  -fsched-last-insn-heuristic -fsched-rank-heuristic -fsched-spec
+ ;  -fsched-spec-insn-heuristic -fsched-stalled-insns-dep -fshow-column
+ ;  -fshrink-wrap -fsigned-zeros -fsplit-ivs-in-unroller -fsplit-wide-types
+ ;  -fstrict-aliasing -fstrict-overflow -fstrict-volatile-bitfields
+ ;  -fsync-libcalls -fthread-jumps -ftoplevel-reorder -ftrapping-math
+ ;  -ftree-bit-ccp -ftree-builtin-call-dce -ftree-ccp -ftree-ch
+ ;  -ftree-coalesce-vars -ftree-copy-prop -ftree-copyrename -ftree-dce
+ ;  -ftree-dominator-opts -ftree-dse -ftree-forwprop -ftree-fre
+ ;  -ftree-loop-if-convert -ftree-loop-im -ftree-loop-ivcanon
+ ;  -ftree-loop-optimize -ftree-parallelize-loops= -ftree-phiprop
+ ;  -ftree-pre -ftree-pta -ftree-reassoc -ftree-scev-cprop -ftree-sink
+ ;  -ftree-slsr -ftree-sra -ftree-switch-conversion -ftree-tail-merge
+ ;  -ftree-ter -ftree-vrp -funit-at-a-time -fverbose-asm
+ ;  -fzero-initialized-in-bss -mskip-bug
+
+	.stabs	"D:\\Workspaces\\Electro\\ArduinoTutorials\\Projects\\IR Module\\pulseTrainInLOW.cpp",100,0,4,.Ltext0
+	.text
+.Ltext0:
+	.stabs	"gcc2_compiled.",60,0,0,0
+	.stabs	"__uint24:t(0,1)=r(0,1);0;16777215;",128,0,0,0
+	.stabs	"__int24:t(0,2)=r(0,2);-8388608;8388607;",128,0,0,0
+	.stabs	"__builtin_va_list:t(0,3)=*(0,4)=(0,4)",128,0,0,0
+	.stabs	"complex long double:t(0,5)=R3;8;0;",128,0,0,0
+	.stabs	"complex double:t(0,6)=R3;8;0;",128,0,0,0
+	.stabs	"complex float:t(0,7)=R3;8;0;",128,0,0,0
+	.stabs	"complex int:t(0,8)=s4real:(0,9)=r(0,9);-32768;32767;,0,16;imag:(0,9),16,16;;",128,0,0,0
+	.stabs	"long long unsigned int:t(0,10)=r(0,10);0;-1;",128,0,0,0
+	.stabs	"long unsigned int:t(0,11)=r(0,11);0;-1;",128,0,0,0
+	.stabs	"unsigned int:t(0,12)=r(0,12);0;65535;",128,0,0,0
+	.stabs	"unsigned char:t(0,13)=r(0,13);0;255;",128,0,0,0
+	.stabs	"long long int:t(0,14)=r(0,14);0;-1;",128,0,0,0
+	.stabs	"long int:t(0,15)=r(0,15);-2147483648;2147483647;",128,0,0,0
+	.stabs	"int:t(0,9)",128,0,0,0
+	.stabs	"signed char:t(0,16)=r(0,16);-128;127;",128,0,0,0
+	.stabs	"char:t(0,17)=r(0,17);0;127;",128,0,0,0
+	.stabs	"signed:t(0,9)",128,0,0,0
+	.stabs	"unsigned long:t(0,11)",128,0,0,0
+	.stabs	"long long unsigned:t(0,10)",128,0,0,0
+	.stabs	"short int:t(0,18)=r(0,18);-32768;32767;",128,0,0,0
+	.stabs	"short unsigned int:t(0,19)=r(0,19);0;65535;",128,0,0,0
+	.stabs	"unsigned short:t(0,19)",128,0,0,0
+	.stabs	"float:t(0,20)=r(0,9);4;0;",128,0,0,0
+	.stabs	"double:t(0,21)=r(0,9);4;0;",128,0,0,0
+	.stabs	"long double:t(0,22)=r(0,9);4;0;",128,0,0,0
+	.stabs	"short _Fract:t(0,23)=r(0,9);1;0;",128,0,0,0
+	.stabs	"long _Fract:t(0,24)=r(0,9);4;0;",128,0,0,0
+	.stabs	"long long _Fract:t(0,25)=r(0,9);8;0;",128,0,0,0
+	.stabs	"unsigned short _Fract:t(0,26)=r(0,9);1;0;",128,0,0,0
+	.stabs	"unsigned _Fract:t(0,27)=r(0,9);2;0;",128,0,0,0
+	.stabs	"unsigned long _Fract:t(0,28)=r(0,9);4;0;",128,0,0,0
+	.stabs	"unsigned long long _Fract:t(0,29)=r(0,9);8;0;",128,0,0,0
+	.stabs	"_Sat short _Fract:t(0,30)=r(0,9);1;0;",128,0,0,0
+	.stabs	"_Sat _Fract:t(0,31)=r(0,9);2;0;",128,0,0,0
+	.stabs	"_Sat long _Fract:t(0,32)=r(0,9);4;0;",128,0,0,0
+	.stabs	"_Sat long long _Fract:t(0,33)=r(0,9);8;0;",128,0,0,0
+	.stabs	"_Sat unsigned short _Fract:t(0,34)=r(0,9);1;0;",128,0,0,0
+	.stabs	"_Sat unsigned _Fract:t(0,35)=r(0,9);2;0;",128,0,0,0
+	.stabs	"_Sat unsigned long _Fract:t(0,36)=r(0,9);4;0;",128,0,0,0
+	.stabs	"_Sat unsigned long long _Fract:t(0,37)=r(0,9);8;0;",128,0,0,0
+	.stabs	"short _Accum:t(0,38)=r(0,9);2;0;",128,0,0,0
+	.stabs	"long _Accum:t(0,39)=r(0,9);8;0;",128,0,0,0
+	.stabs	"long long _Accum:t(0,40)=r(0,9);8;0;",128,0,0,0
+	.stabs	"unsigned short _Accum:t(0,41)=r(0,9);2;0;",128,0,0,0
+	.stabs	"unsigned _Accum:t(0,42)=r(0,9);4;0;",128,0,0,0
+	.stabs	"unsigned long _Accum:t(0,43)=r(0,9);8;0;",128,0,0,0
+	.stabs	"unsigned long long _Accum:t(0,44)=r(0,9);8;0;",128,0,0,0
+	.stabs	"_Sat short _Accum:t(0,45)=r(0,9);2;0;",128,0,0,0
+	.stabs	"_Sat _Accum:t(0,46)=r(0,9);4;0;",128,0,0,0
+	.stabs	"_Sat long _Accum:t(0,47)=r(0,9);8;0;",128,0,0,0
+	.stabs	"_Sat long long _Accum:t(0,48)=r(0,9);8;0;",128,0,0,0
+	.stabs	"_Sat unsigned short _Accum:t(0,49)=r(0,9);2;0;",128,0,0,0
+	.stabs	"_Sat unsigned _Accum:t(0,50)=r(0,9);4;0;",128,0,0,0
+	.stabs	"_Sat unsigned long _Accum:t(0,51)=r(0,9);8;0;",128,0,0,0
+	.stabs	"_Sat unsigned long long _Accum:t(0,52)=r(0,9);8;0;",128,0,0,0
+	.stabs	"void:t(0,4)",128,0,0,0
+	.stabs	"wchar_t:t(0,53)=r(0,53);-32768;32767;",128,0,0,0
+	.stabs	"bool:t(0,54)=eFalse:0,True:1,;",128,0,0,0
+	.stabs	"__vtbl_ptr_type:t(0,55)=*(0,56)=f(0,9)",128,0,0,0
+	.stabs	"decltype(nullptr):t(0,57)=(0,57)",128,0,0,0
+	.stabs	"_Z17pulseTrainInLOW__PVhhPmtmm:F(0,19)",36,0,0,_Z17pulseTrainInLOW__PVhhPmtmm
+	.stabs	"port:P(0,58)=*(0,13)",64,0,0,30
+	.stabs	"_bit:P(0,13)",64,0,0,22
+	.stabs	"_maxPulses:P(0,19)",64,0,0,26
+	.stabs	"_endTrainTimeOutLoopsCount:P(0,11)",64,0,0,4
+	.stabs	"_timeOutLoopsCount:P(0,11)",64,0,0,16
+.global	_Z17pulseTrainInLOW__PVhhPmtmm
+	.type	_Z17pulseTrainInLOW__PVhhPmtmm, @function
+_Z17pulseTrainInLOW__PVhhPmtmm:
+	.stabn	68,0,1,.LM0-.LFBB1
+.LM0:
+.LFBB1:
+	push r4	 ; 	 ;  168	pushqi1/1	[length = 1]
+	push r5	 ; 	 ;  169	pushqi1/1	[length = 1]
+	push r6	 ; 	 ;  170	pushqi1/1	[length = 1]
+	push r7	 ; 	 ;  171	pushqi1/1	[length = 1]
+	push r10	 ; 	 ;  172	pushqi1/1	[length = 1]
+	push r11	 ; 	 ;  173	pushqi1/1	[length = 1]
+	push r12	 ; 	 ;  174	pushqi1/1	[length = 1]
+	push r13	 ; 	 ;  175	pushqi1/1	[length = 1]
+	push r14	 ; 	 ;  176	pushqi1/1	[length = 1]
+	push r15	 ; 	 ;  177	pushqi1/1	[length = 1]
+	push r16	 ; 	 ;  178	pushqi1/1	[length = 1]
+	push r17	 ; 	 ;  179	pushqi1/1	[length = 1]
+	push r28	 ; 	 ;  180	pushqi1/1	[length = 1]
+	push r29	 ; 	 ;  181	pushqi1/1	[length = 1]
+/* prologue: function */
+/* frame size = 0 */
+/* stack size = 14 */
+.L__stack_usage = 14
+	mov r30,r24	 ;  port, port	 ;  21	*movhi/1	[length = 2]
+	mov r31,r25	 ;  port, port
+	mov r26,r18	 ;  _maxPulses, _maxPulses	 ;  24	*movhi/1	[length = 2]
+	mov r27,r19	 ;  _maxPulses, _maxPulses
+	mov r4,r14	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount	 ;  25	*movsi/1	[length = 4]
+	mov r5,r15	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount
+	mov r6,r16	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount
+	mov r7,r17	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount
+	mov r19,r13	 ;  _timeOutLoopsCount, _timeOutLoopsCount	 ;  26	*movsi/1	[length = 4]
+	mov r18,r12	 ;  _timeOutLoopsCount, _timeOutLoopsCount
+	mov r17,r11	 ;  _timeOutLoopsCount, _timeOutLoopsCount
+	mov r16,r10	 ;  _timeOutLoopsCount, _timeOutLoopsCount
+.LBB2:
+	.stabn	68,0,10,.LM1-.LFBB1
+.LM1:
+	sbiw r26,0	 ;  _maxPulses,	 ;  33	*cmphi/1	[length = 1]
+	brne .+2	 ; 	 ;  34	branch	[length = 2]
+	rjmp .L6	 ; 
+	mov r28,r20	 ; ,	 ;  161	movqi_insn/1	[length = 1]
+	mov r29,r21	 ; ,	 ;  162	movqi_insn/1	[length = 1]
+	mov r20,r26	 ;  _maxPulses, _maxPulses	 ;  28	*movhi/1	[length = 2]
+	mov r21,r27	 ;  _maxPulses, _maxPulses
+	rjmp .L4	 ; 	 ;  212	jump	[length = 1]
+.L5:
+	.stabn	68,0,13,.LM2-.LFBB1
+.LM2:
+	subi r16,1	 ;  _timeOutLoopsCount,	 ;  39	addsi3/2	[length = 4]
+	sbc r17,__zero_reg__	 ;  _timeOutLoopsCount
+	sbc r18,__zero_reg__	 ;  _timeOutLoopsCount
+	sbc r19,__zero_reg__	 ;  _timeOutLoopsCount
+	brne .+2	 ; 	 ;  41	branch	[length = 2]
+	rjmp .L3	 ; 
+.L4:
+	.stabn	68,0,12,.LM3-.LFBB1
+.LM3:
+	ld r25,Z	 ;  D.1988, *port_15(D)	 ;  51	movqi_insn/4	[length = 1]
+	and r25,r22	 ;  D.1988, _bit	 ;  53	andqi3/1	[length = 1]
+	brne .L5	 ; ,	 ;  55	branch	[length = 1]
+	.stabn	68,0,17,.LM4-.LFBB1
+.LM4:
+	cp r16,__zero_reg__	 ;  _timeOutLoopsCount	 ;  57	*cmpsi/1	[length = 4]
+	cpc r17,__zero_reg__	 ;  _timeOutLoopsCount
+	cpc r18,__zero_reg__	 ;  _timeOutLoopsCount
+	cpc r19,__zero_reg__	 ;  _timeOutLoopsCount
+	breq .L3	 ; ,	 ;  58	branch	[length = 1]
+	.stabn	68,0,22,.LM5-.LFBB1
+.LM5:
+	mov r15,r7	 ; , _endTrainTimeOutLoopsCount	 ;  163	*movsi/1	[length = 4]
+	mov r14,r6	 ; , _endTrainTimeOutLoopsCount
+	mov r13,r5	 ; , _endTrainTimeOutLoopsCount
+	mov r12,r4	 ; , _endTrainTimeOutLoopsCount
+	sub r12,r16	 ; , _timeOutLoopsCount	 ;  61	subsi3/1	[length = 4]
+	sbc r13,r17	 ; , _timeOutLoopsCount
+	sbc r14,r18	 ; , _timeOutLoopsCount
+	sbc r15,r19	 ; , _timeOutLoopsCount
+	st Y,r12	 ;  MEM[base: _42, offset: 0B], D.1989	 ;  62	*movsi/4	[length = 4]
+	std Y+1,r13	 ;  MEM[base: _42, offset: 0B], D.1989
+	std Y+2,r14	 ;  MEM[base: _42, offset: 0B], D.1989
+	std Y+3,r15	 ;  MEM[base: _42, offset: 0B], D.1989
+	.stabn	68,0,25,.LM6-.LFBB1
+.LM6:
+	cpi r20,1	 ;  _maxPulses,	 ;  64	*cmphi/6	[length = 2]
+	cpc r21,__zero_reg__	 ;  _maxPulses
+	breq .L6	 ; ,	 ;  65	branch	[length = 1]
+	mov r19,r7	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount	 ;  132	*movsi/1	[length = 4]
+	mov r18,r6	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount
+	mov r17,r5	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount
+	mov r16,r4	 ;  _endTrainTimeOutLoopsCount, _endTrainTimeOutLoopsCount
+	rjmp .L9	 ; 	 ;  214	jump	[length = 1]
+.L10:
+	.stabn	68,0,30,.LM7-.LFBB1
+.LM7:
+	subi r16,1	 ;  _endTrainTimeOutLoopsCount,	 ;  70	addsi3/2	[length = 4]
+	sbc r17,__zero_reg__	 ;  _endTrainTimeOutLoopsCount
+	sbc r18,__zero_reg__	 ;  _endTrainTimeOutLoopsCount
+	sbc r19,__zero_reg__	 ;  _endTrainTimeOutLoopsCount
+	breq .L8	 ; ,	 ;  72	branch	[length = 1]
+.L9:
+	.stabn	68,0,29,.LM8-.LFBB1
+.LM8:
+	ld r25,Z	 ;  D.1988, *port_15(D)	 ;  80	movqi_insn/4	[length = 1]
+	and r25,r22	 ;  D.1988, _bit	 ;  82	andqi3/1	[length = 1]
+	breq .L10	 ; ,	 ;  84	branch	[length = 1]
+.L8:
+	.stabn	68,0,39,.LM9-.LFBB1
+.LM9:
+	mov r15,r7	 ; , _endTrainTimeOutLoopsCount	 ;  165	*movsi/1	[length = 4]
+	mov r14,r6	 ; , _endTrainTimeOutLoopsCount
+	mov r13,r5	 ; , _endTrainTimeOutLoopsCount
+	mov r12,r4	 ; , _endTrainTimeOutLoopsCount
+	sub r12,r16	 ; , _endTrainTimeOutLoopsCount	 ;  87	subsi3/1	[length = 4]
+	sbc r13,r17	 ; , _endTrainTimeOutLoopsCount
+	sbc r14,r18	 ; , _endTrainTimeOutLoopsCount
+	sbc r15,r19	 ; , _endTrainTimeOutLoopsCount
+	std Y+4,r12	 ;  MEM[base: _42, offset: 4B], D.1989	 ;  88	*movsi/4	[length = 4]
+	std Y+5,r13	 ;  MEM[base: _42, offset: 4B], D.1989
+	std Y+6,r14	 ;  MEM[base: _42, offset: 4B], D.1989
+	std Y+7,r15	 ;  MEM[base: _42, offset: 4B], D.1989
+	.stabn	68,0,41,.LM10-.LFBB1
+.LM10:
+	subi r20,2	 ;  _maxPulses,	 ;  89	addhi3_clobber/2	[length = 2]
+	sbc r21,__zero_reg__	 ;  _maxPulses
+	adiw r28,8	 ;  ivtmp.26,	 ;  90	addhi3_clobber/1	[length = 1]
+	.stabn	68,0,40,.LM11-.LFBB1
+.LM11:
+	mov r19,r7	 ;  _timeOutLoopsCount, _endTrainTimeOutLoopsCount	 ;  133	*movsi/1	[length = 4]
+	mov r18,r6	 ;  _timeOutLoopsCount, _endTrainTimeOutLoopsCount
+	mov r17,r5	 ;  _timeOutLoopsCount, _endTrainTimeOutLoopsCount
+	mov r16,r4	 ;  _timeOutLoopsCount, _endTrainTimeOutLoopsCount
+	.stabn	68,0,10,.LM12-.LFBB1
+.LM12:
+	cp r20,__zero_reg__	 ;  _maxPulses	 ;  93	*cmphi/2	[length = 2]
+	cpc r21,__zero_reg__	 ;  _maxPulses
+	breq .+2	 ; 	 ;  94	branch	[length = 2]
+	rjmp .L4	 ; 
+.L6:
+	ldi r20,0	 ;  _maxPulses	 ;  30	*movhi/2	[length = 2]
+	ldi r21,0	 ;  _maxPulses
+.L3:
+.LBE2:
+	.stabn	68,0,45,.LM13-.LFBB1
+.LM13:
+	mov r24,r26	 ; , _maxPulses	 ;  167	*movhi/1	[length = 2]
+	mov r25,r27	 ; , _maxPulses
+	sub r24,r20	 ; , _maxPulses	 ;  105	subhi3/1	[length = 2]
+	sbc r25,r21	 ; , _maxPulses
+/* epilogue start */
+	pop r29	 ; 	 ;  184	popqi	[length = 1]
+	pop r28	 ; 	 ;  185	popqi	[length = 1]
+	pop r17	 ; 	 ;  186	popqi	[length = 1]
+	pop r16	 ; 	 ;  187	popqi	[length = 1]
+	pop r15	 ; 	 ;  188	popqi	[length = 1]
+	pop r14	 ; 	 ;  189	popqi	[length = 1]
+	pop r13	 ; 	 ;  190	popqi	[length = 1]
+	pop r12	 ; 	 ;  191	popqi	[length = 1]
+	pop r11	 ; 	 ;  192	popqi	[length = 1]
+	pop r10	 ; 	 ;  193	popqi	[length = 1]
+	pop r7	 ; 	 ;  194	popqi	[length = 1]
+	pop r6	 ; 	 ;  195	popqi	[length = 1]
+	pop r5	 ; 	 ;  196	popqi	[length = 1]
+	pop r4	 ; 	 ;  197	popqi	[length = 1]
+	ret	 ;  198	return_from_epilogue	[length = 1]
+	.size	_Z17pulseTrainInLOW__PVhhPmtmm, .-_Z17pulseTrainInLOW__PVhhPmtmm
+.Lscope1:
+	.stabs	"",100,0,0,.Letext0
+.Letext0:
+	.ident	"GCC: (GNU) 4.9.2"
