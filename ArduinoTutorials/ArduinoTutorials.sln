@@ -17,6 +17,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Speaker", "Projects\Speaker
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pom", "..\Libraries\Pom\Pom.vcxproj", "{5B7800AF-4C9D-48F3-8D9E-97B345931C3C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LEDs", "Projects\LED Latches\LEDs.vcxproj", "{66438E29-04BC-48C7-856D-238B2516F832}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LEDMatrix", "Projects\LED Matrix\LEDMatrix.vcxproj", "{C1DF3612-DE2F-433B-811E-6B31E8039101}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -55,6 +59,14 @@ Global
 		{5B7800AF-4C9D-48F3-8D9E-97B345931C3C}.Debug|Win32.Build.0 = Debug|Win32
 		{5B7800AF-4C9D-48F3-8D9E-97B345931C3C}.Release|Win32.ActiveCfg = Release|Win32
 		{5B7800AF-4C9D-48F3-8D9E-97B345931C3C}.Release|Win32.Build.0 = Release|Win32
+		{66438E29-04BC-48C7-856D-238B2516F832}.Debug|Win32.ActiveCfg = Debug|Win32
+		{66438E29-04BC-48C7-856D-238B2516F832}.Debug|Win32.Build.0 = Debug|Win32
+		{66438E29-04BC-48C7-856D-238B2516F832}.Release|Win32.ActiveCfg = Release|Win32
+		{66438E29-04BC-48C7-856D-238B2516F832}.Release|Win32.Build.0 = Release|Win32
+		{C1DF3612-DE2F-433B-811E-6B31E8039101}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C1DF3612-DE2F-433B-811E-6B31E8039101}.Debug|Win32.Build.0 = Debug|Win32
+		{C1DF3612-DE2F-433B-811E-6B31E8039101}.Release|Win32.ActiveCfg = Release|Win32
+		{C1DF3612-DE2F-433B-811E-6B31E8039101}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

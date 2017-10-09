@@ -43,6 +43,18 @@ void loop() {
 			// Invert!
 			value ^= 0xFF;
 			break;
+		} else if ( bisou == 'r' ) {
+			// Roll right!
+			byte	bit = value & 1;
+			value >>= 1;
+			value |= bit << 7;
+			break;
+		} else if ( bisou == 'l' ) {
+			// Roll left!
+			byte	bit = value & 0x80;
+			value <<= 1;
+			value |= bit > 7;
+			break;
 		}
 		if ( charIsOkay ) {
 			// Append quartet to current value
