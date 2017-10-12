@@ -18,8 +18,11 @@ Acronyms and Names
 	• AVR, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
 	• CDC, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
 	• ISP, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
+	• I2C (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
 	• MISO, Master In Slave Out
 	• MOSI, Master Out Slave In
+	• PCD, Proximity Coupling Device e.g. RFID contactless reader/writer like MFRC522 (check public datasheet)
+	• PICC, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
 	• SCK, Serial Clock
 	• SPI, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
 			communicating with one or more peripheral devices quickly over short distances.
