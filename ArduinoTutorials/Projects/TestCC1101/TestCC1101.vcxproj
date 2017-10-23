@@ -77,10 +77,17 @@
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="TestCC1101.ino" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Notes on IC1101.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CC1101\CC1101.h" />
     <ClInclude Include="__vm\.TestCC1101.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TestCC1101.ino" />
+    <ClCompile Include="CC1101\CC1101.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
