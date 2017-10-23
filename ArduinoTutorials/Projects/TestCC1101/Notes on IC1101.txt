@@ -1,0 +1,127 @@
+﻿Abbreviations
+	• 2-FSK Binary Frequency Shift Keying
+	• 4-FSK Quaternary Frequency Shift Keying
+	• ACP Adjacent Channel Power
+	• ADC Analog to Digital Converter
+	• AFC Automatic Frequency Compensation
+	• AGC Automatic Gain Control
+	• AMR Automatic Meter Reading
+	• ASK Amplitude Shift Keying
+	• BER Bit Error Rate
+	• BT Bandwidth-Time product
+	• CCA Clear Channel Assessment
+	• CFR Code of Federal Regulations
+	• CRC Cyclic Redundancy Check
+	• CS Carrier Sense
+	• CW Continuous Wave (Unmodulated Carrier)
+	• DC Direct Current
+	• DVGA Digital Variable Gain Amplifier
+	• ESR Equivalent Series Resistance
+	• FCC Federal Communications Commission
+	• FEC Forward Error Correction
+	• FIFO First-In-First-Out
+	• FHSS Frequency Hopping Spread Spectrum
+	• FS Frequency Synthesizer
+	• GFSK Gaussian shaped Frequency Shift Keying
+	• IF Intermediate Frequency
+	• I/Q In-Phase/Quadrature
+	• ISM Industrial, Scientific, Medical
+	• LC Inductor-Capacitor
+	• LNA Low Noise Amplifier
+	• LO Local Oscillator
+	• LSB Least Significant Bit
+	• LQI Link Quality Indicator
+	• MCU Microcontroller Unit
+	• MSB Most Significant Bit
+	• MSK Minimum Shift Keying
+	• N/A Not Applicable
+	• NRZ Non Return to Zero (Coding)
+	• OOK On-Off Keying
+	• PA Power Amplifier
+	• PCB Printed Circuit Board
+	• PD Power Down
+	• PER Packet Error Rate
+	• PLL Phase Locked Loop
+	• POR Power-On Reset
+	• PQI Preamble Quality Indicator
+	• PQT Preamble Quality Threshold
+	• PTAT Proportional To Absolute Temperature
+	• QLP Quad Leadless Package
+	• QPSK Quadrature Phase Shift Keying
+	• RC Resistor-Capacitor
+	• RF Radio Frequency
+	• RSSI Received Signal Strength Indicator
+	• RX Receive, Receive Mode
+	• SAW Surface Acoustic Wave
+	• SMD Surface Mount Device
+	• SNR Signal to Noise Ratio
+	• SPI Serial Peripheral Interface
+	• SRD Short Range Devices
+	• TBD To Be Defined
+	• T/R Transmit/Receive
+	• TX Transmit, Transmit Mode
+	• UHF Ultra High frequency
+	• VCO Voltage Controlled Oscillator
+	• WOR Wake on Radio, Low power polling
+	• XOSC Crystal Oscillator
+	• XTAL Crystal
+
+
+Various Transimission Modes & Encoding:
+_______________________________________
+
+Transmission rate
+2-FSK, up to 500 kBaud
+GFSK, OOK, ASK, up to 250 kBaud
+4-FSK, up to 300 kBaud but ==► Data rate TWICE the baud rate!
+MSK, up to 500 kBaud
+Optional "Manchester Encoding" ==► Data rate HALF the baud rate!
+
+
+Exposed Pins:
+_____________
+
+• SCLK [IN], Serial Clock
+• SI [IN], Serial Data In
+• SO (GDO1) [OUT], Serial Data Out (optional general output pin when CSn is HIGH)
+• GDO02 [OUT], Digital output pin for general use:
+				► Test signals
+				► FIFO status signals
+				► Clear channel indicator
+				► Clock output, down-divided from XOSC
+				► Serial output RX data
+• GDO00 (ATEST) [IN/OUT], Digital output pin for general use:
+				► Test signals
+				► FIFO status signals
+				► Clear channel indicator
+				► Clock output, down-divided from XOSC
+				► Serial output RX data
+				► Serial input TX data
+• CSn [IN], Serial Configuration Interface, Chip Select
+
+
+Data Transmission and Modulation:
+_________________________________
+
+Internally uses I/Q modulation (http://www.keysight.com/upload/cmc_upload/All/IQ_Modulation.htm?&cc=FR&lc=fre)
+
+
+Configuration:
+______________
+
+• Done through SPI (Serial Peripheral Interface)
+• Tweakable parameters via registers:
+	 Power-down / power up mode
+	 Crystal oscillator power-up / power-down
+	 Receive / transmit mode
+	 RF channel selection
+	 Data rate
+	 Modulation format
+	 RX channel filter bandwidth
+	 RF output power
+	 Data buffering with separate 64-byte receive and transmit FIFOs
+	 Packet radio hardware support
+	 Forward Error Correction (FEC) with interleaving
+	 Data whitening
+	 Wake-On-Radio (WOR)
+
