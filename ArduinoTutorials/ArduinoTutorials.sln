@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RFID", "Projects\RFID\RFID.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestCC1101", "Projects\TestCC1101\TestCC1101.vcxproj", "{EDBC4145-2C78-414D-9AA2-2FD9D03B933F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "..\Libraries\AVR Libc\Libc.vcxproj", "{D56077A8-28D5-4586-89C7-C65737B521B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -79,6 +81,10 @@ Global
 		{EDBC4145-2C78-414D-9AA2-2FD9D03B933F}.Debug|Win32.Build.0 = Debug|Win32
 		{EDBC4145-2C78-414D-9AA2-2FD9D03B933F}.Release|Win32.ActiveCfg = Release|Win32
 		{EDBC4145-2C78-414D-9AA2-2FD9D03B933F}.Release|Win32.Build.0 = Release|Win32
+		{D56077A8-28D5-4586-89C7-C65737B521B0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D56077A8-28D5-4586-89C7-C65737B521B0}.Debug|Win32.Build.0 = Debug|Win32
+		{D56077A8-28D5-4586-89C7-C65737B521B0}.Release|Win32.ActiveCfg = Release|Win32
+		{D56077A8-28D5-4586-89C7-C65737B521B0}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -71,10 +71,10 @@ Various Transimission Modes & Encoding:
 _______________________________________
 
 Transmission rate
-2-FSK, up to 500 kBaud
-GFSK, OOK, ASK, up to 250 kBaud
-4-FSK, up to 300 kBaud but ==► Data rate TWICE the baud rate!
-MSK, up to 500 kBaud
+2-FSK			up to 500 kBaud
+GFSK, OOK, ASK	up to 250 kBaud
+4-FSK			up to 300 kBaud but ==► Data rate TWICE the baud rate!
+MSK				up to 500 kBaud
 Optional "Manchester Encoding" ==► Data rate HALF the baud rate!
 
 
@@ -84,13 +84,13 @@ _____________
 • SCLK [IN], Serial Clock
 • SI [IN], Serial Data In from MCU to CC1101
 • SO (GDO1) [OUT], Serial Data Out from CC1101 to MCU (optional general output pin when CSn is HIGH)
-• GDO02 [OUT], Digital output pin for general use:
+• GDO2 [OUT], Digital output pin for general use:
 				► Test signals
 				► FIFO status signals
 				► Clear channel indicator
 				► Clock output, down-divided from XOSC
 				► Serial output RX data
-• GDO00 (ATEST) [IN/OUT], Digital output pin for general use:
+• GDO0 (ATEST) [IN/OUT], Digital output pin for general use:
 				► Test signals
 				► FIFO status signals
 				► Clear channel indicator
@@ -116,19 +116,19 @@ ______________
 	• CSn
 
 • Tweakable parameters via registers:
-	 Power-down / power up mode
-	 Crystal oscillator power-up / power-down
-	 Receive / transmit mode
-	 RF channel selection
-	 Data rate
-	 Modulation format
-	 RX channel filter bandwidth
-	 RF output power
-	 Data buffering with separate 64-byte receive and transmit FIFOs
-	 Packet radio hardware support
-	 Forward Error Correction (FEC) with interleaving
-	 Data whitening
-	 Wake-On-Radio (WOR)
+	• Power-down / power up mode
+	• Crystal oscillator power-up / power-down
+	• Receive / transmit mode
+	• RF channel selection
+	• Data rate
+	• Modulation format
+	• RX channel filter bandwidth
+	• RF output power
+	• Data buffering with separate 64-byte receive and transmit FIFOs
+	• Packet radio hardware support
+	• Forward Error Correction (FEC) with interleaving
+	• Data whitening
+	• Wake-On-Radio (WOR)
 
 Check "State Diagram.png" for an overview of the chip's on-board state diagram.
 
@@ -212,7 +212,7 @@ ________________
 	Because of this, burst access is not available for status registers and they must be accessed one at a time. The status registers can only be read.
 
 List (from table 43 page 68):
-																Preserved in
+																	Preserved in
 																	SLEEP State
 	0x00	 IOCFG2		GDO2 output pin configuration					Yes
 	0x01	 IOCFG1		GDO1 output pin configuration					Yes
@@ -263,8 +263,8 @@ List (from table 43 page 68):
 	0x2E	 TEST0		Various test settings							No
 
 
-Command Strobes:
-________________
+Command Strobes (WRITE):
+________________________
 Can be viewed as single-byte instructions.
 By addressing a command strobe register, internal sequences will be started.
 These commands are used to disable the crystal oscillator, enable receive mode, enable wake-on-radio etc.
@@ -290,6 +290,26 @@ List (from table 42 page 67):
 	0x3B	SFTX	Flush the TX FIFO buffer. Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
 	0x3C	SWORRST Reset real time clock to Event1 value.
 	0x3D	SNOP	No operation. May be used to get access to the chip status byte.
+
+
+Status Registers (READ):
+________________________
+
+List (from table 42 page 67):
+	0x30 (0xF0) PARTNUM			Part number for CC1101
+	0x31 (0xF1) VERSION			Current version number
+	0x32 (0xF2) FREQEST			Frequency Offset Estimate
+	0x33 (0xF3) LQI				Demodulator estimate for Link Quality
+	0x34 (0xF4) RSSI			Received signal strength indication
+	0x35 (0xF5) MARCSTATE		Control state machine state
+	0x36 (0xF6) WORTIME1		High byte of WOR timer
+	0x37 (0xF7) WORTIME0		Low byte of WOR timer
+	0x38 (0xF8) PKTSTATUS		Current GDOx status and packet status
+	0x39 (0xF9) VCO_VC_DAC		Current setting from PLL calibration module
+	0x3A (0xFA) TXBYTES			Underflow and number of bytes in the TX FIFO
+	0x3B (0xFB) RXBYTES			Overflow and number of bytes in the RX FIFO
+	0x3C (0xFC) RCCTRL1_STATUS	Last RC oscillator calibration result
+	0x3D (0xFD) RCCTRL0_STATUS	Last RC oscillator calibration result
 
 
 FIFO Access:
@@ -326,21 +346,111 @@ Receiver channel bandwidth
 	BW_channel = F_osc / (8*(4+CHANBW_M)*2^CHANBW_E)
 
 
+Synch Config:
+_____________
+• Bit Synch algorithm extracts the clock from the incoming symbols.
+ The algorithm requires that the expected data rate is programmed as described above.
 
-Status Registers: ???
-_________________
+• Byte Synch is achieved by a continuous sync word search.
+ The sync word is a 16 bit configurable field (can be repeated to get a 32 bit) that is automatically inserted at the start of the packet by the modulator in transmit mode.
 
-0x30 (0xF0) PARTNUM Part number for CC1101
-0x31 (0xF1) VERSION Current version number
-0x32 (0xF2) FREQEST Frequency Offset Estimate
-0x33 (0xF3) LQI Demodulator estimate for Link Quality
-0x34 (0xF4) RSSI Received signal strength indication
-0x35 (0xF5) MARCSTATE Control state machine state
-0x36 (0xF6) WORTIME1 High byte of WOR timer
-0x37 (0xF7) WORTIME0 Low byte of WOR timer
-0x38 (0xF8) PKTSTATUS Current GDOx status and packet status
-0x39 (0xF9) VCO_VC_DAC Current setting from PLL calibration module
-0x3A (0xFA) TXBYTES Underflow and number of bytes in the TX FIFO
-0x3B (0xFB) RXBYTES Overflow and number of bytes in the RX FIFO
-0x3C (0xFC) RCCTRL1_STATUS Last RC oscillator calibration result
-0x3D (0xFD) RCCTRL0_STATUS Last RC oscillator calibration result
+
+Packet Mode:
+____________
+The CC1101 has built-in hardware support for packet oriented radio protocols.
+This can be enabled on packet reception:
+	• Preamble detection
+	• Sync word detection
+	• CRC computation and CRC check
+	• One byte address check
+	• Packet length check (length byte checked against a programmable maximum length)
+	• De-whitening
+	• De-interleaving and decoding
+
+See <Packet Format.png> for a description of the packets.
+
+Filtering:
+	► Packets can have an "address" header used for filtering so various devices can have multiple addresses and packets quickly addressed to each of them, packets with the wrong address are simply dropped and listening continues.
+	► CRC filtering can be used to discard (i.e. flush) packets that failed the CRC test.
+
+
+Modulation Formats:
+___________________
+• CC1101 supports amplitude, frequency, and phase shift modulation formats.
+• Optionally, the data stream can be "Manchester coded" by the modulator and decoded by the demodulator (basically 0's are encoded by descending fronts while 1's are encoded by ascending fronts).
+	Wikipedia: https://en.wikipedia.org/wiki/Manchester_code
+	Video: https://www.youtube.com/watch?v=i_TLLACZuRk (various encoding methods)
+
+► Phase-shift keying https://en.wikipedia.org/wiki/Phase-shift_keying
+► Quadrature Amplitude Modulation (QAM)	https://en.wikipedia.org/wiki/Quadrature_amplitude_modulation
+► Non-Return to Zero Encoding https://en.wikipedia.org/wiki/Non-return-to-zero (basically, 1 is +V, 0 is -V)
+
+
+Signal Qualifiers and Link Quality:
+___________________________________
+Several tools exist:
+	• Sync Word Qualifier
+	• Preamble Quality Threshold
+	• RSSI
+	• Carrier Sense
+	• Clear Channel Assessment
+	• Link Quality Indicator
+
+
+Starting Up:
+____________
+• When the power supply is turned on, the system must be reset.
+	This is achieved by one of the two sequences described below, i.e. automatic power-on reset (POR) or manual reset.
+• After the automatic power-on reset or manual reset, it is also recommended to change the signal that is output on the GDO0 pin.
+	The default setting is to output a clock signal with a frequency of CLK_XOSC/192.
+	However, to optimize performance in TX and RX, an alternative GDO setting from the settings found in Table 41 on page 62 should be selected.
+
+► Power-On Reset (POR)
+A power-on reset circuit is included in the CC1101
+Minimum requirements are:
+	Parameter				Min	Typ	Max Unit	Condition/Note
+	Power-up ramp-up time	-	-	5	ms		From 0V until reaching 1.8V
+	Power off time			1	-	-	ms		Minimum time between power-on and power-off
+
+The internal powerup sequence is completed when CHIP_RDYn goes low.
+CHIP_RDYn is observed on the SO pin after CSn is pulled low.
+
+► Manual Reset
+The other global reset possibility on CC1101 uses the SRES command strobe. By issuing this strobe, all internal registers and states are set to the default, IDLE state.
+The manual power-up sequence is as follows (see Figure 27):
+	• Set SCLK = 1 and SI = 0, to avoid potential problems with pin control mode (see Section 11.3).
+	• Strobe CSn low / high.
+	• Hold CSn low and then high for at least 40 μs relative to pulling CSn low
+	• Pull CSn low and wait for SO to go low (CHIP_RDYn).
+	• Issue the SRES strobe on the SI line.
+	• When SO goes low again, reset is complete and the chip is in the IDLE state.
+
+Wake On Radio (WOR):
+____________________
+The optional Wake on Radio (WOR) functionality enables CC1101 to periodically wake up from SLEEP and listen for incoming packets without MCU interaction.
+When the SWOR strobe command is sent on the SPI interface, the CC1101 will go to the SLEEP state when CSn is released.
+NOTE: The RC oscillator must be enabled before the SWOR strobe can be used, as it is the clock source for the WOR timer.
+
+
+General Purpose / Test Output Control Pins:
+___________________________________________
+The three digital output pins GDO0, GDO1, and GDO2 are general control pins configured with IOCFG0.GDO0_CFG, IOCFG1.GDO1_CFG, and IOCFG2.GDO2_CFG respectively.
+• GDO1 is the same pin as the SO pin on the SPI interface, thus the output programmed on this pin will only be valid when CSn is high.
+	The default value for GDO1 is 3-stated which is useful when the SPI interface is shared with other devices.
+• The default value for GDO0 is a 135-141 kHz clock output (XOSC frequency divided by 192).
+	Since the XOSC is turned on at poweron-reset, this can be used to clock the MCU in systems with only one crystal.
+
+	***************
+	NOTE: Can we use this to "DEBUG" the input line with an oscilloscope???
+	Like maybe the input signal is "downsampled" at 1/192 from the 26MHz frequency down to 136 KHz "slowed down" version???
+
+	Check modes in GDOx_CFG:
+		12 (0x0C) Serial Synchronous Data Output. Used for synchronous serial mode.
+		13 (0x0D) Serial Data Output. Used for asynchronous serial mode.
+
+	OR use asynchronous mode that looks like it's feeding RAW data to the GDOx pins:
+	§27.1 « In asynchronous serial mode no data decision is done on-chip and the raw data is put on the data output line in RX.
+			When using asynchronous serial mode make sure the interfacing MCU does proper oversampling and that it can handle the jitter on the data output line.
+			The MCU should tolerate a jitter of ±1/8 of a bit period as the data stream is timediscrete using 8 samples per bit. »
+
+	***************

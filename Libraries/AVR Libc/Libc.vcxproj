@@ -1,0 +1,403 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D56077A8-28D5-4586-89C7-C65737B521B0}</ProjectGuid>
+    <RootNamespace>
+    </RootNamespace>
+    <ProjectName>Libc</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>
+    </PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>
+    </PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;$(ProjectDir)..\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\variants\standard;$(ProjectDir)..\Core;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.8.1\include;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.Core.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=10803;ARDUINO_AVR_UNO;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="VisualMicro" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\alloca.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\assert.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\boot.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\builtins.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\common.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\cpufunc.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\crc16.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\delay.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\eeprom.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\fuse.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\interrupt.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io1200.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io2313.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io2323.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io2333.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io2343.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io43u32x.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io43u35x.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io4414.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io4433.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io4434.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io76c711.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io8515.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io8534.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io8535.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io86r401.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwm1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwm161.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwm216.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwm2b.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwm316.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwm3b.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwm81.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90pwmx.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\io90scr100.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5272.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5505.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5702m322.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5782.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5790.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5790n.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5791.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5795.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa5831.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6285.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6286.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6289.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6612c.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6613c.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6614q.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6616c.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa6617c.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa664251.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa8210.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioa8510.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\ioat94k.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iocan128.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iocan32.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iocan64.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iocanxx.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom103.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom128.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom1280.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom1281.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom1284.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom1284p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom1284rfr2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom128a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom128rfa1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom128rfr2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom161.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom162.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom163.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom164.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom164a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom164p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom164pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom165.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom165a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom165p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom165pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom168.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom168a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom168p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom168pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom168pb.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom169.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom169a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom169p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom169pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16hva.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16hva2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16hvb.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16hvbrevb.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16m1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16u2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom16u4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom2560.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom2561.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom2564rfr2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom256rfr2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3000.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom323.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom324a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom324p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom324pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom325.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3250.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3250a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3250p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3250pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom325a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom325p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom325pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom328.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom328p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom329.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3290.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3290a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom3290pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom329a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom329p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom329pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32c1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32hvb.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32hvbrevb.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32m1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32u2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32u4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom32u6.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom406.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom48.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom48a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom48p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom48pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom48pb.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom64.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom640.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom644.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom644a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom644p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom644pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom644rfr2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom645.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom6450.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom6450a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom6450p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom645a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom645p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom649.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom6490.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom6490a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom6490p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom649a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom649p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom64a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom64c1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom64hve.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom64hve2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom64m1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom64rfr2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom8.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom8515.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom8535.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom88.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom88a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom88p.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom88pa.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom88pb.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom8a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom8hva.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iom8u2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iomx8.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iomxx0_1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iomxx4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iomxxhva.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn10.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn11.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn12.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn13.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn13a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn15.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn1634.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn167.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn20.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn22.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn2313.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn2313a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn24.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn24a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn25.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn26.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn261.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn261a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn28.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn40.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn4313.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn43u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn44.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn441.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn44a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn45.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn461.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn461a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn48.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn5.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn828.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn84.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn841.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn84a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn85.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn861.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn861a.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn87.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn88.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotn9.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotnx4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotnx5.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iotnx61.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousb1286.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousb1287.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousb162.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousb646.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousb647.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousb82.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousbxx2.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iousbxx6_7.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128a1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128a1u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128a3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128a3u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128a4u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128b1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128b3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128c3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128d3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox128d4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox16a4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox16a4u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox16c4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox16d4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox16e5.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox192a3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox192a3u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox192c3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox192d3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox256a3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox256a3b.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox256a3bu.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox256a3u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox256c3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox256d3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox32a4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox32a4u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox32c3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox32c4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox32d3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox32d4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox32e5.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox384c3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox384d3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64a1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64a1u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64a3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64a3u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64a4u.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64b1.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64b3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64c3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64d3.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox64d4.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\iox8e5.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\lock.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\parity.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\pgmspace.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\portpins.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\power.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\sfr_defs.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\signal.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\signature.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\sleep.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\version.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\wdt.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\xmega.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\compat\deprecated.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\compat\ina90.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\compat\twi.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\ctype.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\errno.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\fcntl.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\inttypes.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\locale.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\math.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\setjmp.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\signal.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\stdfix-avrlibc.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\stdint.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\stdio.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\stdlib.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\string.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\sys\types.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\time.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\unistd.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\atomic.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\crc16.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\delay.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\delay_basic.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\eu_dst.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\parity.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\setbaud.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\twi.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\usa_dst.h" />
+  </ItemGroup>
+  <PropertyGroup>
+    <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
