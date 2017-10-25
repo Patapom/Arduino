@@ -5,37 +5,6 @@
 
 using namespace Pom;
 
-void	delayns( uint32_t _nanoseconds ) {
-	uint32_t	microseconds = (999 + _nanoseconds) / 1000;	// We don't have enough resolution for nanoseconds here so we round up to the next microsecond
-	delayMicroseconds( microseconds );
-}
-
-CC1101::CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 ) {
-	// Setup pins
-	m_pin_CS = _CS;
-	m_pin_Clock = _CLOCK;
-	m_pin_SI = _SI;
-	m_pin_SO = _SO;
-	m_pin_GDO0 = _GDO0;
-	m_pin_GDO2 = _GDO2;
-
-	pinMode( m_pin_Clock, OUTPUT );
-	pinMode( m_pin_CS, OUTPUT );
-	pinMode( m_pin_SO, INPUT );		// Master In Slave Out
-	pinMode( m_pin_SI, OUTPUT );	// Master Out Slave In
-// 	pinMode( m_pin_GDO0, INPUT );
-// 	pinMode( m_pin_GDO2, INPUT );
-
-	digitalWrite( m_pin_CS, HIGH );	// Clear the line
-
-	// Initialize registers
-// 	SPITransfer( OP_SCANLIMIT, 7 );		// Scanlimit is set to max on startup
-// 	SPITransfer( OP_DECODEMODE, 0 );	// No decode: we send raw bits!
-// 	SPITransfer( OP_INTENSITY, 16 );	// Max intensity!
-// 	SPITransfer( OP_DISPLAYTEST, 0 );	// Stop any current test
-// 	SPITransfer( OP_SHUTDOWN, 1 );		// Wake up!
-}
-
 enum MODULATION_FORMAT {
 // 0 (000) 2-FSK
 // 1 (001) GFSK
@@ -164,6 +133,73 @@ enum COMMAND_STROBES {
 	SNOP		= 0x3D,	// No operation. May be used to get access to the chip status byte.
 };
 
+void	delayns( uint32_t _nanoseconds ) {
+	uint32_t	microseconds = (999 + _nanoseconds) / 1000;	// We don't have enough resolution for nanoseconds here so we round up to the next microsecond
+	delayMicroseconds( microseconds );
+}
+
+CC1101::CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 ) {
+	// Setup pins
+	m_pin_CS = _CS;
+	m_pin_Clock = _CLOCK;
+	m_pin_SI = _SI;
+	m_pin_SO = _SO;
+	m_pin_GDO0 = _GDO0;
+	m_pin_GDO2 = _GDO2;
+
+	pinMode( m_pin_Clock, OUTPUT );
+	pinMode( m_pin_CS, OUTPUT );
+	pinMode( m_pin_SO, INPUT );		// Master In Slave Out
+	pinMode( m_pin_SI, OUTPUT );	// Master Out Slave In
+ 	pinMode( m_pin_GDO0, INPUT );
+ 	pinMode( m_pin_GDO2, INPUT );
+
+	digitalWrite( m_pin_CS, HIGH );	// Clear the line
+
+Attendre serial available!
+
+	// Setup SPI control register (cf. http://avrbeginners.net/architecture/spi/spi.html#spi_regs)
+	// Enable SPI Master, MSB, SPI mode 0, FOSC/4
+	{
+		SPCR = 0x00;
+		SPCR = 0 * (1 << SPIE)	// Disable SPI interrupt
+			 | 1 * (1<<SPE)		// SPI Enable
+			 | 0 * (1<<MSTR)	// Master
+			 | 0 * (1<<DORD)	// Data Order 0 = MSB
+			 | 0 * (1<<CPOL)	// Clock Polarity = HIGH (transfer on high)
+			 | 0 * (1<<CPHA)	// Clock Phase = LEADING (transfer on rising edge)
+			 | 0 * (1<<SPR1)	//
+			 | 0 * (1<<SPR0);	// Clock Rate Select = 00 (Fosc/4) 
+
+		byte	tmp1 = SPSR;
+		byte	tmp2 = SPDR;
+Serial.print( "tmp1 = " );Serial.println( tmp1, HEX );
+Serial.print( "tmp2 = " );Serial.println( tmp2, HEX );
+	}
+
+	// Initialize registers
+// 	SPITransfer( OP_SCANLIMIT, 7 );		// Scanlimit is set to max on startup
+// 	SPITransfer( OP_DECODEMODE, 0 );	// No decode: we send raw bits!
+// 	SPITransfer( OP_INTENSITY, 16 );	// Max intensity!
+// 	SPITransfer( OP_DISPLAYTEST, 0 );	// Stop any current test
+// 	SPITransfer( OP_SHUTDOWN, 1 );		// Wake up!
+}
+
+void	CC1101::Init( Setup_t _parms ) {
+
+Serial.println( "Reset" );
+
+	Reset();
+
+Serial.println( "Read Burst" );
+
+	SPIReadBurst( 0x00, 0x3E, m_initialValues );	// Read initial register values
+
+	// Change GDO modes to avoid costly CLK_XOSC settings
+	SetRegister( IOCFG0, 0x29 );	// Signal CHIP_RDYn
+	SetRegister( IOCFG2, 0x29 );	// Signal CHIP_RDYn
+}
+
 void	CC1101::Reset() {
 	// Set SCLK = 1 and SI = 0, to avoid potential problems with pin control mode (see Section 11.3).
 	digitalWrite( m_pin_Clock, HIGH );
@@ -178,13 +214,25 @@ void	CC1101::Reset() {
 
 	// Pull CSn low and wait for SO to go low (CHIP_RDYn).
 	digitalWrite( m_pin_CS, LOW );
+
+//Serial.println( "CS LOW" );
+
 	while ( digitalRead( m_pin_SO ) );
 
+//Serial.println( "SO LOW" );
+
 	// Issue the SRES strobe on the SI line.
+//Serial.println( "Strobe" );
 	SendCommandStrobe( SRES );
+
+//SpiTransfer( SRES );
+
+Serial.println( "Strobe DONE!" );
 
 	// When SO goes low again, reset is complete and the chip is in the IDLE state.
 	while ( digitalRead( m_pin_SO ) );
+
+Serial.println( "SO LOW" );
 
 	// Release the line
 	digitalWrite( m_pin_CS, HIGH );
@@ -195,23 +243,37 @@ void	CC1101::Reset() {
 //
 
 // NOTES: This function expects CS and SO to be LOW
-void	CC1101::SPIW( byte _value ) {
-	shiftOut( m_pin_SO, m_pin_Clock, MSBFIRST, _value);
+// Details can be found at http://avrbeginners.net/architecture/spi/spi.html and https://www.arduino.cc/en/Tutorial/SPIEEPROM
+//
+byte	CC1101::SPITransfer( byte _value ) {
+Serial.print( "SPI Write 0x" );
+Serial.print( _value, HEX );
+
+	SPDR = _value;
+	while ( (SPCR & (1 << SPIF)) != 0x00 );
+	_value = SPDR;
+
+Serial.print( " - Read 0x" );
+Serial.println( _value, HEX );
+
+	return _value;
 }
-byte	CC1101::SPIR() {
-	byte	returnValue = shiftIn( m_pin_SI, m_pin_Clock, MSBFIRST );
-	return returnValue;
-}
+// byte	CC1101::SPIR() {
+// Serial.print( "SPIR => 0x" );
+// 	byte	returnValue = shiftIn( m_pin_SO, m_pin_Clock, MSBFIRST );
+// Serial.println( returnValue, HEX );
+// 	return returnValue;
+// }
 
 byte	CC1101::SPIReadSingle( byte _address ) {
 	byte	data;
-	SPIRead( _address, 0x00, 1, &data );
+	SPIRead( _address, 0x00, 1, &data );	// Status is simply ignored
 	return data;
 }
-void	CC1101::SPIReadBurst( byte _address, uint32_t _dataLength, byte* _data ) {
-	SPIRead( _address, 0x40U, _dataLength, _data );
+byte	CC1101::SPIReadBurst( byte _address, uint32_t _dataLength, byte* _data ) {
+	return SPIRead( _address, 0x40U, _dataLength, _data );
 }
-void	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
+byte	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
 	digitalWrite( m_pin_CS, LOW );		// Enable the line
 	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
 	delayns( 20 );						// 20ns before transmit (as per table 22)
@@ -220,7 +282,7 @@ void	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte*
 	byte	opcode  = 0x80	// READ
 					| _opcodeOR
 					| (_address & 0x3F);
-	SPIW( opcode );
+	byte	status = SPITransfer( opcode );
 
 	// Shift in data
 	while ( _dataLength-- ) {
@@ -229,20 +291,22 @@ void	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte*
 // 		delayns( 76 );	// Min 76ns before data in "Burst Access"
 		delayMicroseconds( 1 );
 
-		*_data++ = SPIR();
+		*_data++ = SPITransfer( 0 );
 	}
 
 	delayns( 20 );						// 20ns after transmit (as per table 22)
 	digitalWrite( m_pin_CS, HIGH );		// Release the line
+
+	return status;
 }
 
-void	CC1101::SPIWriteSingle( byte _address, byte _data ) {
-	SPIWrite( _address, 0x00, 1, &_data );
+byte	CC1101::SPIWriteSingle( byte _address, byte _data ) {
+	return SPIWrite( _address, 0x00, 1, &_data );
 }
-void	CC1101::SPIWriteBurst( byte _address, uint32_t _dataLength, byte* _data ) {
-	SPIWrite( _address, 0x40U, _dataLength, _data );
+byte	CC1101::SPIWriteBurst( byte _address, uint32_t _dataLength, byte* _data ) {
+	return SPIWrite( _address, 0x40U, _dataLength, _data );
 }
-void	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
+byte	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
 	digitalWrite( m_pin_CS, LOW );		// Enable the line
 	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
 	delayns( 20 );						// 20ns before transmit (as per table 22)
@@ -250,7 +314,7 @@ void	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte
 	// Now shift out the opcode
 	byte	opcode  = _opcodeOR
 					| (_address & 0x3F);
-	SPIW( opcode );
+	byte	status = SPITransfer( opcode );
 
 	// Shift out data
 	while ( _dataLength-- ) {
@@ -259,11 +323,13 @@ void	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte
 // 		delayns( 76 );	// Min 76ns before data in "Burst Access"
 		delayMicroseconds( 1 );
 
-		SPIW( *_data++ );
+		SPITransfer( *_data++ );
 	}
 
 	delayns( 20 );						// 20ns after transmit (as per table 22)
 	digitalWrite( m_pin_CS, HIGH );		// Release the line
+
+	return status;
 }
 
 void	CC1101::SetPATable( byte _powerTable[8] ) {
@@ -280,12 +346,12 @@ void	CC1101::SetFrequencyDeviation( float _deviationKHz ) {
 	SetRegister( DEVIATN, value );
 }
 
-void	CC1101::SetRegister( byte _address, byte _value ) {
-	SPIWriteSingle( _address, _value );
+byte	CC1101::SetRegister( byte _address, byte _value ) {
+	return SPIWriteSingle( _address, _value );
 }
-void	CC1101::SendCommandStrobe( byte _command ) {
-	SPIW( _command );
+byte	CC1101::SendCommandStrobe( byte _command ) {
+	return SPITransfer( _command );
 }
 byte	CC1101::ReadStatus() {
-	return SPIR();
+	return SPITransfer( SNOP );
 }

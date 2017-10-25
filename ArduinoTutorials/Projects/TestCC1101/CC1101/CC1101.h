@@ -20,28 +20,29 @@ namespace Pom {
 			byte	channel;		// Operating channel [0,255]
 		};
 
+		byte	m_initialValues[0x3E];
+
 	public:
 		CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 );
 		void	Init( Setup_t _parms );
 
 	private:
-		void	SPIW( byte _value );	// Base SPI Write used by all other routines
-		byte	SPIR();					// Base SPI Read used by all other routines
+		byte	SPITransfer( byte _value );	// Base SPI transfer used by all other routines
 
-		byte	SPIReadSingle( byte _opcode );
-		void	SPIReadBurst( byte _opcode, uint32_t _dataLength, byte* _data );
-		void	SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data );
+		byte	SPIReadSingle( byte _opcode );													// Returns READ byte (NOT! Status byte)
+		byte	SPIReadBurst( byte _opcode, uint32_t _dataLength, byte* _data );				// Returns status byte
+		byte	SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data );	// Returns status byte
 
-		void	SPIWriteSingle( byte _opcode, byte _data );
-		void	SPIWriteBurst( byte _opcode, uint32_t _dataLength, byte* _data );
-		void	SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data );
+		byte	SPIWriteSingle( byte _opcode, byte _data );										// Returns status byte
+		byte	SPIWriteBurst( byte _opcode, uint32_t _dataLength, byte* _data );				// Returns status byte
+		byte	SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data );	// Returns status byte
 
 		void	Reset();													// Performs a manual reset
 		void	SetChannelSpacing( float _spacing_KHz=1.0f );				// Sets the frequency spacing (in KHz) between channels
 		void	SetFrequencyDeviation( float _deviation_KHz=47.607f );		// Sets the frequency deviation (in KHz) for phase shifts
 
-		void	SetRegister( byte _address, byte _value );
-		void	SendCommandStrobe( byte _command );
+		byte	SetRegister( byte _address, byte _value );
+		byte	SendCommandStrobe( byte _command );
 		void	SetPATable( byte _powerTable[8] );
 		byte	ReadStatus();
 	};

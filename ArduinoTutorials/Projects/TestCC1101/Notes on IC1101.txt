@@ -294,6 +294,7 @@ List (from table 42 page 67):
 
 Status Registers (READ):
 ________________________
+Should be read with BURST bit set, otherwise a strobe command is issued
 
 List (from table 42 page 67):
 	0x30 (0xF0) PARTNUM			Part number for CC1101
