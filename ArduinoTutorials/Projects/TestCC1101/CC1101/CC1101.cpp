@@ -164,10 +164,6 @@ enum COMMAND_STROBES {
 	SNOP		= 0x3D,	// No operation. May be used to get access to the chip status byte.
 };
 
-byte	CC1101::ReadStatus() {
-	return 0;	// TODO!
-}
-
 void	CC1101::Reset() {
 	// Set SCLK = 1 and SI = 0, to avoid potential problems with pin control mode (see Section 11.3).
 	digitalWrite( m_pin_Clock, HIGH );
@@ -282,4 +278,14 @@ void	CC1101::SetFrequencyDeviation( float _deviationKHz ) {
 	byte	mantissa = ceil( factor );
 	byte	value = ((exponent & 0x7) << 4) | (mantissa & 0x7);
 	SetRegister( DEVIATN, value );
+}
+
+void	CC1101::SetRegister( byte _address, byte _value ) {
+	SPIWriteSingle( _address, _value );
+}
+void	CC1101::SendCommandStrobe( byte _command ) {
+	SPIW( _command );
+}
+byte	CC1101::ReadStatus() {
+	return SPIR();
 }

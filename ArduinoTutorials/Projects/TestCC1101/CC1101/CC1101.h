@@ -44,6 +44,5 @@ namespace Pom {
 		void	SendCommandStrobe( byte _command );
 		void	SetPATable( byte _powerTable[8] );
 		byte	ReadStatus();
-		void	Burst( uint32_t _length, byte _data[] );
 	};
 }
