@@ -124,6 +124,9 @@
   <ItemGroup>
     <None Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\wiring_pulse.S" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="README.txt" />
+  </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>

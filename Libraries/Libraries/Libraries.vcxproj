@@ -11,9 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{EDBC4145-2C78-414D-9AA2-2FD9D03B933F}</ProjectGuid>
-    <RootNamespace>TestCC1101</RootNamespace>
-    <ProjectName>TestCC1101</ProjectName>
+    <ProjectGuid>{9D3E4D80-6CD8-4218-AF35-5FC5ADA47296}</ProjectGuid>
+    <RootNamespace>
+    </RootNamespace>
+    <ProjectName>Libraries</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -47,10 +48,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;$(ProjectDir)..\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\Pom;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\standard;$(ProjectDir)..\TestCC1101;C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\;C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\;C:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.8.1\include;C:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;C:\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>$(ProjectDir)__vm\.TestCC1101.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;$(ProjectDir)..\libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\Librariess\arduino;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\arduino\avr\variants\standard;$(ProjectDir)..\Libraries;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\avr\;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.8.1\include;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\Program Files (x86)\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>$(ProjectDir)__vm\.Libraries.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-      <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;_VMDEBUG=1;F_CPU=16000000L;ARDUINO=10803;ARDUINO_AVR_UNO;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=10803;ARDUINO_AVR_UNO;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -73,28 +74,28 @@
   <ItemGroup>
     <ProjectCapability Include="VisualMicro" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="README.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\EEPROM\src\EEPROM.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\HID\src\HID.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src\SoftwareSerial.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\SPI.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility\twi.h" />
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\Wire.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\HID\src\HID.cpp" />
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src\SoftwareSerial.cpp" />
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\SPI.cpp" />
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility\twi.c" />
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\Wire.cpp" />
+  </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>
-  <ItemGroup>
-    <None Include="TestCC1101.ino" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Notes on IC1101.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CC1101\CC1101.h" />
-    <ClInclude Include="__vm\.TestCC1101.vsarduino.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CC1101\CC1101.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties debug.view.DigitalPins="1" debug.view.AnalogPins="1" debug.view.FreeMemory="1" />
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>

@@ -82,6 +82,7 @@
   <ItemGroup>
     <ClInclude Include="CC1101\CC1101.h" />
     <ClInclude Include="Math\Math.h" />
+    <ClInclude Include="Pom.h" />
     <ClInclude Include="PulseTrain\PulseTrain.h" />
   </ItemGroup>
   <ItemGroup>
