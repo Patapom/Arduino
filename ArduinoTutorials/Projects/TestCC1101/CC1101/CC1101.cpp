@@ -199,8 +199,8 @@ void	CC1101::EnableWhitening( bool _enable ) {
 	m_enableWhitening = _enable;
 	WritePKTCTRL0();
 }
-void	CC1101::UseFIFO( bool _useFIFO ) {
-	m_useFIFO = _useFIFO;
+void	CC1101::SetPacketFormat( PACKET_FORMAT _format ) {
+	m_packetFormat = _format;
 	WritePKTCTRL0();
 }
 void	CC1101::EnableCRC( bool _enableCRC ) {
@@ -301,6 +301,12 @@ void	CC1101::SetFrequencyDeviation( float _deviation_KHz ) {
 	SetRegister( DEVIATN, dev );
 }
 
+void	CC1101::SetGDOx( GDO_SELECT _GDO, GDO_CONFIG _config, bool _invertOutput ) {
+	byte	value = (_invertOutput ? 0x40 : 0x00)
+				  | (_config & 0x3F);
+	SetRegister( _GDO == CC1101::GDO0 ? IOCFG0 : IOCFG2, value );
+}
+
 CC1101::MACHINE_STATE	CC1101::ReadFSMState() {
 	byte	value = ReadStatusRegister( MARCSTATE );
 	return MACHINE_STATE( value & 0x1F );
@@ -335,7 +341,7 @@ byte	CC1101::ReadStatusRegister( byte _address ) {
 
 void	CC1101::WritePKTCTRL0() {
 	byte	value = (m_enableWhitening ? 0x40 : 0x00)
-				  | (m_useFIFO ? 0x00 : 0x10)	// Synchronous mode otherwise
+				  | (m_packetFormat << 4)
 				  | (m_enableCRC ? 0x04 : 0x00)
 				  | (m_packetLengthConfig & 0x3);
 	SetRegister( PKTCTRL0, value );
@@ -343,7 +349,7 @@ void	CC1101::WritePKTCTRL0() {
 void	CC1101::ReadPKTCTRL0() {
 	byte	value = SPIReadSingle( PKTCTRL0 );
 	m_enableWhitening = (value & 0x40) != 0;
-	m_useFIFO = (value & 0x30) == 0;
+	m_packetFormat = PACKET_FORMAT( (value >> 4) & 0x3 );
 	m_enableCRC = (value & 0x04) != 0;
 	m_packetLengthConfig = PACKET_LENGTH_CONFIG( value & 0x3 );
 }

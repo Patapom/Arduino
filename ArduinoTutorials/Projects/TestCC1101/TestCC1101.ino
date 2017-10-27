@@ -13,12 +13,12 @@ Pom::CC1101	C( PIN_CS, PIN_CLOCK, PIN_SI, PIN_SO, PIN_GDO0, PIN_GDO2 );
 void setup() {
 	Serial.begin( 9600 );
 
-/*
+//*
 	// Test functions
 	Serial.println( "Testing Functions" );
 	C.SetAddress();
 	C.EnableWhitening();
-	C.UseFIFO();
+	C.SetPacketFormat();
 	C.EnableCRC();
 	C.SetPacketLengthConfig();
 	C.EnablePacketAddressCheck();
@@ -34,13 +34,16 @@ void setup() {
 	C.SetChannelSpacing();
 	C.SetFrequencyDeviation();
 
+	C.SetGDOx( Pom::CC1101::GDO0 );
+	C.SetGDOx( Pom::CC1101::GDO2 );
+
 	Serial.println( "DONE!" );
 
 	// Read state
 	Serial.print( "Machine state = " );
 	Serial.println( C.ReadFSMState(), HEX );
 //*/
-/*	// Write registers
+//*	// Write registers
 	Serial.println( "Dumping register values..." );
 	
 	byte	initialValues[0x3E];
