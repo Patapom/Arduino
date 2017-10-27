@@ -291,6 +291,22 @@ void	CC1101::SetAsynchronousTransferMode() {
 }
 
 void	CC1101::Transmit( byte _size, byte* _data ) {
+
+SendCommandStrobe( SFSTXON );
+SendCommandStrobe( SCAL );
+SendCommandStrobe( SFTX );				// Flush
+
+	int	count = 0;
+	while ( ReadFSMState() != IDLE ) {
+		count++;
+// 		Serial.print( "Waiting for IDLE " );
+// 		Serial.println( ReadStatus(), HEX );
+	}
+	Serial.print( "Waited for IDLE for " );
+	Serial.print( count );
+	Serial.println( " times" );
+
+
 	// First byte is payload size
 //DisplayStatus( ReadStatus() );
 	SetRegister( TX_RX_FIFO, _size );
@@ -307,29 +323,24 @@ Serial.println( "NOT IN IDLE! Can't start TX!" );
 
 	// Start sending
 	SendCommandStrobe( STX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
-Serial.println( ReadStatus(), HEX );
 
-//DisplayStatus( ReadStatus() );
-//DisplayStatus( ReadStatus() );
-//DisplayStatus( ReadStatus() );
-//DisplayStatus( ReadStatus() );
-//DisplayStatus( ReadStatus() );
-//DisplayStatus( ReadStatus() );
-
-	// Wait for end of IDLE state
-	while( ReadFSMState() == IDLE ) {
-		delayMicroseconds( 1 );
+// It never leaves IDLE state FFS!!!
+uint64_t	startTime = millis();
+int		seconds = 0;
+while ( ReadFSMState() == IDLE ) {
+	uint64_t	currentTime = millis();
+	if ( currentTime - startTime > 1000 ) {
+		startTime = currentTime;
+		Serial.print( "IDLE for " );
+		Serial.print( ++seconds );
+		Serial.println( " seconds" );
 	}
+}
+
+// 	// Wait for end of IDLE state
+// 	while( ReadFSMState() == IDLE ) {
+// 		delayMicroseconds( 1 );
+// 	}
 
 Serial.println( "WAITING FOR PACKET SEND" );
  	while ( !digitalRead( m_pin_GDO0 ) );	// Wait for packet start
