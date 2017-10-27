@@ -55,6 +55,9 @@ enum REGISTERS {
 	TEST2	  =	0x2C,
 	TEST1	  =	0x2D,
 	TEST0	  =	0x2E,
+
+	// TX/RX Register
+	TX_RX_FIFO = 0x3F,
 };
 
 enum COMMAND_STROBES {
@@ -99,21 +102,21 @@ void	delayns( uint32_t _nanoseconds ) {
 
 const float	CC1101::DEFAULT_CARRIER_FREQUENCY_MHz = 800.0f;
 
-CC1101::CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 ) {
+CC1101::CC1101( byte _pin_CS, byte _pin_CLOCK, byte _pin_SI, byte _pin_SO, byte _pin_GDO0, byte _pin_GDO2 ) {
 	// Setup pins
-	m_pin_CS = _CS;
-	m_pin_Clock = _CLOCK;
-	m_pin_SI = _SI;
-	m_pin_SO = _SO;
-// 	m_pin_GDO0 = _GDO0;
-// 	m_pin_GDO2 = _GDO2;
+	m_pin_CS = _pin_CS;
+	m_pin_Clock = _pin_CLOCK;
+	m_pin_SI = _pin_SI;
+	m_pin_SO = _pin_SO;
+	m_pin_GDO0 = _pin_GDO0;
+	m_pin_GDO2 = _pin_GDO2;
 
 	pinMode( m_pin_Clock, OUTPUT );
 	pinMode( m_pin_CS, OUTPUT );
 	pinMode( m_pin_SO, INPUT );		// Master In Slave Out
 	pinMode( m_pin_SI, OUTPUT );	// Master Out Slave In
- 	pinMode( _GDO0, INPUT );
- 	pinMode( _GDO2, INPUT );
+ 	pinMode( m_pin_GDO0, INPUT );
+ 	pinMode( m_pin_GDO2, INPUT );
 
 	digitalWrite( m_pin_CS, HIGH );	// Clear the line
 
@@ -182,6 +185,183 @@ void	CC1101::Reset() {
 
 	// Perform custom reset operations
 	InternalCustomReset();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Data Transfer
+void	CC1101::SetNormalTransferMode() {
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "Using Normal Transfer Mode" );
+	#endif
+	pinMode( m_pin_GDO0, OUTPUT );			// Both pins as output
+	pinMode( m_pin_GDO2, OUTPUT );
+	SetGDOx( GDO0, CHIP_RDYn );				// Both signal chip ready
+	SetGDOx( GDO2, CHIP_RDYn );
+	SetPacketFormat( NORMAL );				// Enable normal mode
+
+pinMode( m_pin_GDO0, INPUT );
+pinMode( m_pin_GDO2, INPUT );
+SetGDOx( GDO0, ASSERT_ON_SYNC_WORD );
+SetGDOx( GDO2, CLK_XOSC_64 );
+
+
+
+
+
+
+SetRegister( FSCTRL1,  0x08 );
+SetRegister( FSCTRL0,  0x00 );
+SetRegister( FREQ2,    0x10 );
+SetRegister( FREQ1,    0xA7 );
+SetRegister( FREQ0,    0x62 );
+SetRegister( MDMCFG4,  0x5B );
+SetRegister( MDMCFG3,  0xF8 );
+SetRegister( MDMCFG2,  0x03 );
+SetRegister( MDMCFG1,  0x22 );
+SetRegister( MDMCFG0,  0xF8 );
+SetRegister( CHANNR,   0x00 );
+SetRegister( DEVIATN,  0x47 );
+SetRegister( FREND1,   0xB6 );
+SetRegister( FREND0,   0x10 );
+SetRegister( MCSM0 ,   0x18 );
+SetRegister( FOCCFG,   0x1D );
+SetRegister( BSCFG,    0x1C );
+SetRegister( AGCTRL2,  0xC7 );
+SetRegister( AGCTRL1,  0x00 );
+SetRegister( AGCTRL0,  0xB2 );
+SetRegister( FSCAL3,   0xEA );
+SetRegister( FSCAL2,   0x2A );
+SetRegister( FSCAL1,   0x00 );
+SetRegister( FSCAL0,   0x11 );
+SetRegister( FSTEST,   0x59 );
+SetRegister( TEST2,    0x81 );
+SetRegister( TEST1,    0x35 );
+SetRegister( TEST0,    0x09 );
+SetRegister( IOCFG2,   0x0B ); 	//serial clock.synchronous to the data in synchronous serial mode
+SetRegister( IOCFG0,   0x06 );  	//asserts when sync word has been sent/received, and de-asserts at the end of the packet 
+SetRegister( PKTCTRL1, 0x04 );		//two status bytes will be appended to the payload of the packet,including RSSI LQI and CRC OK No address check
+SetRegister( PKTCTRL0, 0x05 );		//whitening off;CRC Enable£»variable length packets, packet length configured by the first byte after sync word
+SetRegister( ADDR,     0x00 );		//address used for packet filtration.
+SetRegister( PKTLEN,   0x3D ); 	//61 bytes max length
+
+
+}
+
+// Enters Synchronous Serial Operation mode
+// As per §27.2:
+//	• In TX, the GDO0 pin is used for data input (TX data). This pin will automatically be configured as an input when TX is active.
+//	• In RX, data output can be on GDO0, GDO1, or GDO2.
+//
+// This mode is equivalent to the normal mode except FIFO mechanism is disabled and the user needs to handle
+//	the individual bits manually and store them as they arrive
+//
+void	CC1101::SetSynchronousTransferMode() {
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "Using Synchronous Transfer Mode" );
+	#endif
+	pinMode( m_pin_GDO0, OUTPUT );			// Used to transmit data in TX mode (master out - slave in)
+	pinMode( m_pin_GDO2, INPUT );			// Used to receive data in RX mode
+	SetGDOx( GDO2, SYNCHRONOUS_DATA_OUT );	// Mark it as slave output (master in - slave out)
+	SetPacketFormat( SYNCHRONOUS );			// Enable synchronous mode
+}
+
+// Enters Asynchronous Serial Operation mode
+// As per §27.1:
+//	• In TX, the GDO0 pin is used for data input (TX data). This pin will automatically be configured as an input when TX is active.
+//	• In RX, data output can be on GDO0, GDO1, or GDO2.
+//
+// Asynchronous mode is kind of "free for all" and expects bits to arrive at the correct pace when transmitting,
+//	received bits are polled at 8 times the frequency and also need to be processed by the MCU
+// Quoting the documentation:
+//	« When using asynchronous serial mode make sure the interfacing MCU does proper oversampling and that it can handle the jitter on the data output line.
+//		The MCU should tolerate a jitter of ±1/8 of a bit period as the data stream is time-discrete using 8 samples per bit. »
+//
+// Typically, asynchronous mode can be useful to "spy on a channel" and connect the GDO2 pin to an oscilloscope to
+//	monitor the raw data that are transmitted over the air.
+//
+void	CC1101::SetAsynchronousTransferMode() {
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "Using Asynchronous Transfer Mode" );
+	#endif
+	pinMode( m_pin_GDO0, OUTPUT );			// Used to transmit data in TX mode (master out - slave in)
+	pinMode( m_pin_GDO2, INPUT );			// Used to receive data in RX mode
+	SetGDOx( GDO2, ASYNCHRONOUS_DATA_OUT );	// Mark it as slave output (master in - slave out)
+	SetPacketFormat( ASYNCHRONOUS );		// Enable asynchronous mode
+}
+
+void	CC1101::Transmit( byte _size, byte* _data ) {
+	// First byte is payload size
+//DisplayStatus( ReadStatus() );
+	SetRegister( TX_RX_FIFO, _size );
+
+	// Send entire data
+//DisplayStatus( ReadStatus() );
+	SPIWriteBurst( TX_RX_FIFO, _size, _data );
+
+//DisplayStatus( ReadStatus() );
+	if ( ReadFSMState() != IDLE ) {
+Serial.println( "NOT IN IDLE! Can't start TX!" );
+		return;
+	}
+
+	// Start sending
+	SendCommandStrobe( STX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+Serial.println( ReadStatus(), HEX );
+
+//DisplayStatus( ReadStatus() );
+//DisplayStatus( ReadStatus() );
+//DisplayStatus( ReadStatus() );
+//DisplayStatus( ReadStatus() );
+//DisplayStatus( ReadStatus() );
+//DisplayStatus( ReadStatus() );
+
+	// Wait for end of IDLE state
+	while( ReadFSMState() == IDLE ) {
+		delayMicroseconds( 1 );
+	}
+
+Serial.println( "WAITING FOR PACKET SEND" );
+ 	while ( !digitalRead( m_pin_GDO0 ) );	// Wait for packet start
+Serial.println( "SENDING" );
+ 	while ( digitalRead( m_pin_GDO0 ) );	// Wait for packet end
+Serial.println( "SENT" );
+ 
+ 	SendCommandStrobe( SFTX );				// Flush
+}
+
+byte	CC1101::Receive( byte* _data ) {
+	SendCommandStrobe( SRX );					// Start receiving
+		SendCommandStrobe( RXFIFO_OVERFLOW );
+
+	byte	availableBytes = ReadStatusRegister( RXBYTES );
+	if ( availableBytes & 0x80 ) {
+		// Overflow! Flush...
+		SendCommandStrobe( RXFIFO_OVERFLOW );
+		return 0;
+	}
+
+	availableBytes &= 0x7F;
+	if ( availableBytes == 0 )
+		return 0;	// Nothing in the pipe...
+
+	byte	packetSize = SPIReadSingle( TX_RX_FIFO );	// Read payload size
+	SPIReadBurst( TX_RX_FIFO, packetSize, _data );		// Read entire data
+
+	byte	status[2];
+	SPIReadBurst( TX_RX_FIFO, 2, status );		// Read status bytes (PKTCTRL1 was set with a state that automatically appends 2 status bytes to the packets)
+
+	return packetSize;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -315,7 +495,7 @@ CC1101::MACHINE_STATE	CC1101::ReadFSMState() {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 // Med-Level Helpers Functions
-
+//
 byte	CC1101::ReadPATable( byte _powerTable[8] ) {
 	return SPIReadBurst( 0x3E, 8, _powerTable );
 }
@@ -366,11 +546,7 @@ void	CC1101::ReadPKTCTRL1() {
 
 void	CC1101::InternalCustomReset() {
 	// Change GDO modes to avoid costly CLK_XOSC settings
-	#ifdef SPI_DEBUG_VERBOSE
-		Serial.println( "Set GPOx modes to CHIP_RDYn" );
-	#endif
-	SetRegister( IOCFG0, 0x29 );	// Signal CHIP_RDYn
-	SetRegister( IOCFG2, 0x29 );	// Signal CHIP_RDYn
+	SetNormalTransferMode();
 
 	// Setup custom PA table (even though only the first byte is used because FREND0.PA_POWER is set to 0)
 	byte	temp[8] = { 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6 };
@@ -689,7 +865,7 @@ void	CC1101::DisplayDecodedWrittenValue( byte _writtenValue ) {
 			case RCCTRL1_STATUS	:	Serial.print( "RCCTRL1_STATUS" ); break;
 			case RCCTRL0_STATUS	:	Serial.print( "RCCTRL0_STATUS" ); break;
 		}
-	} else {
+	} else if ( _writtenValue < 0x3F ) {
 		// Issue strobe command
 		Serial.print( "STROBE " );
 		switch ( address ) {
@@ -707,6 +883,10 @@ void	CC1101::DisplayDecodedWrittenValue( byte _writtenValue ) {
 			case SWORRST: Serial.print( "SWORRST" ); break;
 			case SNOP	: Serial.print( "SNOP" ); break;
 		}
+	} else if ( address == 0x3E ) {
+		Serial.print( "PATABLE" );
+	} else {
+		Serial.print( (_writtenValue & 0x80) ? "RX" : "TX" );	// Receive/Transmit
 	}
 }
 

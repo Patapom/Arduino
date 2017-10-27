@@ -10,11 +10,20 @@
 // the setup function runs once when you press reset or power the board
 Pom::CC1101	C( PIN_CS, PIN_CLOCK, PIN_SI, PIN_SO, PIN_GDO0, PIN_GDO2 );
 
+
+// http://www.st.com/content/ccc/resource/technical/document/application_note/2f/bb/7f/94/76/fa/4b/3c/DM00054821.pdf/files/DM00054821.pdf/jcr:content/translations/en.DM00054821.pdf
+// EN 300 220 
+//  868.3 MHz center frequency.
+// The data rate is set to 9.6 kbps.
+// The frequency deviation is set to 2.4 kHz, and the modulation is set to gaussian FSK (GFSK) with a BT = 1. 
+//
 void setup() {
 	Serial.begin( 9600 );
 
-//*
-	// Test functions
+//C.Reset();
+C.SetNormalTransferMode();
+
+/*	// Test functions
 	Serial.println( "Testing Functions" );
 	C.SetAddress();
 	C.EnableWhitening();
@@ -43,7 +52,7 @@ void setup() {
 	Serial.print( "Machine state = " );
 	Serial.println( C.ReadFSMState(), HEX );
 //*/
-//*	// Write registers
+/*	// Write registers
 	Serial.println( "Dumping register values..." );
 	
 	byte	initialValues[0x3E];
@@ -61,4 +70,27 @@ void setup() {
 
 // the loop function runs over and over again until power down or reset
 void loop() {
+
+	#if 1
+		// Send a bisou!
+		const char*	string = "BISOU!";
+		C.Transmit( 6, string );
+	
+//Serial.print( digitalRead( PIN_GDO2 ) ? "1 " : "0 " );
+
+		// Wait a little
+//		delay( 500 );
+	#else
+		// Receive a bisou!
+		byte	buffer[256];
+		byte	size = C.Receive( buffer );
+		if ( size > 0 ) {
+			buffer[size] = '\0';	// Add trailing 0 to end string
+			Serial.print( "Received " );
+			Serial.print( size );
+			Serial.print( " bytes \"" );
+			Serial.print( (const char*) buffer );
+			Serial.println( "\"" );
+		}
+	#endif
 }

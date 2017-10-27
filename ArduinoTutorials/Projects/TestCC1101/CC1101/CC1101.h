@@ -12,7 +12,7 @@
 //
 
 //#define SPI_DEBUG_VERBOSE	1	// Define to display Write/Read values on the SPI bus.
-#define SPI_DEBUG_VERBOSE	2	// Define to display Write/Read values on the SPI bus + decoding of the written value in plain text.
+//#define SPI_DEBUG_VERBOSE	2	// Define to display Write/Read values on the SPI bus + decoding of the written value in plain text.
 
 namespace Pom {
 	class CC1101 {
@@ -40,6 +40,8 @@ namespace Pom {
 		byte					m_pin_Clock;
 		byte					m_pin_SI;
 		byte					m_pin_SO;
+		byte					m_pin_GDO0;
+		byte					m_pin_GDO2;
 
 		// Internal state for PKTCTRL0 and 1
 		bool					m_enableWhitening : 1;			// Enables data whitening (i.e. deterministic noise is added to transmitted data to both encrypt and increase quality of transfer)
@@ -49,10 +51,16 @@ namespace Pom {
 		bool					m_enablePacketAddressCheck : 1;	// Enables address sending/checking at the beginning of packets (i.e. several slave chips can send to a single master and the master can dispatch to the proper slave given its address)
 
 	public:
-		CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 );
+		CC1101( byte _pin_CS, byte _pin_CLOCK, byte _pin_SI, byte _pin_SO, byte _pin_GDO0, byte _pin_GDO2 );
 		void	Reset();										// Performs a manual reset
 
+		// Data transfer
+		void	SetNormalTransferMode();						// Normal transfer mode (Synchronous mode + using FIFO)
+		void	SetSynchronousTransferMode();					// Synchronous transfer mode (no FIFO: direct read/write on GDOx pins)
+		void	SetAsynchronousTransferMode();					// Asynchronous transfer mode (no support, MCU must be polling and feeding data at oversampled rate on GDOx pins)
 
+		void	Transmit( byte _size, byte* _data );			// Transmits a small amount of data (< 256 bytes)
+		byte	Receive( byte* _data );							// Reads a small amount of data (< 256 bytes). Returns 0 if nothing is present in the pipe.
 
 		// Configures packets
 		void	SetAddress( byte _address=0x00 );
@@ -82,34 +90,34 @@ namespace Pom {
 			GDO2,
 		};
 		enum GDO_CONFIG {
-			RX_FIFO_ASSERT_FULL = 0,				// Associated to the RX FIFO: Asserts when RX FIFO is filled at or above the RX FIFO threshold. De-asserts when RX FIFO is drained below the same threshold.
-			RX_FIFO_ASSERT_FULL_OR_PACKET_END = 1,	// Associated to the RX FIFO: Asserts when RX FIFO is filled at or above the RX FIFO threshold or the end of packet is reached. De-asserts when the RX FIFO is empty.
+			RX_FIFO_ASSERT_FULL = 0,					// Associated to the RX FIFO: Asserts when RX FIFO is filled at or above the RX FIFO threshold. De-asserts when RX FIFO is drained below the same threshold.
+			RX_FIFO_ASSERT_FULL_OR_PACKET_END = 1,		// Associated to the RX FIFO: Asserts when RX FIFO is filled at or above the RX FIFO threshold or the end of packet is reached. De-asserts when the RX FIFO is empty.
 			TX_FIFO_ASSERT_FULL_OR_ABOVE_THRESHOLD = 2,	// Associated to the TX FIFO: Asserts when the TX FIFO is filled at or above the TX FIFO threshold. De-asserts when the TX FIFO is below the same threshold.
-			TX_FIFO_ASSERT_FULL = 3,				// Associated to the TX FIFO: Asserts when TX FIFO is full. De-asserts when the TX FIFO is drained below the TX FIFO threshold.
-			RX_FIFO_OVERFLOW = 4,					// Asserts when the RX FIFO has overflowed. De-asserts when the FIFO has been flushed.
-			TX_FIFO_UNDERFLOW = 5,					// Asserts when the TX FIFO has underflowed. De-asserts when the FIFO is flushed.
-			ASSERT_ON_SYNC_WORD = 6,				// Asserts when sync word has been sent / received, and de-asserts at the end of the packet.
-													//	• In RX, the pin will also deassert when a packet is discarded due to address or maximum length filtering or when the radio enters RXFIFO_OVERFLOW state.
-													//	• In TX the pin will de-assert if the TX FIFO underflows.
-			ASSERT_ON_PACKET_RECEIVED_OK = 7,		// Asserts when a packet has been received with CRC OK. De-asserts when the first byte is read from the RX FIFO.
-			PQI_ABOVE_PROGRAMMED_QUALITY = 8,		// Preamble Quality Reached. Asserts when the PQI is above the programmed PQT value. De-asserted when the chip reenters RX state (MARCSTATE=0x0D) or the PQI gets below the programmed PQT value.
-			RSSI_LEVEL_BELOW_THRESHOLD = 9,			// Clear channel assessment. High when RSSI level is below threshold (dependent on the current CCA_MODE setting).
-			PLL_LOCKED = 10,						// Lock detector output. The PLL is in lock if the lock detector output has a positive transition or is constantly logic high. To check for PLL lock the lock detector output should be used as an interrupt for the MCU.
-			SERIAL_CLOCK = 11,						// Serial Clock. Synchronous to the data in synchronous serial mode.
-													//	• In RX mode, data is set up on the falling edge by CC1101 when GDOx_INV=0.
-													//	• In TX mode, data is sampled by CC1101 on the rising edge of the serial clock when GDOx_INV=0.
-			SYNCHRONOUS_DATA_OUT = 12,				// Serial Synchronous Data Output. Used for synchronous serial mode.
-			ASYNCHRONOUS_DATA_OUT = 13,				// Serial Data Output. Used for asynchronous serial mode.
-			RSSI_LEVEL_ABOVE_THRESHOLD = 14,		// Carrier sense. High if RSSI level is above threshold. Cleared when entering IDLE mode.
-			CRC_OK = 15,							// CRC_OK. The last CRC comparison matched. Cleared when entering/restarting RX mode.
-			WOR_EVNT0 = 36,							// Wake On Radio Event 0
-			WOR_EVNT1 = 37,							// Wake On Radio Event 1
-			CLK_256 = 38,							// CLK_256 (undocumented)
-			CLK_32k = 39,							// CLK_32k (undocumented)
-			CHIP_RDYn = 41,							// Signal chip is ready (crystal is running) (default value after a reset)
-			XOSC_STABLE = 43,						// Oscillator is stable (should normally be at the same time as CHIP_RDYn)
-			HIGH_IMPEDANCE = 46,					// High impedance (3-state) (default value for SO/GDO1)
-			HW_TO_0 = 47,							// HW to 0 (HW1 achieved by setting GDOx_INV=1). Can be used to control an external LNA/PA or RX/TX switch.
+			TX_FIFO_ASSERT_FULL = 3,					// Associated to the TX FIFO: Asserts when TX FIFO is full. De-asserts when the TX FIFO is drained below the TX FIFO threshold.
+			RX_FIFO_OVERFLOW = 4,						// Asserts when the RX FIFO has overflowed. De-asserts when the FIFO has been flushed.
+			TX_FIFO_UNDERFLOW = 5,						// Asserts when the TX FIFO has underflowed. De-asserts when the FIFO is flushed.
+			ASSERT_ON_SYNC_WORD = 6,					// Asserts when sync word has been sent / received, and de-asserts at the end of the packet.
+														//	• In RX, the pin will also deassert when a packet is discarded due to address or maximum length filtering or when the radio enters RXFIFO_OVERFLOW state.
+														//	• In TX the pin will de-assert if the TX FIFO underflows.
+			ASSERT_ON_PACKET_RECEIVED_OK = 7,			// Asserts when a packet has been received with CRC OK. De-asserts when the first byte is read from the RX FIFO.
+			PQI_ABOVE_PROGRAMMED_QUALITY = 8,			// Preamble Quality Reached. Asserts when the PQI is above the programmed PQT value. De-asserted when the chip reenters RX state (MARCSTATE=0x0D) or the PQI gets below the programmed PQT value.
+			RSSI_LEVEL_BELOW_THRESHOLD = 9,				// Clear channel assessment. High when RSSI level is below threshold (dependent on the current CCA_MODE setting).
+			PLL_LOCKED = 10,							// Lock detector output. The PLL is in lock if the lock detector output has a positive transition or is constantly logic high. To check for PLL lock the lock detector output should be used as an interrupt for the MCU.
+			SERIAL_CLOCK = 11,							// Serial Clock. Synchronous to the data in synchronous serial mode.
+														//	• In RX mode, data is set up on the falling edge by CC1101 when GDOx_INV=0.
+														//	• In TX mode, data is sampled by CC1101 on the rising edge of the serial clock when GDOx_INV=0.
+			SYNCHRONOUS_DATA_OUT = 12,					// Serial Synchronous Data Output. Used for synchronous serial mode.
+			ASYNCHRONOUS_DATA_OUT = 13,					// Serial Data Output. Used for asynchronous serial mode.
+			RSSI_LEVEL_ABOVE_THRESHOLD = 14,			// Carrier sense. High if RSSI level is above threshold. Cleared when entering IDLE mode.
+			CRC_OK = 15,								// CRC_OK. The last CRC comparison matched. Cleared when entering/restarting RX mode.
+			WOR_EVNT0 = 36,								// Wake On Radio Event 0
+			WOR_EVNT1 = 37,								// Wake On Radio Event 1
+			CLK_256 = 38,								// CLK_256 (undocumented)
+			CLK_32k = 39,								// CLK_32k (undocumented)
+			CHIP_RDYn = 41,								// Signal chip is ready (crystal is running) (default value after a reset)
+			XOSC_STABLE = 43,							// Oscillator is stable (should normally be at the same time as CHIP_RDYn)
+			HIGH_IMPEDANCE = 46,						// High impedance (3-state) (default value for SO/GDO1)
+			HW_TO_0 = 47,								// HW to 0 (HW1 achieved by setting GDOx_INV=1). Can be used to control an external LNA/PA or RX/TX switch.
 
 			// Note: There are 3 GDO pins, but only one CLK_XOSC/n can be selected as an output at any time.
 			// If CLK_XOSC/n is to be monitored on one of the GDO pins, the other two GDO pins must be configured to values less than 0x30.

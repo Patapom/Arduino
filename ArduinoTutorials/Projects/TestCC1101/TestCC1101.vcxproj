@@ -94,7 +94,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties debug.view.DigitalPins="1" debug.view.AnalogPins="1" debug.view.FreeMemory="1" />
+      <UserProperties debug.view.DigitalPins="1" debug.view.AnalogPins="1" debug.view.FreeMemory="1" arduino.upload.port="COM4" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
