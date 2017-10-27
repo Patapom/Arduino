@@ -22,11 +22,6 @@ namespace Pom {
 	public:
 		static const float	DEFAULT_CARRIER_FREQUENCY_MHz;// = 800.0f;
 
-		struct Setup_t {
-			float	carrierFrequency;	// Operating carrier frequency (default is 800MHz)
-			byte	channel;			// Operating channel [0,255]
-		};
-
 		enum PACKET_LENGTH_CONFIG {
 			FIXED = 0,		// Fixed packet length mode. Length configured manually
 			VARIABLE = 1,	// Variable packet length mode where the packet's length is the first byte following the SYNC word
@@ -76,7 +71,6 @@ namespace Pom {
 
 	public:
 		CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 );
-		void	Init( Setup_t _parms );
 		void	Reset();										// Performs a manual reset
 
 		// Configures packets
@@ -124,6 +118,8 @@ namespace Pom {
 		void	ReadPKTCTRL0();
 		void	WritePKTCTRL1();
 		void	ReadPKTCTRL1();
+
+		void	InternalCustomReset();							// Some internal custom reset operations that are executed right after Reset() is called
 
 		#ifdef SPI_DEBUG_VERBOSE
 			public:

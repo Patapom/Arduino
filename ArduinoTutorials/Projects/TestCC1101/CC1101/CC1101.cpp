@@ -134,116 +134,9 @@ CC1101::CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO
 				tmp = SPDR;
 				tmp++;
 	}
-}
 
-void	CC1101::Init( Setup_t _parms ) {
+	// Manually reset device
 	Reset();
-
-	// Change GDO modes to avoid costly CLK_XOSC settings
-	#ifdef SPI_DEBUG_VERBOSE
-		Serial.println( "Set GPOx modes to CHIP_RDYn" );
-	#endif
-	SetRegister( IOCFG0, 0x29 );	// Signal CHIP_RDYn
-	SetRegister( IOCFG2, 0x29 );	// Signal CHIP_RDYn
-
-	// Setup default registers
-	// Default values after a RESET are:
-	// 	IOCFG2			(0x00) = 0x29	Signal CHIP_RDYn on GDO2, No invert
-	// 	IOCFG1			(0x01) = 0x2E	3-state on GDO1 (default to be able to use SO), No invert
-	// 	IOCFG0			(0x02) = 0x3F	Signal CLK_XOSC/192, No invert
-	// 	FIFOTHR			(0x03) = 0x07	RX Attenuation = 0dB. Set the threshold for the TX FIFO and RX FIFO to 7 = 33 (half the queue size)
-	// 	SYNC1			(0x04) = 0xD3	Sync Word MSB
-	// 	SYNC0			(0x05) = 0x91	Sync Word LSB
-	// 	PKTLEN			(0x06) = 0xFF	Default Packet Length
-	// 	PKTCTRL1		(0x07) = 0x04	Always accept sync word. Don't autoflush when CRC is wrong. Append 2 status bytes to packets. No address check.
-	// 	PKTCTRL0		(0x08) = 0x45	Data whitening enabled. Packet format normal mode (use FIFO). CRC enabled. Variable packet length.
-	// 	ADDR			(0x09) = 0x00	Broadcast address 0x00
-	// 	CHANNR			(0x0A) = 0x00	Broadcast on channel 0x00
-	// 	FSCTRL1			(0x0B) = 0x0F	FREQ_IF = 15 (IF = Fosc * FREQ_IF * 2^-10 = 381KHz) 
-	// 	FSCTRL0			(0x0C) = 0x00	Frequency offset (FREQOFF) added to the base frequency before being used by the frequency synthesizer.
-	// 	FREQ2			(0x0D) = 0x1E	MSB of Fcarrier = Fosc * FREQ * 2^-16 = 26Mhz * 0x1EC4EC / 65536 = 26 * 30.76922607421875 = 799.9998779296875 MHz
-	// 	FREQ1			(0x0E) = 0xC4	MidSB of Fcarrier
-	// 	FREQ0			(0x0F) = 0xEC	LSB of Fcarrier
-	// 	MDMCFG4			(0x10) = 0x8C	Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E) = 203.125 KHz (with CHANBW_M=0 & CHANBW_E=2). DRATE_E = 12
-	// 	MDMCFG3			(0x11) = 0x22	Data Rate = Fosc * (256 + DRATE_M)*2^(DRATE_E-28) = 26 * 0.004425048828125 = 115.05126953125 KBauds (with DRATE_M=34 & DRATE_E=12)
-	// 	MDMCFG2			(0x12) = 0x02	Enable digital DC blocking (better sensitivity). Modulation format = 2-FSK. Disable Manchester Encoding. 16/16 Sync word bits must match.
-	// 	MDMCFG1			(0x13) = 0x22	Forward Error Correction (FEC) disabled. A minimum of 4 preamble bytes must be transmitted. CHANSPC_E = 2
-	// 	MDMCFG0			(0x14) = 0xF8	Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18) = 26 * 0.0076904296875 = 199.951171875 KHz (with CHANSPC_M = 0xF8 and CHANSPC_E = 2)
-	// 	DEVIATN			(0x15) = 0x47	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17) = 26 * 0.0018310546875 = 47.607421875 KHz (with DEVIATION_E = 4 & DEVIATION_M = 7)
-	// 	MCSM2			(0x16) = 0x07	No direct RX termination based on RSSI measurement. Only check Sync word on RX_TIME expired. Wait until end of packet for timeout. 
-	// 	MCSM1			(0x17) = 0x30	Clear Channel Assessment (CCA) Mode = If RSSI below threshold unless currently receiving a packet. RXOFF_MODE goes to IDLE after packet received. TXOFF_MODE goes to IDLE after packet received.
-	// 	MCSM0			(0x18) = 0x04	Auto calibration disabled. Xosc stabilized after counter reaches 16. Disable pin radio control option. Force Xosc to stay on during sleep state is DISABLED.
-	// 	FOCCFG			(0x19) = 0x76	Freeze demodulator state until CS goes high. Frequency compensation loop gain BEFORE sync word detection to 3K. Fres. comp AFTER sync word to K/2. Saturation point for freq. offset compensation algorithm = +-BWchan/4
-	// 	BSCFG			(0x1A) = 0x6C	Clock recovery feedback loop integral gain BEFORE sync word to 2Ki. Proportional gain to 3Kp. Ki/2 for AFTER sync word integral gain. Kp for AFTER sync word proportional gain. Saturation point for data rate offset compensation algorithm = 0 (no compensation performed)
-	// 	AGCTRL2			(0x1B) = 0x03	All gain settings can be used. Maximum possible LNA + LNA 2 gain. Average amplitude for from digital channel filter = 33 dB.
-	// 	AGCTRL1			(0x1C) = 0x40	LNA gain is decreased first. Relative carrier sense threshold disabled. Carrier sense RSSI threshold at MAGN_TARGET.
-	// 	AGCTRL0			(0x1D) = 0x91	Medium hysteresis on magnitude deviation. 16 channel filter samples. Never freeze AGC. Use 16 samples for amplitude filtering.
-	// 	WOREVT1			(0x1E) = 0x87	High byte of EVENT0 timeout register t_EVENT0 = 750 / F_osc * EVENT0*2^(5*WOR_RES) = 750 / 26.0E6 * 0x876B * 2^(5*0) ~= 1s
-	// 	WOREVT0			(0x1F) = 0x6B	High byte of EVENT0 timeout register
-	// 	WORCTRL			(0x20) = 0xF8	Power down signal not set. Timeout of EVENT1 = 48 clocks. RC oscillator calibration enabled. WOR_RES = 0
-	// 	FREND1			(0x21) = 0x56	<ADVANCED> Front-end RX current settings (not very detailed :'().
-	// 	FREND0			(0x22) = 0x10	<ADVANCED> Front-end TX settings (not very detailed either). PA power setting set to index 0 in PATABLE.
-	// 	FSCAL3			(0x23) = 0xA9	<ADVANCED> Frequency synthesizer calibration settings (not very detailed).
-	// 	FSCAL2			(0x24) = 0x0A	<ADVANCED> Basically, all these settings are set by the Texas Instrument's proprietary tool SmartRF Studio (http://www.ti.com/tool/SMARTRFTM-STUDIO)
-	// 	FSCAL1			(0x25) = 0x20	<ADVANCED> 
-	// 	FSCAL0			(0x26) = 0x0D	<ADVANCED> 
-	// 	RCCTRL1			(0x27) = 0x41	<ADVANCED> 
-	// 	RCCTRL0			(0x28) = 0x00	<ADVANCED> 
-	// 	FSTEST			(0x29) = 0x59	<TEST ONLY> Don't write!
-	// 	PTEST			(0x2A) = 0x7F	Writing 0xBF to this register makes the on-chip temperature sensor available in the IDLE state. The default 0x7F value should then be written back before leaving the IDLE state
-	// 	AGCTEST			(0x2B) = 0x3F	<TEST ONLY> Don't write!
-	// 	TEST2			(0x2C) = 0x88	<TEST ONLY>
-	// 	TEST1			(0x2D) = 0x31	<TEST ONLY>
-	// 	TEST0			(0x2E) = 0x0B	<TEST ONLY>
-	//
-	// 	<<< 0x2F is undefined >>>
-	//
-	// Status registers are:
-	// 	PARTNUM			(0x30) = 0x00
-	// 	VERSION			(0x31) = 0x14
-	// 	FREQEST			(0x32) = 0x00
-	// 	LQI				(0x33) = 0x05
-	// 	RSSI			(0x34) = 0x80
-	// 	MARCSTATE		(0x35) = 0x01
-	// 	WORTIME1		(0x36) = 0x00
-	// 	WORTIME0		(0x37) = 0x00
-	// 	PKTSTATUS		(0x38) = 0x00
-	// 	VCO_VC_DAC		(0x39) = 0x94
-	// 	TXBYTES			(0x3A) = 0x00
-	// 	RXBYTES			(0x3B) = 0x00
-	// 	RCCTRL1_STATUS	(0x3C) = 0x00
-	// 	RCCTRL0_STATUS	(0x3D) = 0x00
-
-// 	SpiWriteReg(FSCTRL1,  0x08);	// IF = 203KHz
-// 	SpiWriteReg(FREQ2,    0x10);	// 433MHz
-// 	SpiWriteReg(FREQ1,    0xA7);
-// 	SpiWriteReg(FREQ0,    0x62);
-// 	SpiWriteReg(IOCFG2,   0x0B); 	//serial clock.synchronous to the data in synchronous serial mode
-// 	SpiWriteReg(IOCFG0,   0x06);  	//asserts when sync word has been sent/received, and de-asserts at the end of the packet 
-// 	SpiWriteReg(PKTLEN,   0x3D); 	//61 bytes max length
-
-// 	SpiWriteReg(MDMCFG4,  0x5B);
-// 	SpiWriteReg(MDMCFG3,  0xF8);
-// 	SpiWriteReg(MDMCFG2,  0x03);
-// 	SpiWriteReg(MDMCFG1,  0x22);
-// 	SpiWriteReg(MDMCFG0,  0xF8);
-// 	SpiWriteReg(FREND1,   0xB6);
-// 	SpiWriteReg(MCSM0 ,   0x18);
-// 	SpiWriteReg(FOCCFG,   0x1D);
-// 	SpiWriteReg(BSCFG,    0x1C);
-// 	SpiWriteReg(AGCTRL2,  0xC7);
-// 	SpiWriteReg(AGCTRL1,  0x00);
-// 	SpiWriteReg(AGCTRL0,  0xB2);
-// 	SpiWriteReg(FSCAL3,   0xEA);
-// 	SpiWriteReg(FSCAL2,   0x2A);
-// 	SpiWriteReg(FSCAL1,   0x00);
-// 	SpiWriteReg(FSCAL0,   0x11);
-
-	// Setup user values
-	SetCarrierFrequency( _parms.carrierFrequency );
-	SetChannel( _parms.channel );
-
-
 }
 
 void	CC1101::Reset() {
@@ -286,11 +179,14 @@ void	CC1101::Reset() {
 	// Synchronize our internal state
 	ReadPKTCTRL0();
 	ReadPKTCTRL1();
+
+	// Perform custom reset operations
+	InternalCustomReset();
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-//
+// High-Level User Access Functions
 void	CC1101::SetAddress( byte _address ) {
 	SetRegister( ADDR, _address );
 }
@@ -393,7 +289,7 @@ void	CC1101::SetChannelSpacing( float _spacing_KHz ) {
 }
 
 void	CC1101::SetFrequencyDeviation( float _deviation_KHz ) {
-	// 	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17) = 26 * 0.0018310546875 = 47.607421875 KHz (with DEVIATION_E = 4 & DEVIATION_M = 7)
+	// 	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17)
 	float	value = 0.001f *_deviation_KHz / Fosc_MHz;
 	int		exponent = floor( log2( value ) );
 			value *= 1 << (-exponent);
@@ -409,6 +305,10 @@ CC1101::MACHINE_STATE	CC1101::ReadFSMState() {
 	byte	value = ReadStatusRegister( MARCSTATE );
 	return MACHINE_STATE( value & 0x1F );
 }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Med-Level Helpers Functions
 
 byte	CC1101::ReadPATable( byte _powerTable[8] ) {
 	return SPIReadBurst( 0x3E, 8, _powerTable );
@@ -458,10 +358,125 @@ void	CC1101::ReadPKTCTRL1() {
 	m_enablePacketAddressCheck = (value & 0x03) != 0;
 }
 
+void	CC1101::InternalCustomReset() {
+	// Change GDO modes to avoid costly CLK_XOSC settings
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "Set GPOx modes to CHIP_RDYn" );
+	#endif
+	SetRegister( IOCFG0, 0x29 );	// Signal CHIP_RDYn
+	SetRegister( IOCFG2, 0x29 );	// Signal CHIP_RDYn
+
+	// Setup custom PA table (even though only the first byte is used because FREND0.PA_POWER is set to 0)
+	byte	temp[8] = { 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6 };
+	WritePATable( temp );
+
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "<PATable>" );
+		ReadPATable( temp );
+		for ( int i=0; i < 8; i++ )
+			Serial.println( temp[i], HEX );
+		Serial.println( "</PATable>" );
+	#endif
+
+	// Setup some default registers
+	// Default values after a RESET are:
+	// 	IOCFG2			(0x00) = 0x29	Signal CHIP_RDYn on GDO2, No invert
+	// 	IOCFG1			(0x01) = 0x2E	3-state on GDO1 (default to be able to use SO), No invert
+	// 	IOCFG0			(0x02) = 0x3F	Signal CLK_XOSC/192, No invert
+	// 	FIFOTHR			(0x03) = 0x07	RX Attenuation = 0dB. Set the threshold for the TX FIFO and RX FIFO to 7 = 33 (half the queue size)
+	// 	SYNC1			(0x04) = 0xD3	Sync Word MSB
+	// 	SYNC0			(0x05) = 0x91	Sync Word LSB
+	// 	PKTLEN			(0x06) = 0xFF	Default Packet Length
+	// 	PKTCTRL1		(0x07) = 0x04	Always accept sync word. Don't autoflush when CRC is wrong. Append 2 status bytes to packets. No address check.
+	// 	PKTCTRL0		(0x08) = 0x45	Data whitening enabled. Packet format normal mode (use FIFO). CRC enabled. Variable packet length.
+	// 	ADDR			(0x09) = 0x00	Broadcast address 0x00
+	// 	CHANNR			(0x0A) = 0x00	Broadcast on channel 0x00
+	// 	FSCTRL1			(0x0B) = 0x0F	FREQ_IF = 15 (IF = Fosc * FREQ_IF * 2^-10 = 381KHz) 
+	// 	FSCTRL0			(0x0C) = 0x00	Frequency offset (FREQOFF) added to the base frequency before being used by the frequency synthesizer.
+	// 	FREQ2			(0x0D) = 0x1E	MSB of Fcarrier = Fosc * FREQ * 2^-16 = 26Mhz * 0x1EC4EC / 65536 = 26 * 30.76922607421875 = 799.9998779296875 MHz
+	// 	FREQ1			(0x0E) = 0xC4	MidSB of Fcarrier
+	// 	FREQ0			(0x0F) = 0xEC	LSB of Fcarrier
+	// 	MDMCFG4			(0x10) = 0x8C	Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E) = 203.125 KHz (with CHANBW_M=0 & CHANBW_E=2). DRATE_E = 12
+	// 	MDMCFG3			(0x11) = 0x22	Data Rate = Fosc * (256 + DRATE_M)*2^(DRATE_E-28) = 26 * 0.004425048828125 = 115.05126953125 KBauds (with DRATE_M=34 & DRATE_E=12)
+	// 	MDMCFG2			(0x12) = 0x02	Enable digital DC blocking (better sensitivity). Modulation format = 2-FSK. Disable Manchester Encoding. 16/16 Sync word bits must match.
+	// 	MDMCFG1			(0x13) = 0x22	Forward Error Correction (FEC) disabled. A minimum of 4 preamble bytes must be transmitted. CHANSPC_E = 2
+	// 	MDMCFG0			(0x14) = 0xF8	Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18) = 26 * 0.0076904296875 = 199.951171875 KHz (with CHANSPC_M = 0xF8 and CHANSPC_E = 2)
+	// 	DEVIATN			(0x15) = 0x47	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17) = 26 * 0.0018310546875 = 47.607421875 KHz (with DEVIATION_E = 4 & DEVIATION_M = 7)
+	// 	MCSM2			(0x16) = 0x07	No direct RX termination based on RSSI measurement. Only check Sync word on RX_TIME expired. Wait until end of packet for timeout. 
+	// 	MCSM1			(0x17) = 0x30	Clear Channel Assessment (CCA) Mode = If RSSI below threshold unless currently receiving a packet. RXOFF_MODE goes to IDLE after packet received. TXOFF_MODE goes to IDLE after packet received.
+	// 	MCSM0			(0x18) = 0x04	Auto calibration disabled. Xosc stabilized after counter reaches 16. Disable pin radio control option. Force Xosc to stay on during sleep state is DISABLED.
+	// 	FOCCFG			(0x19) = 0x76	Freeze demodulator state until CS goes high. Frequency compensation loop gain BEFORE sync word detection to 3K. Fres. comp AFTER sync word to K/2. Saturation point for freq. offset compensation algorithm = +-BWchan/4
+	// 	BSCFG			(0x1A) = 0x6C	Clock recovery feedback loop integral gain BEFORE sync word to 2Ki. Proportional gain to 3Kp. Ki/2 for AFTER sync word integral gain. Kp for AFTER sync word proportional gain. Saturation point for data rate offset compensation algorithm = 0 (no compensation performed)
+	// 	AGCTRL2			(0x1B) = 0x03	All gain settings can be used. Maximum possible LNA + LNA 2 gain. Average amplitude for from digital channel filter = 33 dB.
+	// 	AGCTRL1			(0x1C) = 0x40	LNA gain is decreased first. Relative carrier sense threshold disabled. Carrier sense RSSI threshold at MAGN_TARGET.
+	// 	AGCTRL0			(0x1D) = 0x91	Medium hysteresis on magnitude deviation. 16 channel filter samples. Never freeze AGC. Use 16 samples for amplitude filtering.
+	// 	WOREVT1			(0x1E) = 0x87	High byte of EVENT0 timeout register t_EVENT0 = 750 / F_osc * EVENT0*2^(5*WOR_RES) = 750 / 26.0E6 * 0x876B * 2^(5*0) ~= 1s
+	// 	WOREVT0			(0x1F) = 0x6B	High byte of EVENT0 timeout register
+	// 	WORCTRL			(0x20) = 0xF8	Power down signal not set. Timeout of EVENT1 = 48 clocks. RC oscillator calibration enabled. WOR_RES = 0
+	// 	FREND1			(0x21) = 0x56	<ADVANCED> Front-end RX current settings (not very detailed :'().
+	// 	FREND0			(0x22) = 0x10	<ADVANCED> Front-end TX settings (not very detailed either). PA power setting set to index 0 in PATABLE.
+	// 	FSCAL3			(0x23) = 0xA9	<ADVANCED> Frequency synthesizer calibration settings (not very detailed).
+	// 	FSCAL2			(0x24) = 0x0A	<ADVANCED> Basically, all these settings are set by the Texas Instrument's proprietary tool SmartRF Studio (http://www.ti.com/tool/SMARTRFTM-STUDIO)
+	// 	FSCAL1			(0x25) = 0x20	<ADVANCED> 
+	// 	FSCAL0			(0x26) = 0x0D	<ADVANCED> 
+	// 	RCCTRL1			(0x27) = 0x41	<ADVANCED> 
+	// 	RCCTRL0			(0x28) = 0x00	<ADVANCED> 
+	// 	FSTEST			(0x29) = 0x59	<TEST ONLY> Don't write!
+	// 	PTEST			(0x2A) = 0x7F	Writing 0xBF to this register makes the on-chip temperature sensor available in the IDLE state. The default 0x7F value should then be written back before leaving the IDLE state
+	// 	AGCTEST			(0x2B) = 0x3F	<TEST ONLY> Don't write!
+	// 	TEST2			(0x2C) = 0x88	<TEST ONLY>
+	// 	TEST1			(0x2D) = 0x31	<TEST ONLY>
+	// 	TEST0			(0x2E) = 0x0B	<TEST ONLY>
+	//
+	// 	<<< 0x2F is undefined >>>
+	//
+	// Status registers are:
+	// 	PARTNUM			(0x30) = 0x00
+	// 	VERSION			(0x31) = 0x14
+	// 	FREQEST			(0x32) = 0x00
+	// 	LQI				(0x33) = 0x05
+	// 	RSSI			(0x34) = 0x80
+	// 	MARCSTATE		(0x35) = 0x01
+	// 	WORTIME1		(0x36) = 0x00
+	// 	WORTIME0		(0x37) = 0x00
+	// 	PKTSTATUS		(0x38) = 0x00
+	// 	VCO_VC_DAC		(0x39) = 0x94
+	// 	TXBYTES			(0x3A) = 0x00
+	// 	RXBYTES			(0x3B) = 0x00
+	// 	RCCTRL1_STATUS	(0x3C) = 0x00
+	// 	RCCTRL0_STATUS	(0x3D) = 0x00
+
+// This is the configuration proposed by the ELECHOUSE library
+// 	SpiWriteReg(FSCTRL1,  0x08);	// IF = 203KHz
+// 	SpiWriteReg(FREQ2,    0x10);	// 433MHz
+// 	SpiWriteReg(FREQ1,    0xA7);
+// 	SpiWriteReg(FREQ0,    0x62);
+// 	SpiWriteReg(IOCFG2,   0x0B); 	//serial clock.synchronous to the data in synchronous serial mode
+// 	SpiWriteReg(IOCFG0,   0x06);  	//asserts when sync word has been sent/received, and de-asserts at the end of the packet 
+// 	SpiWriteReg(PKTLEN,   0x3D); 	//61 bytes max length
+
+// 	SpiWriteReg(MDMCFG4,  0x5B);
+// 	SpiWriteReg(MDMCFG3,  0xF8);
+// 	SpiWriteReg(MDMCFG2,  0x03);
+// 	SpiWriteReg(MDMCFG1,  0x22);
+// 	SpiWriteReg(MDMCFG0,  0xF8);
+// 	SpiWriteReg(FREND1,   0xB6);
+// 	SpiWriteReg(MCSM0 ,   0x18);
+// 	SpiWriteReg(FOCCFG,   0x1D);
+// 	SpiWriteReg(BSCFG,    0x1C);
+// 	SpiWriteReg(AGCTRL2,  0xC7);
+// 	SpiWriteReg(AGCTRL1,  0x00);
+// 	SpiWriteReg(AGCTRL0,  0xB2);
+// 	SpiWriteReg(FSCAL3,   0xEA);
+// 	SpiWriteReg(FSCAL2,   0x2A);
+// 	SpiWriteReg(FSCAL1,   0x00);
+// 	SpiWriteReg(FSCAL0,   0x11);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-//
+// Low-Level R/W Functions
 
 // NOTES: This function expects CS and SO to be LOW
 // Details can be found at http://avrbeginners.net/architecture/spi/spi.html and https://www.arduino.cc/en/Tutorial/SPIEEPROM
