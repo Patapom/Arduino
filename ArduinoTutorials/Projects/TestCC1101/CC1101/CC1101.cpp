@@ -5,72 +5,7 @@
 
 using namespace Pom;
 
-//#define SPI_DEBUG_VERBOSE	1	// Define to display Write/Read values on the SPI bus.
-#define SPI_DEBUG_VERBOSE	2	// Define to display Write/Read values on the SPI bus + decoding of the written value in plain text.
-
 #pragma region Enums
-
-enum MODULATION_FORMAT {
-// 0 (000) 2-FSK
-// 1 (001) GFSK
-// 2 (010) -
-// 3 (011) ASK/OOK
-// 4 (100) 4-FSK
-// 5 (101) -
-// 6 (110) -
-// 7 (111) MSK
-};
-
-enum SYNC_MODE {
-// 0 (000) No preamble/sync
-// 1 (001) 15/16 sync word bits detected
-// 2 (010) 16/16 sync word bits detected
-// 3 (011) 30/32 sync word bits detected
-// 4 (100) No preamble/sync, carrier-sense
-// above threshold
-// 5 (101) 15/16 + carrier-sense above threshold
-// 6 (110) 16/16 + carrier-sense above threshold
-// 7 (111) 30/32 + carrier-sense above threshold
-};
-
-// MDMCFG2.SYNC_MODE Sync Word Qualifier Mode
-enum SYNC_WORD_QUALIFIER_MODE {
-// 000 No preamble/sync
-// 001 15/16 sync word bits detected
-// 010 16/16 sync word bits detected
-// 011 30/32 sync word bits detected
-// 100 No preamble/sync + carrier sense above threshold
-// 101 15/16 + carrier sense above threshold
-// 110 16/16 + carrier sense above threshold
-// 111 30/32 + carrier sense above threshold
-};
-
-// Main Radio Control FSM State
-enum MARC_STATE {
-	SLEEP				= 0x00,
-	IDLE				= 0x01,
-	XOFF				= 0x02,
-	VCOON_MC			= 0x03,
-	REGON_MC			= 0x04,
-	MANCAL				= 0x05,
-	VCOON				= 0x06,
-	REGON				= 0x07,
-	STARTCAL			= 0x08,
-	BWBOOST				= 0x09,
-	FS_LOCK				= 0x0A,
-	IFADCON				= 0x0B,
-	ENDCAL				= 0x0C,
-	RX					= 0x0D,
-	RX_END				= 0x0E,
-	RX_RST				= 0x0F,
-	TXRX_SWITCH			= 0x10,
-	RXFIFO_OVERFLOW		= 0x11,
-	FSTXON				= 0x12,
-	TX					= 0x13,
-	TX_END				= 0x14,
-	RXTX_SWITCH			= 0x15,
-	TXFIFO_UNDERFLOW	= 0x16,
-};
 
 enum REGISTERS {
 	IOCFG2	  =	0x00,
@@ -162,21 +97,23 @@ void	delayns( uint32_t _nanoseconds ) {
 	delayMicroseconds( microseconds );
 }
 
+const float	CC1101::DEFAULT_CARRIER_FREQUENCY_MHz = 800.0f;
+
 CC1101::CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 ) {
 	// Setup pins
 	m_pin_CS = _CS;
 	m_pin_Clock = _CLOCK;
 	m_pin_SI = _SI;
 	m_pin_SO = _SO;
-	m_pin_GDO0 = _GDO0;
-	m_pin_GDO2 = _GDO2;
+// 	m_pin_GDO0 = _GDO0;
+// 	m_pin_GDO2 = _GDO2;
 
 	pinMode( m_pin_Clock, OUTPUT );
 	pinMode( m_pin_CS, OUTPUT );
 	pinMode( m_pin_SO, INPUT );		// Master In Slave Out
 	pinMode( m_pin_SI, OUTPUT );	// Master Out Slave In
- 	pinMode( m_pin_GDO0, INPUT );
- 	pinMode( m_pin_GDO2, INPUT );
+ 	pinMode( _GDO0, INPUT );
+ 	pinMode( _GDO2, INPUT );
 
 	digitalWrite( m_pin_CS, HIGH );	// Clear the line
 
@@ -305,6 +242,8 @@ void	CC1101::Init( Setup_t _parms ) {
 	// Setup user values
 	SetCarrierFrequency( _parms.carrierFrequency );
 	SetChannel( _parms.channel );
+
+
 }
 
 void	CC1101::Reset() {
@@ -352,111 +291,6 @@ void	CC1101::Reset() {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //
-
-// NOTES: This function expects CS and SO to be LOW
-// Details can be found at http://avrbeginners.net/architecture/spi/spi.html and https://www.arduino.cc/en/Tutorial/SPIEEPROM
-//
-byte	CC1101::SPITransfer( byte _value ) {
-	#ifdef SPI_DEBUG_VERBOSE
-		Serial.print( "SPI Write 0x" );
-		Serial.print( _value, HEX );
-		#if SPI_DEBUG_VERBOSE == 2
-			Serial.print( " [" );
-			DisplayDecodedWrittenValue( _value );
-			Serial.print( "]" );
-		#endif
-	#endif
-
-	SPDR = _value;						// Write value to be transfered
-
-	// (Stolen from SPI library)
-	// The following NOP introduces a small delay that can prevent the wait loop form iterating when running at the maximum speed.
-	// This gives about 10% more speed, even if it seems counter-intuitive. At lower speeds it is unnoticed.
-	asm volatile( "nop" );
-
-	while ( !(SPSR & (1 << SPIF)) );	// Wait until shifting is complete
-
-	_value = SPDR;						// Read received value
-
-	#ifdef SPI_DEBUG_VERBOSE
-		Serial.print( " - Read 0x" );
-		Serial.println( _value, HEX );
-	#endif
-
-	return _value;
-}
-
-byte	CC1101::SPIReadSingle( byte _address ) {
-//Serial.println( "Read Single" );
-	byte	data;
-	SPIRead( _address, 0x00, 1, &data );	// Status is simply ignored
-	return data;
-}
-byte	CC1101::SPIReadBurst( byte _address, uint32_t _dataLength, byte* _data ) {
-//Serial.println( "Read Burst" );
-	return SPIRead( _address, 0x40U, _dataLength, _data );
-}
-byte	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
-	digitalWrite( m_pin_CS, LOW );		// Enable the line
-	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
-	delayns( 20 );						// 20ns before transmit (as per table 22)
-
-	// Now shift out the opcode
-	byte	opcode  = 0x80	// READ
-					| _opcodeOR
-					| (_address & 0x3F);
-	byte	status = SPITransfer( opcode );
-//DisplayStatus( status );
-
-	// Shift in data
-	while ( _dataLength-- ) {
-		// Wait between address/data and data/data bytes (as per table 22)
-// 		delayns( 55 );	// Min 55ns before data in "Single Access"
-// 		delayns( 76 );	// Min 76ns before data in "Burst Access"
-		delayMicroseconds( 1 );
-
-		*_data++ = SPITransfer( SNOP );
-	}
-
-	delayns( 20 );						// 20ns after transmit (as per table 22)
-	digitalWrite( m_pin_CS, HIGH );		// Release the line
-
-	return status;
-}
-
-byte	CC1101::SPIWriteSingle( byte _address, byte _data ) {
-	return SPIWrite( _address, 0x00, 1, &_data );
-}
-byte	CC1101::SPIWriteBurst( byte _address, uint32_t _dataLength, byte* _data ) {
-	return SPIWrite( _address, 0x40U, _dataLength, _data );
-}
-byte	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
-	digitalWrite( m_pin_CS, LOW );		// Enable the line
-	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
-	delayns( 20 );						// 20ns before transmit (as per table 22)
-
-	// Now shift out the opcode
-	byte	opcode  = _opcodeOR
-					| (_address & 0x3F);
-	byte	status = SPITransfer( opcode );
-// DisplayStatus( status );
-
-	// Shift out data
-	while ( _dataLength-- ) {
-		// Wait between address/data and data/data bytes (as per table 22)
-// 		delayns( 55 );	// Min 55ns before data in "Single Access"
-// 		delayns( 76 );	// Min 76ns before data in "Burst Access"
-		delayMicroseconds( 1 );
-
-		SPITransfer( *_data++ );
-	}
-
-	delayns( 20 );						// 20ns after transmit (as per table 22)
-	digitalWrite( m_pin_CS, HIGH );		// Release the line
-
-	return status;
-}
-
 void	CC1101::SetAddress( byte _address ) {
 	SetRegister( ADDR, _address );
 }
@@ -493,31 +327,6 @@ void	CC1101::SetSyncWord( uint16_t _syncWord ) {
 	SetRegister( SYNC0, _syncWord & 0xFF );
 }
 
-void	CC1101::WritePKTCTRL0() {
-	byte	value = (m_enableWhitening ? 0x40 : 0x00)
-				  | (m_useFIFO ? 0x00 : 0x10)	// Synchronous mode otherwise
-				  | (m_enableCRC ? 0x04 : 0x00)
-				  | (m_packetLengthConfig & 0x3);
-	SetRegister( PKTCTRL0, value );
-}
-void	CC1101::ReadPKTCTRL0() {
-	byte	value = SPIReadSingle( PKTCTRL0 );
-	m_enableWhitening = (value & 0x40) != 0;
-	m_useFIFO = (value & 0x30) == 0;
-	m_enableCRC = (value & 0x04) != 0;
-	m_packetLengthConfig = PACKET_LENGTH_CONFIG( value & 0x3 );
-}
-
-void	CC1101::WritePKTCTRL1() {
-	byte	value = (m_enablePacketAddressCheck ? 0x01 : 0x00)
-				  | 0x02;	// No preamble quality estimator, disable auto flush on CRC error, append 2 status bytes at the end of packet payloads
-	SetRegister( PKTCTRL1, value );
-}
-void	CC1101::ReadPKTCTRL1() {
-	byte	value = SPIReadSingle( PKTCTRL1 );
-	m_enablePacketAddressCheck = (value & 0x01) != 0;
-}
-
 void	CC1101::SetCarrierFrequency( float _Fcarrier_MHz ) {
 	// Fcarrier = Fosc * FREQ * 2^-16
 	float		fFREQ = _Fcarrier_MHz * 65536.0f / Fosc_MHz;
@@ -548,7 +357,7 @@ void	CC1101::SetFrequencyOffset( float _Foffset_KHz ) {
 
 void	CC1101::SetChannelBandwithAndDataRate( float _bandwidth_KHz, float _dataRate_KBauds ) {
 	// Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E)
-	float	valueBW = Fosc_MHz / (_bandwidth_KHz * 0.001f);
+	float	valueBW = Fosc_MHz / (0.001f * _bandwidth_KHz);
 	byte	expBW = byte( max( 5, floor( log2( valueBW ) ) ) );
 			valueBW /= 1 << expBW;
 			expBW = min( 3, expBW - 5 );
@@ -569,34 +378,44 @@ void	CC1101::SetChannelBandwithAndDataRate( float _bandwidth_KHz, float _dataRat
 }
 
 void	CC1101::SetChannelSpacing( float _spacing_KHz ) {
-	// Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18) = 26 * 0.0076904296875 = 199.951171875 KHz (with CHANSPC_M = 0xF8 and CHANSPC_E = 2)
-	float	valueCS = 0.001f * _spacing_KHz / Fosc_MHz;
-	int		expCS = floor( log2( valueCS ) );
-			valueCS *= 1 << (-expCS);
-	byte	mantissaCS = byte( clamp( floor( 256 * (valueCS - 1.0f) ), 0, 255 ) );
+	// Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18)
+	float	value = 0.001f * _spacing_KHz / Fosc_MHz;
+	int		exponent = floor( log2( value ) );
+			value *= 1 << (-exponent);
+	byte	mantissa = byte( clamp( floor( 256 * (value - 1.0f) ), 0, 255 ) );
 
 	// Send values
 	byte	value1  = (0 * _BV(7))		// No FEC encoding
 					| (2 << 4)			// Use 4 bytes in preamble
-					| clamp( 10+expCS, 0, 3 );
+					| clamp( 10+exponent, 0, 3 );
 	SetRegister( MDMCFG1, value1 );
-	SetRegister( MDMCFG0, mantissaCS );
+	SetRegister( MDMCFG0, mantissa );
 }
 
 void	CC1101::SetFrequencyDeviation( float _deviation_KHz ) {
-	float	factor = (_deviation_KHz * 0.001f / Fosc_MHz) * 131072.0f;
-	byte	exponent = floor( log2( factor ) ) - 3;
-			factor /= 1 << exponent;
-			factor -= 8;
-	byte	mantissa = ceil( factor );
-	byte	value = ((exponent & 0x7) << 4) | (mantissa & 0x7);
-	SetRegister( DEVIATN, value );
+	// 	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17) = 26 * 0.0018310546875 = 47.607421875 KHz (with DEVIATION_E = 4 & DEVIATION_M = 7)
+	float	value = 0.001f *_deviation_KHz / Fosc_MHz;
+	int		exponent = floor( log2( value ) );
+			value *= 1 << (-exponent);
+	byte	mantissa = byte( clamp( floor( 8 * (value - 1.0f) ), 0, 7 ) );
+
+	// Send value
+	byte	dev = (clamp( 14+exponent, 0, 7 ) << 4)
+				| (mantissa & 0x7);
+	SetRegister( DEVIATN, dev );
 }
 
-void	CC1101::SetPATable( byte _powerTable[8] ) {
-	SPIWriteBurst( 0x3E, 8, _powerTable );
+CC1101::MACHINE_STATE	CC1101::ReadFSMState() {
+	byte	value = ReadStatusRegister( MARCSTATE );
+	return MACHINE_STATE( value & 0x1F );
 }
 
+byte	CC1101::ReadPATable( byte _powerTable[8] ) {
+	return SPIReadBurst( 0x3E, 8, _powerTable );
+}
+byte	CC1101::WritePATable( byte _powerTable[8] ) {
+	return SPIWriteBurst( 0x3E, 8, _powerTable );
+}
 
 byte	CC1101::SetRegister( byte _address, byte _value ) {
 	return SPIWriteSingle( _address, _value );
@@ -608,7 +427,155 @@ byte	CC1101::ReadStatus() {
 	return SPITransfer( SNOP );
 }
 
+byte	CC1101::ReadStatusRegister( byte _address ) {
+	byte	value;
+	SPIReadBurst( _address, 1, &value );
+	return value;
+}
+
+void	CC1101::WritePKTCTRL0() {
+	byte	value = (m_enableWhitening ? 0x40 : 0x00)
+				  | (m_useFIFO ? 0x00 : 0x10)	// Synchronous mode otherwise
+				  | (m_enableCRC ? 0x04 : 0x00)
+				  | (m_packetLengthConfig & 0x3);
+	SetRegister( PKTCTRL0, value );
+}
+void	CC1101::ReadPKTCTRL0() {
+	byte	value = SPIReadSingle( PKTCTRL0 );
+	m_enableWhitening = (value & 0x40) != 0;
+	m_useFIFO = (value & 0x30) == 0;
+	m_enableCRC = (value & 0x04) != 0;
+	m_packetLengthConfig = PACKET_LENGTH_CONFIG( value & 0x3 );
+}
+
+void	CC1101::WritePKTCTRL1() {
+	byte	value = (m_enablePacketAddressCheck ? 0x01 : 0x00)
+				  | 0x04;	// No preamble quality estimator, disable auto flush on CRC error, append 2 status bytes at the end of packet payloads
+	SetRegister( PKTCTRL1, value );
+}
+void	CC1101::ReadPKTCTRL1() {
+	byte	value = SPIReadSingle( PKTCTRL1 );
+	m_enablePacketAddressCheck = (value & 0x03) != 0;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//
+
+// NOTES: This function expects CS and SO to be LOW
+// Details can be found at http://avrbeginners.net/architecture/spi/spi.html and https://www.arduino.cc/en/Tutorial/SPIEEPROM
+//
+byte	CC1101::SPITransfer( byte _value ) {
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.print( "SPI Write 0x" );
+		Serial.print( _value, HEX );
+		#if SPI_DEBUG_VERBOSE == 2
+			Serial.print( " [" );
+			DisplayDecodedWrittenValue( _value );
+			Serial.print( "]" );
+		#endif
+	#endif
+
+	SPDR = _value;						// Write value to be transfered
+
+	// (Stolen from SPI library)
+	// The following NOP introduces a small delay that can prevent the wait loop form iterating when running at the maximum speed.
+	// This gives about 10% more speed, even if it seems counter-intuitive. At lower speeds it is unnoticed.
+	asm volatile( "nop" );
+
+	while ( !(SPSR & (1 << SPIF)) );	// Wait until shifting is complete
+
+	_value = SPDR;						// Read received value
+
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.print( " - Read 0x" );
+		Serial.println( _value, HEX );
+	#endif
+
+	return _value;
+}
+
+byte	CC1101::SPIReadSingle( byte _address ) {
+	byte	data;
+	SPIRead( _address, 0x00, 1, &data );	// Status is simply ignored
+	return data;
+}
+byte	CC1101::SPIReadBurst( byte _address, uint32_t _dataLength, byte* _data ) {
+	byte	status = SPIRead( _address, 0x40U, _dataLength, _data );
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "BURST END" );
+	#endif
+	return status;
+}
+byte	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
+	digitalWrite( m_pin_CS, LOW );		// Enable the line
+	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
+	delayns( 20 );						// 20ns before transmit (as per table 22)
+
+	// Now shift out the opcode
+	byte	opcode  = 0x80	// READ
+					| _opcodeOR
+					| (_address & 0x3F);
+	byte	status = SPITransfer( opcode );
+
+	// Shift in data
+	while ( _dataLength-- ) {
+		// Wait between address/data and data/data bytes (as per table 22)
+// 		delayns( 55 );	// Min 55ns before data in "Single Access"
+// 		delayns( 76 );	// Min 76ns before data in "Burst Access"
+		delayMicroseconds( 1 );
+
+		*_data++ = SPITransfer( SNOP );
+	}
+
+	delayns( 20 );						// 20ns after transmit (as per table 22)
+	digitalWrite( m_pin_CS, HIGH );		// Release the line
+
+	return status;
+}
+
+byte	CC1101::SPIWriteSingle( byte _address, byte _data ) {
+	return SPIWrite( _address, 0x00, 1, &_data );
+}
+byte	CC1101::SPIWriteBurst( byte _address, uint32_t _dataLength, byte* _data ) {
+	byte	status = SPIWrite( _address, 0x40U, _dataLength, _data );
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "BURST END" );
+	#endif
+	return status;
+}
+byte	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
+	digitalWrite( m_pin_CS, LOW );		// Enable the line
+	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
+	delayns( 20 );						// 20ns before transmit (as per table 22)
+
+	// Now shift out the opcode
+	byte	opcode  = _opcodeOR
+					| (_address & 0x3F);
+	byte	status = SPITransfer( opcode );
+
+	// Shift out data
+	while ( _dataLength-- ) {
+		// Wait between address/data and data/data bytes (as per table 22)
+// 		delayns( 55 );	// Min 55ns before data in "Single Access"
+// 		delayns( 76 );	// Min 76ns before data in "Burst Access"
+		delayMicroseconds( 1 );
+
+		SPITransfer( *_data++ );
+	}
+
+	delayns( 20 );						// 20ns after transmit (as per table 22)
+	digitalWrite( m_pin_CS, HIGH );		// Release the line
+
+	return status;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// DEBUG
+#ifdef SPI_DEBUG_VERBOSE
+
 void	CC1101::DisplayStatus( byte _status ) {
 	Serial.print( (_status & 0x80) ? "Chip NOT READY " : "Chip READY " );
 	switch ( (_status >> 4) & 0x7 ) {
@@ -728,6 +695,8 @@ void	CC1101::DumpAllRegisters( byte _registerValues[0x3E] ) {
 	_registerValues[0x2F] = 0x00;	// Undefined
 
 	for ( int i=0; i < 0xE; i++ ) {
-		SPIReadBurst( 0x30 + i, 1, _registerValues+0x30+i );
+		_registerValues[PARTNUM+i] = ReadStatusRegister( PARTNUM + i );
 	}
 }
+
+#endif

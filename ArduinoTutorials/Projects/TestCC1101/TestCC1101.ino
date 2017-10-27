@@ -18,9 +18,11 @@ void setup() {
 
 	Serial.println( "Initializing CC1101" );
 	Pom::CC1101::Setup_t	parms;
+	parms.carrierFrequency = Pom::CC1101::DEFAULT_CARRIER_FREQUENCY_MHz;
+	parms.channel = 0;
 	C.Init( parms );
 	Serial.println( "DONE!" );
-
+/*
 	// Test functions
 	Serial.println( "Testing Functions" );
 	C.SetAddress();
@@ -42,8 +44,12 @@ void setup() {
 	C.SetFrequencyDeviation();
 
 	Serial.println( "DONE!" );
+//*/
+	// Read state
+	Serial.print( "Machine state = " );
+	Serial.println( C.ReadFSMState(), HEX );
 
-	// Write registers
+/*	// Write registers
 	Serial.println( "Dumping register values..." );
 	
 	byte	initialValues[0x3E];
@@ -56,6 +62,7 @@ void setup() {
 	 	Serial.print( initialValues[i], HEX );
 		Serial.println();
 	}
+*/
 }
 
 // the loop function runs over and over again until power down or reset
