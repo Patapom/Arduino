@@ -19,11 +19,31 @@ void setup() {
 	Serial.println( "Initializing CC1101" );
 	Pom::CC1101::Setup_t	parms;
 	C.Init( parms );
+	Serial.println( "DONE!" );
 
-	C.SetFrequencyOffset( 0.0f );
+	// Test functions
+	Serial.println( "Testing Functions" );
+	C.SetAddress();
+	C.EnableWhitening();
+	C.UseFIFO();
+	C.EnableCRC();
+	C.SetPacketLengthConfig();
+	C.EnablePacketAddressCheck();
+	C.SetPacketLength();
+	C.SetSyncWord();
+
+	C.SetChannel();
+
+	C.SetCarrierFrequency();
+	C.SetIntermediateFrequency();
+	C.SetFrequencyOffset();
+	C.SetChannelBandwithAndDataRate();
+	C.SetChannelSpacing();
+	C.SetFrequencyDeviation();
 
 	Serial.println( "DONE!" );
 
+	// Write registers
 	Serial.println( "Dumping register values..." );
 	
 	byte	initialValues[0x3E];

@@ -3,13 +3,12 @@
 namespace Pom {
 	class CC1101 {
 
-		const float		DEFAULT_FREQUENCY_MHz = 26.0f;	// Set to 26.0MHz
+		const float		Fosc_MHz = 26.0f;	// Set to 26.0MHz
 
 	public:
 		struct Setup_t {
-			float	Fosc_MHz;		// Oscillation frequency in MHz (default is 26.0)
-			float	baseFrequency;	// Base operating frequency (default is 868MHz)
-			byte	channel;		// Operating channel [0,255]
+			float	carrierFrequency;	// Operating carrier frequency (default is 800MHz)
+			byte	channel;			// Operating channel [0,255]
 		};
 
 		enum PACKET_LENGTH_CONFIG {
@@ -26,8 +25,6 @@ namespace Pom {
 		byte	m_pin_SO;
 		byte	m_pin_GDO0;
 		byte	m_pin_GDO2;
-
-		float	m_Fosc_MHz;					// Oscillation frequency in MHz (default is 26.0)
 
 		// Internal state for PKTCTRL0 and 1
 		bool	m_enableWhitening : 1;						// Enables data whitening (i.e. deterministic noise is added to transmitted data to both encrypt and increase quality of transfer)
@@ -48,17 +45,17 @@ namespace Pom {
 		void	SetPacketLengthConfig( PACKET_LENGTH_CONFIG _value=VARIABLE );// Sets the packet length configuration
 		void	EnablePacketAddressCheck( bool _enable=false );	// Enables address sending/checking at the beginning of packets (i.e. several slave chips can send to a single master and the master can dispatch to the proper slave given its address)
 		void	SetPacketLength( byte _length=0xFF );			// Sets the fixed packet length (used only if PACKET_LENGTH_CONFIG == FIXED)
+		void	SetSyncWord( uint16_t _syncWord=0xD391 );		// Sets the SYNC word sent at the beginning of packets for identification
 
-		// 
+		// Channel selection
 		void	SetChannel( byte _channel=0x00 );
 
 		// Advanced frequency settings
 		void	SetCarrierFrequency( float _Fcarrier_MHz=800.0f );			// Sets the carrier frequency (in MHz)
 		void	SetIntermediateFrequency( float _F_KHz=380.859375f );		// Sets the intermediate frequency (in KHz) https://en.wikipedia.org/wiki/Intermediate_frequency
 		void	SetFrequencyOffset( float _Foffset_KHz=0.0f );				// Sets the frequency offset (in KHz) added to the base frequency before being sent to the synthesizer. Range is from ±202 kHz by steps of 1.587KHz
-		void	SetChannelBandwith( float _bandwidth_KHz=203.125f );		// Sets the bandwidth (in KHz) of each channel (WARNING: must NOT be larger than channel spacing!)
+		void	SetChannelBandwithAndDataRate( float _bandwidth_KHz=203.125f, float _dataRate_KBauds=115.05126953125f );	// Sets the bandwidth (in KHz) of each channel (WARNING: must NOT be larger than channel spacing!) and  the data rate (in KBauds)
 		void	SetChannelSpacing( float _spacing_KHz=200.0f );				// Sets the frequency spacing (in KHz) between channels (we have a maximum of 256 channels, each of them this value appart) (WARNING: must NOT be smaller than bandwidth!)
-		void	SetDataRate( float _dataRate_KBauds=115.05126953125f );		// Sets the data rate (in KBauds)
 		void	SetFrequencyDeviation( float _deviation_KHz=47.607421875f );// Sets the frequency deviation (in KHz) for frequency shift keying
 
 		void	Reset();													// Performs a manual reset

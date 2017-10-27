@@ -80,8 +80,8 @@ enum REGISTERS {
 	SYNC1	  =	0x04,
 	SYNC0	  =	0x05,
 	PKTLEN	  =	0x06,
-	PKTCTRL0  =	0x07,
-	PKTCTRL1  =	0x08,
+	PKTCTRL1  =	0x07,
+	PKTCTRL0  =	0x08,
 	ADDR	  =	0x09,
 	CHANNR	  =	0x0A,
 	FSCTRL1	  =	0x0B,
@@ -163,10 +163,6 @@ void	delayns( uint32_t _nanoseconds ) {
 }
 
 CC1101::CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO2 ) {
-
-	// Setup default values
-	m_Fosc_MHz = DEFAULT_FREQUENCY_MHz;
-
 	// Setup pins
 	m_pin_CS = _CS;
 	m_pin_Clock = _CLOCK;
@@ -197,16 +193,14 @@ CC1101::CC1101( byte _CS, byte _CLOCK, byte _SI, byte _SO, byte _GDO0, byte _GDO
 			 | (0 * _BV(SPR0));	// Clock Rate Select = 00 (Fosc/4) 
 
 		// Read status and data
-		byte	tmp1 = SPSR;
-		byte	tmp2 = SPDR;
+		byte	tmp = SPSR;
+				tmp = SPDR;
+				tmp++;
 	}
 }
 
 void	CC1101::Init( Setup_t _parms ) {
 	Reset();
-
-// Serial.print( "Fosc = " );
-// Serial.println( m_Fosc_MHz );
 
 	// Change GDO modes to avoid costly CLK_XOSC settings
 	#ifdef SPI_DEBUG_VERBOSE
@@ -215,7 +209,7 @@ void	CC1101::Init( Setup_t _parms ) {
 	SetRegister( IOCFG0, 0x29 );	// Signal CHIP_RDYn
 	SetRegister( IOCFG2, 0x29 );	// Signal CHIP_RDYn
 
-	// Setup registers
+	// Setup default registers
 	// Default values after a RESET are:
 	// 	IOCFG2			(0x00) = 0x29	Signal CHIP_RDYn on GDO2, No invert
 	// 	IOCFG1			(0x01) = 0x2E	3-state on GDO1 (default to be able to use SO), No invert
@@ -224,8 +218,8 @@ void	CC1101::Init( Setup_t _parms ) {
 	// 	SYNC1			(0x04) = 0xD3	Sync Word MSB
 	// 	SYNC0			(0x05) = 0x91	Sync Word LSB
 	// 	PKTLEN			(0x06) = 0xFF	Default Packet Length
-	// 	PKTCTRL0		(0x07) = 0x04	Always accept sync word. Don't autoflush when CRC is wrong. Append 2 status bytes to packets. No address check.
-	// 	PKTCTRL1		(0x08) = 0x45	Data whitening enabled. Packet format normal mode (use FIFO). CRC enabled. Variable packet length.
+	// 	PKTCTRL1		(0x07) = 0x04	Always accept sync word. Don't autoflush when CRC is wrong. Append 2 status bytes to packets. No address check.
+	// 	PKTCTRL0		(0x08) = 0x45	Data whitening enabled. Packet format normal mode (use FIFO). CRC enabled. Variable packet length.
 	// 	ADDR			(0x09) = 0x00	Broadcast address 0x00
 	// 	CHANNR			(0x0A) = 0x00	Broadcast on channel 0x00
 	// 	FSCTRL1			(0x0B) = 0x0F	FREQ_IF = 15 (IF = Fosc * FREQ_IF * 2^-10 = 381KHz) 
@@ -283,42 +277,34 @@ void	CC1101::Init( Setup_t _parms ) {
 	// 	RCCTRL1_STATUS	(0x3C) = 0x00
 	// 	RCCTRL0_STATUS	(0x3D) = 0x00
 
-// 	SpiWriteReg(FSCTRL1,  0x08);
-// 	SpiWriteReg(FSCTRL0,  0x00);
-// 	SpiWriteReg(FREQ2,    0x10);
+// 	SpiWriteReg(FSCTRL1,  0x08);	// IF = 203KHz
+// 	SpiWriteReg(FREQ2,    0x10);	// 433MHz
 // 	SpiWriteReg(FREQ1,    0xA7);
 // 	SpiWriteReg(FREQ0,    0x62);
+// 	SpiWriteReg(IOCFG2,   0x0B); 	//serial clock.synchronous to the data in synchronous serial mode
+// 	SpiWriteReg(IOCFG0,   0x06);  	//asserts when sync word has been sent/received, and de-asserts at the end of the packet 
+// 	SpiWriteReg(PKTLEN,   0x3D); 	//61 bytes max length
+
 // 	SpiWriteReg(MDMCFG4,  0x5B);
 // 	SpiWriteReg(MDMCFG3,  0xF8);
 // 	SpiWriteReg(MDMCFG2,  0x03);
 // 	SpiWriteReg(MDMCFG1,  0x22);
 // 	SpiWriteReg(MDMCFG0,  0xF8);
-// 	SpiWriteReg(CHANNR,   0x00);
-// 	SpiWriteReg(DEVIATN,  0x47);
 // 	SpiWriteReg(FREND1,   0xB6);
-// 	SpiWriteReg(FREND0,   0x10);
 // 	SpiWriteReg(MCSM0 ,   0x18);
 // 	SpiWriteReg(FOCCFG,   0x1D);
 // 	SpiWriteReg(BSCFG,    0x1C);
-// 	SpiWriteReg(AGCCTRL2, 0xC7);
-// 	SpiWriteReg(AGCCTRL1, 0x00);
-// 	SpiWriteReg(AGCCTRL0, 0xB2);
+// 	SpiWriteReg(AGCTRL2,  0xC7);
+// 	SpiWriteReg(AGCTRL1,  0x00);
+// 	SpiWriteReg(AGCTRL0,  0xB2);
 // 	SpiWriteReg(FSCAL3,   0xEA);
 // 	SpiWriteReg(FSCAL2,   0x2A);
 // 	SpiWriteReg(FSCAL1,   0x00);
 // 	SpiWriteReg(FSCAL0,   0x11);
-// 	SpiWriteReg(FSTEST,   0x59);
-// 	SpiWriteReg(TEST2,    0x81);
-// 	SpiWriteReg(TEST1,    0x35);
-// 	SpiWriteReg(TEST0,    0x09);
-// 	SpiWriteReg(IOCFG2,   0x0B); 	//serial clock.synchronous to the data in synchronous serial mode
-// 	SpiWriteReg(IOCFG0,   0x06);  	//asserts when sync word has been sent/received, and de-asserts at the end of the packet 
-// 	SpiWriteReg(PKTCTRL1, 0x04);	//two status bytes will be appended to the payload of the packet,including RSSI LQI and CRC OK
-// 									//No address check
-// 	SpiWriteReg(PKTCTRL0, 0x05);	//whitening off;CRC Enable£»variable length packets, packet length configured by the first byte after sync word
-// 	SpiWriteReg(ADDR,     0x00);	//address used for packet filtration.
-// 	SpiWriteReg(PKTLEN,   0x3D); 	//61 bytes max length
 
+	// Setup user values
+	SetCarrierFrequency( _parms.carrierFrequency );
+	SetChannel( _parms.channel );
 }
 
 void	CC1101::Reset() {
@@ -502,6 +488,10 @@ void	CC1101::EnablePacketAddressCheck( bool _enable ) {
 void	CC1101::SetPacketLength( byte _length ) {
 	SetRegister( PKTLEN, _length );
 }
+void	CC1101::SetSyncWord( uint16_t _syncWord ) {
+	SetRegister( SYNC1, _syncWord >> 8 );
+	SetRegister( SYNC0, _syncWord & 0xFF );
+}
 
 void	CC1101::WritePKTCTRL0() {
 	byte	value = (m_enableWhitening ? 0x40 : 0x00)
@@ -528,40 +518,73 @@ void	CC1101::ReadPKTCTRL1() {
 	m_enablePacketAddressCheck = (value & 0x01) != 0;
 }
 
-
 void	CC1101::SetCarrierFrequency( float _Fcarrier_MHz ) {
-	écrire tout ça!
-	//MSB of Fcarrier = Fosc * FREQ * 2^-16 = 26Mhz * 0x1EC4EC / 65536 = 26 * 30.76922607421875 = 799.9998779296875 MHz
-// 	FREQ1			(0x0E) = 0xC4	
-// 	FREQ0			(0x0F) = 0xEC	LSB of Fcarrier
+	// Fcarrier = Fosc * FREQ * 2^-16
+	float		fFREQ = _Fcarrier_MHz * 65536.0f / Fosc_MHz;
+	uint32_t	FREQ = floor( fFREQ );
+				FREQ = min( FREQ, 0x3FFFFF );
+	byte	frequency[3];
+	frequency[0] = (FREQ >> 16) & 0xFF;
+	frequency[1] = (FREQ >> 8) & 0xFF;
+	frequency[2] = FREQ & 0xFF;
+	SPIWriteBurst( FREQ2, 3, frequency );
 }
 
 void	CC1101::SetIntermediateFrequency( float _F_KHz ) {
-// 	FSCTRL1			(0x0B) = 0x0F	FREQ_IF = 15 (IF = Fosc * FREQ_IF * 2^-10 = 381KHz) 
+	// 	IF = Fosc * FREQ_IF * 2^-10
+	uint32_t	FREQ_IF = floor( _F_KHz * 0.001f * 1024.0f / Fosc_MHz );
+				FREQ_IF = min( FREQ_IF, 0xF );
+	SetRegister( FSCTRL1, FREQ_IF );
 }
 
 void	CC1101::SetFrequencyOffset( float _Foffset_KHz ) {
-// 	FSCTRL0			(0x0C) = 0x00	Frequency offset (FREQOFF) added to the base frequency before being used by the frequency synthesizer.
-	float	stepSize = m_Fosc_MHz / 16384.0f;
+	// Frequency offset (FREQOFF) added to the base frequency before being used by the frequency synthesizer.
+	// Resolution is FXTAL/2^14 (1.59kHz-1.65kHz); range is ±202 kHz to ±210 kHz, dependent of XTAL frequency
+	const float	stepSize = Fosc_MHz / 16384.0f;		// Step resolution
 	int		stepIndex = _Foffset_KHz / stepSize;
 	byte	value = clamp( stepIndex, -128, 127 );
 	SetRegister( FSCTRL0, value );
 }
 
-void	CC1101::SetChannelBandwith( float _bandwidth_KHz ) {
-	// 	MDMCFG4			(0x10) = 0x8C	Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E) = 203.125 KHz (with CHANBW_M=0 & CHANBW_E=2). DRATE_E = 12
-}
+void	CC1101::SetChannelBandwithAndDataRate( float _bandwidth_KHz, float _dataRate_KBauds ) {
+	// Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E)
+	float	valueBW = Fosc_MHz / (_bandwidth_KHz * 0.001f);
+	byte	expBW = byte( max( 5, floor( log2( valueBW ) ) ) );
+			valueBW /= 1 << expBW;
+			expBW = min( 3, expBW - 5 );
+	byte	mantissaBW = byte( clamp( floor( 4 * (valueBW - 1.0f) ), 0, 3 ) );
 
-void	CC1101::SetDataRate( float _dataRate_KBauds ) {
-	// 	MDMCFG3			(0x11) = 0x22	Data Rate = Fosc * (256 + DRATE_M)*2^(DRATE_E-28) = 26 * 0.004425048828125 = 115.05126953125 KBauds (with DRATE_M=34 & DRATE_E=12)
+	// Data Rate = Fosc * (256 + DRATE_M)*2^(DRATE_E-28)
+	float	valueDR = 0.001f * _dataRate_KBauds / Fosc_MHz;
+	int		expDR = floor( log2( valueDR ) );
+			valueDR *= 1 << (-expDR);
+	byte	mantissaDR = byte( clamp( floor( 256 * (valueDR - 1.0f) ), 0, 255 ) );
+
+	// Send values
+	byte	value4  = (expBW << 6)
+					| (mantissaBW << 4)
+					| clamp( 20+expDR, 0, 15 );
+	SetRegister( MDMCFG4, value4 );
+	SetRegister( MDMCFG3, mantissaDR );
 }
 
 void	CC1101::SetChannelSpacing( float _spacing_KHz ) {
-	// 	MDMCFG0			(0x14) = 0xF8	Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18) = 26 * 0.0076904296875 = 199.951171875 KHz (with CHANSPC_M = 0xF8 and CHANSPC_E = 2)
+	// Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18) = 26 * 0.0076904296875 = 199.951171875 KHz (with CHANSPC_M = 0xF8 and CHANSPC_E = 2)
+	float	valueCS = 0.001f * _spacing_KHz / Fosc_MHz;
+	int		expCS = floor( log2( valueCS ) );
+			valueCS *= 1 << (-expCS);
+	byte	mantissaCS = byte( clamp( floor( 256 * (valueCS - 1.0f) ), 0, 255 ) );
+
+	// Send values
+	byte	value1  = (0 * _BV(7))		// No FEC encoding
+					| (2 << 4)			// Use 4 bytes in preamble
+					| clamp( 10+expCS, 0, 3 );
+	SetRegister( MDMCFG1, value1 );
+	SetRegister( MDMCFG0, mantissaCS );
 }
 
 void	CC1101::SetFrequencyDeviation( float _deviation_KHz ) {
-	float	factor = (_deviation_KHz * 0.001f / m_Fosc_MHz) * 131072.0f;
+	float	factor = (_deviation_KHz * 0.001f / Fosc_MHz) * 131072.0f;
 	byte	exponent = floor( log2( factor ) ) - 3;
 			factor /= 1 << exponent;
 			factor -= 8;
