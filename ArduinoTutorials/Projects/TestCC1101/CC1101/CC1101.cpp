@@ -200,16 +200,11 @@ void	CC1101::SetNormalTransferMode() {
 	#ifdef SPI_DEBUG_VERBOSE
 		Serial.println( "Using Normal Transfer Mode" );
 	#endif
-	pinMode( m_pin_GDO0, OUTPUT );			// Both pins as output
-	pinMode( m_pin_GDO2, OUTPUT );
-	SetGDOx( GDO0, CHIP_RDYn );				// Both signal chip ready
-	SetGDOx( GDO2, CHIP_RDYn );
+	pinMode( m_pin_GDO0, INPUT );			// Both pins as input
+	pinMode( m_pin_GDO2, INPUT );
+	SetGDOx( GDO0, ASSERT_ON_SYNC_WORD );	// Asserts when packet is starting, de-asserts when packet is sent
+	SetGDOx( GDO2, CHIP_RDYn );				// Both signal chip ready
 	SetPacketFormat( NORMAL );				// Enable normal mode
-
-pinMode( m_pin_GDO0, INPUT );
-//pinMode( m_pin_GDO2, INPUT );
-SetGDOx( GDO0, ASSERT_ON_SYNC_WORD );
-//SetGDOx( GDO2, CLK_XOSC_64 );
 }
 
 // Enters Synchronous Serial Operation mode
@@ -254,38 +249,20 @@ void	CC1101::SetAsynchronousTransferMode() {
 	SetPacketFormat( ASYNCHRONOUS );		// Enable asynchronous mode
 }
 
-#include "..\ELECHOUSE_CC1101.h"
+U8	CC1101::Transmit( U8 _size, U8* _data ) {
 
-void	CC1101::Transmit( U8 _size, U8* _data ) {
-
-
-//ELECHOUSE_CC1101::SpiWriteReg(CC1101_TXFIFO,_size);
-//ELECHOUSE_CC1101::SpiWriteBurstReg(CC1101_TXFIFO,_data,_size);			//write data to send
-SetRegister( TX_RX_FIFO, _size );
-SPIWriteBurst( TX_RX_FIFO, _size, _data );
-//ELECHOUSE_CC1101::SpiStrobe(CC1101_STX);									//start send	
-SendCommandStrobe( STX );
-while (!digitalRead(PIN_GDO0));								// Wait for GDO0 to be set -> sync transmitted  
-while (digitalRead(PIN_GDO0));								// Wait for GDO0 to be cleared -> end of packet
-ELECHOUSE_CC1101::SpiStrobe(CC1101_SFTX);									//flush TXfifo
-
-
+// SetRegister( TX_RX_FIFO, _size );
+// SPIWriteBurst( TX_RX_FIFO, _size, _data );
 // SendCommandStrobe( STX );
-// while (!digitalRead(GDO0));								// Wait for GDO0 to be set -> sync transmitted  
-// while (digitalRead(GDO0));								// Wait for GDO0 to be cleared -> end of packet
-// SendCommandStrobe( SFTX );
+// while (!digitalRead(m_pin_GDO0));								// Wait for GDO0 to be set -> sync transmitted  
+// while (digitalRead(m_pin_GDO0));								// Wait for GDO0 to be cleared -> end of packet
+// SendCommandStrobe( SFTX );									//flush TXfifo
 
+// SendCommandStrobe( SFSTXON );
+// SendCommandStrobe( SCAL );
+// SendCommandStrobe( SFTX );				// Flush
 
-return;
-
-
-
-
-SendCommandStrobe( SFSTXON );
-SendCommandStrobe( SCAL );
-SendCommandStrobe( SFTX );				// Flush
-
-	U32	count = 0;
+/*	U32	count = 0;
 	while ( ReadFSMState() != IDLE ) {
 		count++;
 // 		Serial.print( "Waiting for IDLE " );
@@ -294,69 +271,48 @@ SendCommandStrobe( SFTX );				// Flush
 	Serial.print( "Waited for IDLE for " );
 	Serial.print( count );
 	Serial.println( " times" );
+*/
 
-
-	// First U8 is payload size
-//DisplayStatus( ReadStatus() );
-	SetRegister( TX_RX_FIFO, _size );
-
-	// Send entire data
-//DisplayStatus( ReadStatus() );
-	SPIWriteBurst( TX_RX_FIFO, _size, _data );
-
-//DisplayStatus( ReadStatus() );
+	// Make sure we're IDLE 
 	if ( ReadFSMState() != IDLE ) {
-Serial.println( "NOT IN IDLE! Can't start TX!" );
-		return;
+		#if SPI_DEBUG_VERBOSE
+			Serial.println( "NOT IN IDLE! Can't start TX!" );
+		#endif
+		return 0;
 	}
 
-	// Start sending
-	SendCommandStrobe( STX );
+	SetRegister( TX_RX_FIFO, _size );			// First U8 is payload size
+	SPIWriteBurst( TX_RX_FIFO, _size, _data );	// Send entire data
+	SendCommandStrobe( STX );					// Start sending
+ 	while ( !digitalRead( m_pin_GDO0 ) );		// Wait for packet start
+ 	while ( digitalRead( m_pin_GDO0 ) );		// Wait for packet end
+ 	SendCommandStrobe( SFTX );					// Flush
 
-// It never leaves IDLE state FFS!!!
-U64	startTime = millis();
-U32	seconds = 0;
-while ( ReadFSMState() == IDLE ) {
-	U64	currentTime = millis();
-	if ( currentTime - startTime > 1000 ) {
-		startTime = currentTime;
-		Serial.print( "IDLE for " );
-		Serial.print( ++seconds );
-		Serial.println( " seconds" );
-	}
-}
+	#if SPI_DEBUG_VERBOSE
+		Serial.println( "SENT" );
+	#endif
 
-// 	// Wait for end of IDLE state
-// 	while( ReadFSMState() == IDLE ) {
-// 		delayMicroseconds( 1 );
-// 	}
-
-Serial.println( "WAITING FOR PACKET SEND" );
- 	while ( !digitalRead( m_pin_GDO0 ) );	// Wait for packet start
-Serial.println( "SENDING" );
- 	while ( digitalRead( m_pin_GDO0 ) );	// Wait for packet end
-Serial.println( "SENT" );
-
- 	SendCommandStrobe( SFTX );				// Flush
+	return _size;
 }
 
 U8	CC1101::Receive( U8* _data ) {
 
-Serial.println( "SRX" );
+	#if SPI_DEBUG_VERBOSE
+		Serial.println( "SRX" );
+	#endif
 
-
+/*
 U64		startTime = millis();
-
-// Reset
-digitalWrite(m_pin_CS, LOW);
-delay(1);
-digitalWrite(m_pin_CS, HIGH);
-delay(1);
-digitalWrite(m_pin_CS, LOW);
-while(digitalRead(m_pin_SO));
-SendCommandStrobe(SRES);
-while(digitalRead(m_pin_SO));
-digitalWrite(m_pin_CS, HIGH);
+// // Reset
+// digitalWrite(m_pin_CS, LOW);
+// delay(1);
+// digitalWrite(m_pin_CS, HIGH);
+// delay(1);
+// digitalWrite(m_pin_CS, LOW);
+// while(digitalRead(m_pin_SO));
+// SendCommandStrobe(SRES);
+// while(digitalRead(m_pin_SO));
+// digitalWrite(m_pin_CS, HIGH);
 
 // AUTOCAL
 SetRegister( MCSM0, 0x24 );
@@ -373,16 +329,16 @@ byte	temp0, temp1;
 //temp0 = SendCommandStrobe( SCAL );
 //temp0 = SendCommandStrobe( SFTX );				// Flush
 //temp0 = SendCommandStrobe( SNOP );
-//temp0  = SPITransfer( SFRX );
-//temp0  = SPITransfer( SIDLE );
-//temp0  = SPITransfer( SRX );
-//temp0  = SPITransfer( STX );
-temp0  = SPITransfer( SFSTXON );
-temp0  = SPITransfer( STX );
+//temp0  = SendCommandStrobe( SFRX );
+//temp0  = SendCommandStrobe( SIDLE );
+//temp0  = SendCommandStrobe( SRX );
+//temp0  = SendCommandStrobe( STX );
+//temp0  = SendCommandStrobe( SFSTXON );
+temp0  = SendCommandStrobe( STX );
 
-while ( ReadFSMState() != IDLE );
+//while ( ReadFSMState() != IDLE );
 
-temp0 = SPITransfer( SFTX );
+//temp0 = SendCommandStrobe( SFTX );
 temp1 = SendCommandStrobe( SNOP );
 
 //	DumpManyStates( RXBYTES, startTime );
@@ -404,22 +360,21 @@ temp1 = SendCommandStrobe( SNOP );
 DisplayStatusRegisters();
 
 
+// // It never leaves IDLE state FFS!!!
+// startTime = millis();
+// U32	seconds = 0;
+// while ( ReadFSMState() == IDLE ) {
+// 	U64	currentTime = millis();
+// 	if ( currentTime - startTime > 1000 ) {
+// 		startTime = currentTime;
+// 		Serial.print( "IDLE for " );
+// 		Serial.print( ++seconds );
+// 		Serial.println( " seconds" );
+// 	}
+// }
+*/
 
-// It never leaves IDLE state FFS!!!
-startTime = millis();
-U32	seconds = 0;
-while ( ReadFSMState() == IDLE ) {
-	U64	currentTime = millis();
-	if ( currentTime - startTime > 1000 ) {
-		startTime = currentTime;
-		Serial.print( "IDLE for " );
-		Serial.print( ++seconds );
-		Serial.println( " seconds" );
-	}
-}
-
-Serial.println( "ENTERED RX" );
-
+	SendCommandStrobe( SRX );
 
 	U8	availableBytes = ReadStatusRegister( RXBYTES );
 	if ( availableBytes & 0x80 ) {
@@ -850,7 +805,7 @@ void	CC1101::InternalCustomReset() {
 	SetRegister( MDMCFG4, 0x5B );     // (0010) Modem Configuration
 	SetRegister( MDMCFG3, 0xF8 );     // (0011) Modem Configuration
 	SetRegister( MDMCFG2, 0x13 );     // (0012) Modem Configuration
-	SetRegister( MCSM0, 0x18 );       // (0018) Main Radio Control State Machine Configuration
+	SetRegister( MCSM0, 0x38 );       // (0018) Main Radio Control State Machine Configuration
 	SetRegister( FOCCFG, 0x1D );      // (0019) Frequency Offset Compensation Configuration
 	SetRegister( BSCFG, 0x1C );       // (001A) Bit Synchronization Configuration
 	SetRegister( AGCCTRL2, 0xC7 );    // (001B) AGC Control
@@ -936,7 +891,7 @@ U8	CC1101::SPIRead( U8 _address, U32 _dataLength, U8* _data ) {
 
 	// Now shift out the opcode
 	U8	opcode  = 0x80	// READ
-					| (_address & 0x7F);
+				| (_address & 0x7F);
 	U8	status = SPITransfer( opcode );
 
 	// Shift in data

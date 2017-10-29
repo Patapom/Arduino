@@ -12,8 +12,6 @@
 // the setup function runs once when you press reset or power the board
 Pom::CC1101	C( PIN_CS, PIN_CLOCK, PIN_SI, PIN_SO, PIN_GDO0, PIN_GDO2 );
 
-ELECHOUSE_CC1101	C2;
-
 
 // http://www.st.com/content/ccc/resource/technical/document/application_note/2f/bb/7f/94/76/fa/4b/3c/DM00054821.pdf/files/DM00054821.pdf/jcr:content/translations/en.DM00054821.pdf
 // EN 300 220 
@@ -24,17 +22,7 @@ ELECHOUSE_CC1101	C2;
 
 void setup() {
 	Serial.begin( 19200 );
-
 	while ( !Serial.availableForWrite() );
-//	delay( 10000 );
-
-//	Serial.println( "Init" );
-//	C.Init();
-
-	Serial.println( "Sending data" );
-//	C2.SendData( (U8*) "BISOU", 6 );
-	C.Transmit( 6, (U8*) "BISOU" );
-	Serial.println( "Data sent!" );
 
 #if 0
 //C.Reset();
@@ -111,17 +99,19 @@ C.SetNormalTransferMode();
 // the loop function runs over and over again until power down or reset
 void loop() {
 
-/*
-
-	#if 0
+	#if 1
 		// Send a bisou!
 		const char*	string = "BISOU!";
-		C.Transmit( 6, string );
+		U8	transmittedSize = C.Transmit( 6, string );
+		if ( transmittedSize != 6 )
+			Serial.println( "Failed to transmit entire data!" );
 	
+//		C.DisplayStatusRegisters();
+
 //Serial.print( digitalRead( PIN_GDO2 ) ? "1 " : "0 " );
 
 		// Wait a little
-//		delay( 500 );
+		delay( 500 );
 	#else
 		// Receive a bisou!
 		byte	buffer[256];
@@ -135,6 +125,5 @@ void loop() {
 			Serial.println( "\"" );
 		}
 	#endif
-*/
 
 }

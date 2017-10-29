@@ -59,7 +59,7 @@ namespace Pom {
 		void	SetSynchronousTransferMode();					// Synchronous transfer mode (no FIFO: direct read/write on GDOx pins)
 		void	SetAsynchronousTransferMode();					// Asynchronous transfer mode (no support, MCU must be polling and feeding data at oversampled rate on GDOx pins)
 
-		void	Transmit( U8 _size, U8* _data );				// Transmits a small amount of data (< 256 bytes)
+		U8		Transmit( U8 _size, U8* _data );				// Transmits a small amount of data (< 256 bytes). Returns the amount of actually transmitted data.
 		U8		Receive( U8* _data );							// Reads a small amount of data (< 256 bytes). Returns 0 if nothing is present in the pipe.
 
 		// Configures packets
