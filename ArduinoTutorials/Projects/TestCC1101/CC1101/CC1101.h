@@ -36,12 +36,12 @@ namespace Pom {
 
 	private:
 		// Internal pin configurations
-		byte					m_pin_CS;
-		byte					m_pin_Clock;
-		byte					m_pin_SI;
-		byte					m_pin_SO;
-		byte					m_pin_GDO0;
-		byte					m_pin_GDO2;
+		U8						m_pin_CS;
+		U8						m_pin_Clock;
+		U8						m_pin_SI;
+		U8						m_pin_SO;
+		U8						m_pin_GDO0;
+		U8						m_pin_GDO2;
 
 		// Internal state for PKTCTRL0 and 1
 		bool					m_enableWhitening : 1;			// Enables data whitening (i.e. deterministic noise is added to transmitted data to both encrypt and increase quality of transfer)
@@ -51,7 +51,7 @@ namespace Pom {
 		bool					m_enablePacketAddressCheck : 1;	// Enables address sending/checking at the beginning of packets (i.e. several slave chips can send to a single master and the master can dispatch to the proper slave given its address)
 
 	public:
-		CC1101( byte _pin_CS, byte _pin_CLOCK, byte _pin_SI, byte _pin_SO, byte _pin_GDO0, byte _pin_GDO2 );
+		CC1101( U8 _pin_CS, U8 _pin_CLOCK, U8 _pin_SI, U8 _pin_SO, U8 _pin_GDO0, U8 _pin_GDO2 );
 		void	Reset();										// Performs a manual reset
 
 		// Data transfer
@@ -59,28 +59,34 @@ namespace Pom {
 		void	SetSynchronousTransferMode();					// Synchronous transfer mode (no FIFO: direct read/write on GDOx pins)
 		void	SetAsynchronousTransferMode();					// Asynchronous transfer mode (no support, MCU must be polling and feeding data at oversampled rate on GDOx pins)
 
-		void	Transmit( byte _size, byte* _data );			// Transmits a small amount of data (< 256 bytes)
-		byte	Receive( byte* _data );							// Reads a small amount of data (< 256 bytes). Returns 0 if nothing is present in the pipe.
+		void	Transmit( U8 _size, U8* _data );				// Transmits a small amount of data (< 256 bytes)
+		U8		Receive( U8* _data );							// Reads a small amount of data (< 256 bytes). Returns 0 if nothing is present in the pipe.
 
 		// Configures packets
-		void	SetAddress( byte _address=0x00 );
+		void	SetAddress( U8 _address=0x00 );
 		void	EnableWhitening( bool _enable=true );			// Enables data whitening (i.e. deterministic noise is added to transmitted data to both encrypt and increase quality of transfer)
 		void	SetPacketFormat( PACKET_FORMAT _format=NORMAL );// Specifies packet format to use
 		void	EnableCRC( bool _enableCRC=true );				// Enables CRC (i.e. a Cyclic Redundancy Check sum is computed for the packet and transmitted at the end so the receiver can verify if the received packet was corrupted and discard it)
 		void	SetPacketLengthConfig( PACKET_LENGTH_CONFIG _value=VARIABLE );// Sets the packet length configuration
 		void	EnablePacketAddressCheck( bool _enable=false );	// Enables address sending/checking at the beginning of packets (i.e. several slave chips can send to a single master and the master can dispatch to the proper slave given its address)
-		void	SetPacketLength( byte _length=0xFF );			// Sets the fixed packet length (used only if PACKET_LENGTH_CONFIG == FIXED)
-		void	SetSyncWord( uint16_t _syncWord=0xD391 );		// Sets the SYNC word sent at the beginning of packets for identification
+		void	SetPacketLength( U8 _length=0xFF );				// Sets the fixed packet length (used only if PACKET_LENGTH_CONFIG == FIXED)
+		void	SetSyncWord( U16 _syncWord=0xD391 );			// Sets the SYNC word sent at the beginning of packets for identification
 
 		// Channel selection
-		void	SetChannel( byte _channel=0x00 );
+		void	SetChannel( U8 _channel=0x00 );
 
 		// Advanced frequency settings
-		void	SetCarrierFrequency( float _Fcarrier_MHz=800.0f );			// Sets the carrier frequency (in MHz)
-		void	SetIntermediateFrequency( float _F_KHz=380.859375f );		// Sets the intermediate frequency (in KHz) https://en.wikipedia.org/wiki/Intermediate_frequency
+		float	GetCarrierFrequency();										// Gets the carrier frequency (in MHz)
+		void	SetCarrierFrequency( float _Fcarrier_MHz=867.999939f );		// Sets the carrier frequency (in MHz)
+		float	GetIntermediateFrequency();									// Sets the intermediate frequency (in KHz)
+		void	SetIntermediateFrequency( float _F_KHz=203.125f );			// Sets the intermediate frequency (in KHz) https://en.wikipedia.org/wiki/Intermediate_frequency
+		float	GetFrequencyOffset();										// Sets the frequency offset (in KHz)
 		void	SetFrequencyOffset( float _Foffset_KHz=0.0f );				// Sets the frequency offset (in KHz) added to the base frequency before being sent to the synthesizer. Range is from ±202 kHz by steps of 1.587KHz
-		void	SetChannelBandwithAndDataRate( float _bandwidth_KHz=203.125f, float _dataRate_KBauds=115.05126953125f );	// Sets the bandwidth (in KHz) of each channel (WARNING: must NOT be larger than channel spacing!) and  the data rate (in KBauds)
-		void	SetChannelSpacing( float _spacing_KHz=200.0f );				// Sets the frequency spacing (in KHz) between channels (we have a maximum of 256 channels, each of them this value appart) (WARNING: must NOT be smaller than bandwidth!)
+		void	GetChannelBandwithAndDataRate( float& _bandwidth_KHz, float& _dataRate_KBauds );
+		void	SetChannelBandwithAndDataRate( float _bandwidth_KHz=325.0f, float _dataRate_KBauds=99.9756f );	// Sets the bandwidth (in KHz) of each channel (WARNING: must NOT be larger than channel spacing!) and  the data rate (in KBauds)
+		float	GetChannelSpacing();										// Sets the frequency spacing (in KHz) between channels
+		void	SetChannelSpacing( float _spacing_KHz=199.951172f );		// Sets the frequency spacing (in KHz) between channels (we have a maximum of 256 channels, each of them this value appart) (WARNING: must NOT be smaller than bandwidth!)
+		float	GetFrequencyDeviation();									// Gets the frequency deviation (in KHz) for frequency shift keying
 		void	SetFrequencyDeviation( float _deviation_KHz=47.607421875f );// Sets the frequency deviation (in KHz) for frequency shift keying
 
 		// Configure how General Purpose Pins (GDOx) should behave
@@ -171,22 +177,23 @@ namespace Pom {
 		MACHINE_STATE	ReadFSMState();
 
 	private:
-		byte	SPITransfer( byte _value );						// Base SPI transfer used by all other routines
+		U8		SPITransfer( U8 _value );										// Base SPI transfer used by all other routines
 
-		byte	SPIReadSingle( byte _opcode );													// Returns READ byte (NOT! Status byte)
-		byte	SPIReadBurst( byte _opcode, uint32_t _dataLength, byte* _data );				// Returns status byte
-		byte	SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data );	// Returns status byte
+		U8		SPIReadSingle( U8 _opcode );									// Returns READ byte (NOT! Status byte)
+		U8		SPIReadBurst( U8 _opcode, uint32_t _dataLength, U8* _data );	// Returns status byte
+		U8		SPIRead( U8 _address, uint32_t _dataLength, U8* _data );		// Returns status byte
 
-		byte	SPIWriteSingle( byte _opcode, byte _data );										// Returns status byte
-		byte	SPIWriteBurst( byte _opcode, uint32_t _dataLength, byte* _data );				// Returns status byte
-		byte	SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data );	// Returns status byte
+		U8		SPIWriteSingle( U8 _opcode, U8 _data );							// Returns status byte
+		U8		SPIWriteBurst( U8 _opcode, uint32_t _dataLength, U8* _data );	// Returns status byte
+		U8		SPIWrite( U8 _address, uint32_t _dataLength, U8* _data );		// Returns status byte
 
-		byte	SetRegister( byte _address, byte _value );										// Returns status byte
-		byte	SendCommandStrobe( byte _command );												// Returns status byte
-		byte	ReadPATable( byte _powerTable[8] );												// Returns status byte
-		byte	WritePATable( byte _powerTable[8] );											// Returns status byte
-		byte	ReadStatus();
-		byte	ReadStatusRegister( byte _address );
+		U8		GetRegister( U8 _address );										// Returns READ byte (NOT! Status byte)
+		U8		SetRegister( U8 _address, U8 _value );							// Returns status byte
+		U8		SendCommandStrobe( U8 _command );								// Returns status byte
+		U8		ReadPATable( U8 _powerTable[8] );								// Returns status byte
+		U8		WritePATable( U8 _powerTable[8] );								// Returns status byte
+		U8		ReadStatus();
+		U8		ReadStatusRegister( U8 _address );
 
 		void	WritePKTCTRL0();
 		void	ReadPKTCTRL0();
@@ -198,9 +205,9 @@ namespace Pom {
 		#ifdef SPI_DEBUG_VERBOSE
 			public:
 				// DEBUG
-				void	DisplayStatus( byte _status );
-				void	DisplayDecodedWrittenValue( byte _writtenValue );	// Shows a decoded written value as a readable string
-				void	DumpAllRegisters( byte _registerValues[0x3E] );		// Dumps all of the registers's current state
+				void	DisplayStatus( U8 _status );
+				void	DisplayDecodedWrittenValue( U8 _writtenValue );	// Shows a decoded written value as a readable string
+				void	DumpAllRegisters( U8 _registerValues[0x3E] );	// Dumps all of the registers's current state
 		#endif
 	};
 }

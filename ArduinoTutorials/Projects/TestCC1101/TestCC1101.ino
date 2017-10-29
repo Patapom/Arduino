@@ -1,3 +1,4 @@
+#include "Pom/Pom.h"
 #include "CC1101/CC1101.h"
 
 #define	PIN_GDO0	8
@@ -23,6 +24,28 @@ void setup() {
 //C.Reset();
 C.SetNormalTransferMode();
 
+/*	// Read back frequencies
+	Serial.print( "Freq = " );
+	Serial.print( C.GetCarrierFrequency() );
+	Serial.println( " MHz" );
+	Serial.print( "Intermediate Freq = " );
+	Serial.print( C.GetIntermediateFrequency() );
+	Serial.println( " KHz" );
+	float	a, b;
+	C.GetChannelBandwithAndDataRate( a, b );
+	Serial.print( "Bandwidth = " );
+	Serial.print( a );
+	Serial.println( " KHz" );
+	Serial.print( "Data rate = " );
+	Serial.print( b );
+	Serial.println( " KBd" );
+	Serial.print( "Spacing = " );
+	Serial.print( C.GetChannelSpacing() );
+	Serial.println( " KHz" );
+	Serial.print( "Deviation = " );
+	Serial.print( C.GetFrequencyDeviation() );
+	Serial.println( " KHz" );
+//*/
 /*	// Test functions
 	Serial.println( "Testing Functions" );
 	C.SetAddress();
@@ -43,8 +66,8 @@ C.SetNormalTransferMode();
 	C.SetChannelSpacing();
 	C.SetFrequencyDeviation();
 
-	C.SetGDOx( Pom::CC1101::GDO0 );
-	C.SetGDOx( Pom::CC1101::GDO2 );
+//	C.SetGDOx( Pom::CC1101::GDO0 );
+//	C.SetGDOx( Pom::CC1101::GDO2 );
 
 	Serial.println( "DONE!" );
 
@@ -55,10 +78,10 @@ C.SetNormalTransferMode();
 /*	// Write registers
 	Serial.println( "Dumping register values..." );
 	
-	byte	initialValues[0x3E];
+	byte	initialValues[0x3D];
 	C.DumpAllRegisters( initialValues );
 
-	for ( byte i=0; i < 0x3E; i++ ) {
+	for ( byte i=0; i < 0x3D; i++ ) {
 		Serial.print( "0x" );
 	 	Serial.print( i, HEX );
 		Serial.print( " = 0x" );
@@ -71,7 +94,7 @@ C.SetNormalTransferMode();
 // the loop function runs over and over again until power down or reset
 void loop() {
 
-	#if 1
+	#if 0
 		// Send a bisou!
 		const char*	string = "BISOU!";
 		C.Transmit( 6, string );

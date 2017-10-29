@@ -1,7 +1,5 @@
-#include "Arduino.h"
-#include "CC1101.h"
-
 #include "Pom/Pom.h"
+#include "CC1101.h"
 
 using namespace Pom;
 
@@ -35,9 +33,9 @@ enum REGISTERS {
 	MCSM0	  =	0x18,
 	FOCCFG	  =	0x19,
 	BSCFG	  =	0x1A,
-	AGCTRL2	  =	0x1B,
-	AGCTRL1	  =	0x1C,
-	AGCTRL0	  =	0x1D,
+	AGCCTRL2  =	0x1B,
+	AGCCTRL1  =	0x1C,
+	AGCCTRL0  =	0x1D,
 	WOREVT1	  =	0x1E,
 	WOREVT0	  =	0x1F,
 	WORCTRL	  =	0x20,
@@ -73,7 +71,7 @@ enum COMMAND_STROBES {
 	SFRX			= 0x3A,	// Flush the RX FIFO buffer. Only issue SFRX in IDLE or RXFIFO_OVERFLOW states.
 	SFTX			= 0x3B,	// Flush the TX FIFO buffer. Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
 	SWORRST			= 0x3C,	// Reset real time clock to Event1 value.
-	SNOP			= 0x3D,	// No operation. May be used to get access to the chip status byte.
+	SNOP			= 0x3D,	// No operation. May be used to get access to the chip status U8.
 };
 
 enum REGISTERS_STATUS {
@@ -83,8 +81,8 @@ enum REGISTERS_STATUS {
 	LQI				= 0x33, // Demodulator estimate for Link Quality
 	RSSI			= 0x34, // Received signal strength indication
 	MARCSTATE		= 0x35, // Control state machine state
-	WORTIME1		= 0x36, // High byte of WOR timer
-	WORTIME0		= 0x37, // Low byte of WOR timer
+	WORTIME1		= 0x36, // High U8 of WOR timer
+	WORTIME0		= 0x37, // Low U8 of WOR timer
 	PKTSTATUS		= 0x38, // Current GDOx status and packet status
 	VCO_VC_DAC		= 0x39, // Current setting from PLL calibration module
 	TXBYTES			= 0x3A, // Underflow and number of bytes in the TX FIFO
@@ -95,14 +93,14 @@ enum REGISTERS_STATUS {
 
 #pragma endregion
 
-void	delayns( uint32_t _nanoseconds ) {
-	uint32_t	microseconds = (999 + _nanoseconds) / 1000;	// We don't have enough resolution for nanoseconds here so we round up to the next microsecond
+void	delayns( U32 _nanoseconds ) {
+	U32	microseconds = (999 + _nanoseconds) / 1000;	// We don't have enough resolution for nanoseconds here so we round up to the next microsecond
 	delayMicroseconds( microseconds );
 }
 
 const float	CC1101::DEFAULT_CARRIER_FREQUENCY_MHz = 800.0f;
 
-CC1101::CC1101( byte _pin_CS, byte _pin_CLOCK, byte _pin_SI, byte _pin_SO, byte _pin_GDO0, byte _pin_GDO2 ) {
+CC1101::CC1101( U8 _pin_CS, U8 _pin_CLOCK, U8 _pin_SI, U8 _pin_SO, U8 _pin_GDO0, U8 _pin_GDO2 ) {
 	// Setup pins
 	m_pin_CS = _pin_CS;
 	m_pin_Clock = _pin_CLOCK;
@@ -133,9 +131,9 @@ CC1101::CC1101( byte _pin_CS, byte _pin_CLOCK, byte _pin_SI, byte _pin_SO, byte 
 			 | (0 * _BV(SPR0));	// Clock Rate Select = 00 (Fosc/4) 
 
 		// Read status and data
-		byte	tmp = SPSR;
-				tmp = SPDR;
-				tmp++;
+		U8	tmp = SPSR;
+			tmp = SPDR;
+			tmp++;
 	}
 
 	// Manually reset device
@@ -143,7 +141,13 @@ CC1101::CC1101( byte _pin_CS, byte _pin_CLOCK, byte _pin_SI, byte _pin_SO, byte 
 }
 
 void	CC1101::Reset() {
-//Serial.println( "Reset" );
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "Reset" );
+	#endif
+
+	//////////////////////////////////////////////////////////////////////////
+	// Official reset steps (section 19.1)
+	//
 
 	// Set SCLK = 1 and SI = 0, to avoid potential problems with pin control mode (see Section 11.3).
 	digitalWrite( m_pin_Clock, HIGH );
@@ -179,12 +183,17 @@ void	CC1101::Reset() {
 	// Release the line
 	digitalWrite( m_pin_CS, HIGH );
 
-	// Synchronize our internal state
-	ReadPKTCTRL0();
-	ReadPKTCTRL1();
+
+	//////////////////////////////////////////////////////////////////////////
+	// Custom reset steps
+	//
 
 	// Perform custom reset operations
 	InternalCustomReset();
+
+	// Synchronize our internal state flags
+	ReadPKTCTRL0();
+	ReadPKTCTRL1();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -201,51 +210,9 @@ void	CC1101::SetNormalTransferMode() {
 	SetPacketFormat( NORMAL );				// Enable normal mode
 
 pinMode( m_pin_GDO0, INPUT );
-pinMode( m_pin_GDO2, INPUT );
+//pinMode( m_pin_GDO2, INPUT );
 SetGDOx( GDO0, ASSERT_ON_SYNC_WORD );
-SetGDOx( GDO2, CLK_XOSC_64 );
-
-
-
-
-
-
-SetRegister( FSCTRL1,  0x08 );
-SetRegister( FSCTRL0,  0x00 );
-SetRegister( FREQ2,    0x10 );
-SetRegister( FREQ1,    0xA7 );
-SetRegister( FREQ0,    0x62 );
-SetRegister( MDMCFG4,  0x5B );
-SetRegister( MDMCFG3,  0xF8 );
-SetRegister( MDMCFG2,  0x03 );
-SetRegister( MDMCFG1,  0x22 );
-SetRegister( MDMCFG0,  0xF8 );
-SetRegister( CHANNR,   0x00 );
-SetRegister( DEVIATN,  0x47 );
-SetRegister( FREND1,   0xB6 );
-SetRegister( FREND0,   0x10 );
-SetRegister( MCSM0 ,   0x18 );
-SetRegister( FOCCFG,   0x1D );
-SetRegister( BSCFG,    0x1C );
-SetRegister( AGCTRL2,  0xC7 );
-SetRegister( AGCTRL1,  0x00 );
-SetRegister( AGCTRL0,  0xB2 );
-SetRegister( FSCAL3,   0xEA );
-SetRegister( FSCAL2,   0x2A );
-SetRegister( FSCAL1,   0x00 );
-SetRegister( FSCAL0,   0x11 );
-SetRegister( FSTEST,   0x59 );
-SetRegister( TEST2,    0x81 );
-SetRegister( TEST1,    0x35 );
-SetRegister( TEST0,    0x09 );
-SetRegister( IOCFG2,   0x0B ); 	//serial clock.synchronous to the data in synchronous serial mode
-SetRegister( IOCFG0,   0x06 );  	//asserts when sync word has been sent/received, and de-asserts at the end of the packet 
-SetRegister( PKTCTRL1, 0x04 );		//two status bytes will be appended to the payload of the packet,including RSSI LQI and CRC OK No address check
-SetRegister( PKTCTRL0, 0x05 );		//whitening off;CRC Enable£»variable length packets, packet length configured by the first byte after sync word
-SetRegister( ADDR,     0x00 );		//address used for packet filtration.
-SetRegister( PKTLEN,   0x3D ); 	//61 bytes max length
-
-
+//SetGDOx( GDO2, CLK_XOSC_64 );
 }
 
 // Enters Synchronous Serial Operation mode
@@ -290,13 +257,13 @@ void	CC1101::SetAsynchronousTransferMode() {
 	SetPacketFormat( ASYNCHRONOUS );		// Enable asynchronous mode
 }
 
-void	CC1101::Transmit( byte _size, byte* _data ) {
+void	CC1101::Transmit( U8 _size, U8* _data ) {
 
 SendCommandStrobe( SFSTXON );
 SendCommandStrobe( SCAL );
 SendCommandStrobe( SFTX );				// Flush
 
-	int	count = 0;
+	U32	count = 0;
 	while ( ReadFSMState() != IDLE ) {
 		count++;
 // 		Serial.print( "Waiting for IDLE " );
@@ -307,7 +274,7 @@ SendCommandStrobe( SFTX );				// Flush
 	Serial.println( " times" );
 
 
-	// First byte is payload size
+	// First U8 is payload size
 //DisplayStatus( ReadStatus() );
 	SetRegister( TX_RX_FIFO, _size );
 
@@ -325,10 +292,10 @@ Serial.println( "NOT IN IDLE! Can't start TX!" );
 	SendCommandStrobe( STX );
 
 // It never leaves IDLE state FFS!!!
-uint64_t	startTime = millis();
-int		seconds = 0;
+U64	startTime = millis();
+U32	seconds = 0;
 while ( ReadFSMState() == IDLE ) {
-	uint64_t	currentTime = millis();
+	U64	currentTime = millis();
 	if ( currentTime - startTime > 1000 ) {
 		startTime = currentTime;
 		Serial.print( "IDLE for " );
@@ -351,14 +318,92 @@ Serial.println( "SENT" );
  	SendCommandStrobe( SFTX );				// Flush
 }
 
-byte	CC1101::Receive( byte* _data ) {
-	SendCommandStrobe( SRX );					// Start receiving
-		SendCommandStrobe( RXFIFO_OVERFLOW );
+U8	CC1101::Receive( U8* _data ) {
 
-	byte	availableBytes = ReadStatusRegister( RXBYTES );
+// Reset
+digitalWrite(m_pin_CS, LOW);
+delay(1);
+digitalWrite(m_pin_CS, HIGH);
+delay(1);
+digitalWrite(m_pin_CS, LOW);
+while(digitalRead(m_pin_SO));
+SendCommandStrobe(SRES);
+while(digitalRead(m_pin_SO));
+digitalWrite(m_pin_CS, HIGH);
+
+Serial.println( "SRX" );
+
+	U64	startTime = millis();
+	SendCommandStrobe( SRX );					// Start receiving
+
+	// Read a lot of states
+	U8	states[1000];
+	U8*	p = states;
+	for ( U32 i=0; i < 1000; i++ ) {
+		SPIRead( MARCSTATE, 1, p++ );
+//		delay( 1 );
+	}
+	U64	endTime = millis();
+
+	// Print them
+	Serial.println( "Printing state values..." );
+	Serial.println( "" );
+	for ( U32 i=0; i < 1000; i++ ) {
+		for ( U32 j=0; j < 2; j++ ) {
+			U8	v = (states[i] >> (j ? 0 : 4)) & 0xF;
+			if ( v < 10 )
+				Serial.print( char('0' + v) );
+			else
+				Serial.print( char('A' + v - 10) );
+		}
+	}
+	Serial.println();
+	Serial.print( "Total time = " );
+	Serial.println( U32(endTime - startTime) );
+
+
+//SPITransfer( SFRX );
+//SPITransfer( SIDLE );
+//SPITransfer( SRX );
+//SPITransfer( STX );
+
+// 	U8	availableBytes2 = ReadStatusRegister( RXBYTES );
+// Serial.println( availableBytes2 );
+
+
+//*	// Write registers
+	Serial.println( "Status register values..." );
+	for ( byte i=0x30; i < 0x3D; i++ ) {
+		Serial.print( "0x" );
+	 	Serial.print( i, HEX );
+		Serial.print( " = 0x" );
+	 	Serial.print( ReadStatusRegister( i ), HEX );
+		Serial.println();
+	}
+//*/
+
+
+
+// It never leaves IDLE state FFS!!!
+startTime = millis();
+U32	seconds = 0;
+while ( ReadFSMState() == IDLE ) {
+	U64	currentTime = millis();
+	if ( currentTime - startTime > 1000 ) {
+		startTime = currentTime;
+		Serial.print( "IDLE for " );
+		Serial.print( ++seconds );
+		Serial.println( " seconds" );
+	}
+}
+
+Serial.println( "ENTERED RX" );
+
+
+	U8	availableBytes = ReadStatusRegister( RXBYTES );
 	if ( availableBytes & 0x80 ) {
 		// Overflow! Flush...
-		SendCommandStrobe( RXFIFO_OVERFLOW );
+		SendCommandStrobe( SFRX );
 		return 0;
 	}
 
@@ -366,10 +411,10 @@ byte	CC1101::Receive( byte* _data ) {
 	if ( availableBytes == 0 )
 		return 0;	// Nothing in the pipe...
 
-	byte	packetSize = SPIReadSingle( TX_RX_FIFO );	// Read payload size
+	U8	packetSize = SPIReadSingle( TX_RX_FIFO );	// Read payload size
 	SPIReadBurst( TX_RX_FIFO, packetSize, _data );		// Read entire data
 
-	byte	status[2];
+	U8	status[2];
 	SPIReadBurst( TX_RX_FIFO, 2, status );		// Read status bytes (PKTCTRL1 was set with a state that automatically appends 2 status bytes to the packets)
 
 	return packetSize;
@@ -378,11 +423,11 @@ byte	CC1101::Receive( byte* _data ) {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 // High-Level User Access Functions
-void	CC1101::SetAddress( byte _address ) {
+void	CC1101::SetAddress( U8 _address ) {
 	SetRegister( ADDR, _address );
 }
 
-void	CC1101::SetChannel( byte _channel ) {
+void	CC1101::SetChannel( U8 _channel ) {
 	SetRegister( CHANNR, _channel );
 }
 
@@ -406,100 +451,157 @@ void	CC1101::EnablePacketAddressCheck( bool _enable ) {
 	m_enablePacketAddressCheck = _enable;
 	WritePKTCTRL1();
 }
-void	CC1101::SetPacketLength( byte _length ) {
+void	CC1101::SetPacketLength( U8 _length ) {
 	SetRegister( PKTLEN, _length );
 }
-void	CC1101::SetSyncWord( uint16_t _syncWord ) {
+void	CC1101::SetSyncWord( U16 _syncWord ) {
 	SetRegister( SYNC1, _syncWord >> 8 );
 	SetRegister( SYNC0, _syncWord & 0xFF );
 }
 
+float	CC1101::GetCarrierFrequency() {
+	U8	frequency[3];
+	SPIReadBurst( FREQ2, 3, frequency );
+	U32	FREQ = U32(frequency[2]) | ((U32(frequency[1]) | (U32(frequency[0]) << 8)) << 8);
+//Serial.println( FREQ, HEX );
+	return Fosc_MHz * FREQ / 65536.0f;
+}
 void	CC1101::SetCarrierFrequency( float _Fcarrier_MHz ) {
 	// Fcarrier = Fosc * FREQ * 2^-16
-	float		fFREQ = _Fcarrier_MHz * 65536.0f / Fosc_MHz;
-	uint32_t	FREQ = floor( fFREQ );
-				FREQ = min( FREQ, 0x3FFFFF );
-	byte	frequency[3];
+	float	fFREQ = _Fcarrier_MHz * 65536.0f / Fosc_MHz;
+	U32		FREQ = floor( fFREQ );
+			FREQ = min( FREQ, 0x3FFFFF );
+
+	U8	frequency[3];
 	frequency[0] = (FREQ >> 16) & 0xFF;
 	frequency[1] = (FREQ >> 8) & 0xFF;
 	frequency[2] = FREQ & 0xFF;
 	SPIWriteBurst( FREQ2, 3, frequency );
 }
 
+float	CC1101::GetIntermediateFrequency() {
+	return Fosc_MHz * (GetRegister( FSCTRL1 ) & 0xF) / 1.024f;
+}
 void	CC1101::SetIntermediateFrequency( float _F_KHz ) {
 	// 	IF = Fosc * FREQ_IF * 2^-10
-	uint32_t	FREQ_IF = floor( _F_KHz * 0.001f * 1024.0f / Fosc_MHz );
-				FREQ_IF = min( FREQ_IF, 0xF );
+	U32	FREQ_IF = floor( _F_KHz * 0.001f * 1024.0f / Fosc_MHz );
+		FREQ_IF = min( FREQ_IF, 15 );
 	SetRegister( FSCTRL1, FREQ_IF );
 }
 
+float	CC1101::GetFrequencyOffset() {
+	S8	stepIndex =	S8( GetRegister( FSCTRL0 ) );
+	return (Fosc_MHz / 16384.0f) * stepIndex;
+}
 void	CC1101::SetFrequencyOffset( float _Foffset_KHz ) {
 	// Frequency offset (FREQOFF) added to the base frequency before being used by the frequency synthesizer.
 	// Resolution is FXTAL/2^14 (1.59kHz-1.65kHz); range is ±202 kHz to ±210 kHz, dependent of XTAL frequency
 	const float	stepSize = Fosc_MHz / 16384.0f;		// Step resolution
-	int		stepIndex = _Foffset_KHz / stepSize;
-	byte	value = clamp( stepIndex, -128, 127 );
+	S32	stepIndex = _Foffset_KHz / stepSize;
+	U8	value = clamp( stepIndex, -128, 127 );
 	SetRegister( FSCTRL0, value );
 }
 
+void	CC1101::GetChannelBandwithAndDataRate( float& _bandwidth_KHz, float& _dataRate_KBauds ) {
+	// Extract mantissas and exponents
+	U8	mantissaDR = GetRegister( MDMCFG3 );
+	U8	value4 = GetRegister( MDMCFG4 );
+	U8	exponentDR = value4 & 0x0F;
+	U8	mantissaBW = (value4 >> 4) & 0x3;
+	U8	exponentBW = value4 >> 6;
+
+// Serial.print( "Exp BW = " );
+// Serial.println( exponentBW, DEC );
+// Serial.print( "Mantissa BW = " );
+// Serial.println( mantissaBW, DEC );
+
+// Serial.print( "Exp DR = " );
+// Serial.println( exponentDR, DEC );
+// Serial.print( "Mantissa DR = " );
+// Serial.println( mantissaDR, DEC );
+
+	// Recompose values
+	_bandwidth_KHz = 1000.0f * Fosc_MHz / ((4.0f+mantissaBW) * (U32(1) << (exponentBW+3)));
+	_dataRate_KBauds = 1000.0f * Fosc_MHz * (256.0f+mantissaDR) / (U32(1) << (28-exponentDR));
+}
 void	CC1101::SetChannelBandwithAndDataRate( float _bandwidth_KHz, float _dataRate_KBauds ) {
 	// Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E)
 	float	valueBW = Fosc_MHz / (0.001f * _bandwidth_KHz);
-	byte	expBW = byte( max( 5, floor( log2( valueBW ) ) ) );
-			valueBW /= 1 << expBW;
-			expBW = min( 3, expBW - 5 );
-	byte	mantissaBW = byte( clamp( floor( 4 * (valueBW - 1.0f) ), 0, 3 ) );
+	U8		exponentBW = U8( max( 5, floor( log2( valueBW ) ) ) );
+			valueBW /= 1 << exponentBW;
+			exponentBW = min( 3, exponentBW - 5 );
+	U8		mantissaBW = U8( clamp( floor( 1e-6f + 4.0f * (valueBW - 1.0f) ), 0.0f, 3.0f ) );
+
+// Serial.print( "valueBW = " );
+// Serial.println( valueBW );
+// Serial.println( 4.0f * (valueBW - 1.0f) );
+// Serial.println( floor( 1e-6f + 4.0f * (valueBW - 1.0f) ) );
+// Serial.print( "exponentBW = " );
+// Serial.println( exponentBW );
+// Serial.print( "mantissaBW = " );
+// Serial.println( mantissaBW );
 
 	// Data Rate = Fosc * (256 + DRATE_M)*2^(DRATE_E-28)
 	float	valueDR = 0.001f * _dataRate_KBauds / Fosc_MHz;
-	int		expDR = floor( log2( valueDR ) );
-			valueDR *= 1 << (-expDR);
-	byte	mantissaDR = byte( clamp( floor( 256 * (valueDR - 1.0f) ), 0, 255 ) );
+	S32		exponentDR = floor( log2( valueDR ) );
+			valueDR *= 1 << (-exponentDR);
+	U8		mantissaDR = U8( clamp( floor( 256.0f * (valueDR - 1.0f) ), 0.0f, 255.0f ) );
 
 	// Send values
-	byte	value4  = (expBW << 6)
-					| (mantissaBW << 4)
-					| clamp( 20+expDR, 0, 15 );
+	U8	value4  = (exponentBW << 6)
+				| (mantissaBW << 4)
+				| clamp( 20+exponentDR, 0, 15 );
 	SetRegister( MDMCFG4, value4 );
 	SetRegister( MDMCFG3, mantissaDR );
 }
 
+float	CC1101::GetChannelSpacing() {
+	U8	exponent = GetRegister( MDMCFG1 ) & 0x3;
+	U8	mantissa = GetRegister( MDMCFG0 );
+	return 1000.0f * Fosc_MHz * (256.0f + mantissa) / (U32(1) << (18-exponent));
+}
 void	CC1101::SetChannelSpacing( float _spacing_KHz ) {
 	// Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18)
 	float	value = 0.001f * _spacing_KHz / Fosc_MHz;
-	int		exponent = floor( log2( value ) );
+	S32		exponent = floor( log2( value ) );
 			value *= 1 << (-exponent);
-	byte	mantissa = byte( clamp( floor( 256 * (value - 1.0f) ), 0, 255 ) );
+	U8		mantissa = U8( clamp( floor( 256.0f * (value - 1.0f) ), 0.0f, 255.0f ) );
 
 	// Send values
-	byte	value1  = (0 * _BV(7))		// No FEC encoding
+	U8		value1  = (0 * _BV(7))		// No FEC encoding
 					| (2 << 4)			// Use 4 bytes in preamble
 					| clamp( 10+exponent, 0, 3 );
 	SetRegister( MDMCFG1, value1 );
 	SetRegister( MDMCFG0, mantissa );
 }
 
+float	CC1101::GetFrequencyDeviation() {
+	U8	dev = GetRegister( DEVIATN );
+	U8	exponent = (dev >> 4) & 0x07;
+	U8	mantissa = dev & 0x07;
+	return 1000.0f * Fosc_MHz * (8+mantissa) / (U32(1) << (17-exponent));
+}
 void	CC1101::SetFrequencyDeviation( float _deviation_KHz ) {
 	// 	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17)
 	float	value = 0.001f *_deviation_KHz / Fosc_MHz;
-	int		exponent = floor( log2( value ) );
+	S32		exponent = floor( log2( value ) );
 			value *= 1 << (-exponent);
-	byte	mantissa = byte( clamp( floor( 8 * (value - 1.0f) ), 0, 7 ) );
+	U8		mantissa = U8( clamp( floor( 8 * (value - 1.0f) ), 0.0f, 7.0f ) );
 
 	// Send value
-	byte	dev = (clamp( 14+exponent, 0, 7 ) << 4)
+	U8		dev = (clamp( 14+exponent, 0, 7 ) << 4)
 				| (mantissa & 0x7);
 	SetRegister( DEVIATN, dev );
 }
 
 void	CC1101::SetGDOx( GDO_SELECT _GDO, GDO_CONFIG _config, bool _invertOutput ) {
-	byte	value = (_invertOutput ? 0x40 : 0x00)
-				  | (_config & 0x3F);
+	U8	value = (_invertOutput ? 0x40 : 0x00)
+			  | (_config & 0x3F);
 	SetRegister( _GDO == CC1101::GDO0 ? IOCFG0 : IOCFG2, value );
 }
 
 CC1101::MACHINE_STATE	CC1101::ReadFSMState() {
-	byte	value = ReadStatusRegister( MARCSTATE );
+	U8	value = ReadStatusRegister( MARCSTATE );
 	return MACHINE_STATE( value & 0x1F );
 }
 
@@ -507,38 +609,41 @@ CC1101::MACHINE_STATE	CC1101::ReadFSMState() {
 //////////////////////////////////////////////////////////////////////////
 // Med-Level Helpers Functions
 //
-byte	CC1101::ReadPATable( byte _powerTable[8] ) {
+U8	CC1101::ReadPATable( U8 _powerTable[8] ) {
 	return SPIReadBurst( 0x3E, 8, _powerTable );
 }
-byte	CC1101::WritePATable( byte _powerTable[8] ) {
+U8	CC1101::WritePATable( U8 _powerTable[8] ) {
 	return SPIWriteBurst( 0x3E, 8, _powerTable );
 }
 
-byte	CC1101::SetRegister( byte _address, byte _value ) {
+U8	CC1101::GetRegister( U8 _address ) {
+	return SPIReadSingle( _address );
+}
+U8	CC1101::SetRegister( U8 _address, U8 _value ) {
 	return SPIWriteSingle( _address, _value );
 }
-byte	CC1101::SendCommandStrobe( byte _command ) {
+U8	CC1101::SendCommandStrobe( U8 _command ) {
 	return SPITransfer( _command );
 }
-byte	CC1101::ReadStatus() {
+U8	CC1101::ReadStatus() {
 	return SPITransfer( SNOP );
 }
 
-byte	CC1101::ReadStatusRegister( byte _address ) {
-	byte	value;
+U8	CC1101::ReadStatusRegister( U8 _address ) {
+	U8	value;
 	SPIReadBurst( _address, 1, &value );
 	return value;
 }
 
 void	CC1101::WritePKTCTRL0() {
-	byte	value = (m_enableWhitening ? 0x40 : 0x00)
+	U8	value = (m_enableWhitening ? 0x40 : 0x00)
 				  | (m_packetFormat << 4)
 				  | (m_enableCRC ? 0x04 : 0x00)
 				  | (m_packetLengthConfig & 0x3);
 	SetRegister( PKTCTRL0, value );
 }
 void	CC1101::ReadPKTCTRL0() {
-	byte	value = SPIReadSingle( PKTCTRL0 );
+	U8	value = SPIReadSingle( PKTCTRL0 );
 	m_enableWhitening = (value & 0x40) != 0;
 	m_packetFormat = PACKET_FORMAT( (value >> 4) & 0x3 );
 	m_enableCRC = (value & 0x04) != 0;
@@ -546,124 +651,157 @@ void	CC1101::ReadPKTCTRL0() {
 }
 
 void	CC1101::WritePKTCTRL1() {
-	byte	value = (m_enablePacketAddressCheck ? 0x01 : 0x00)
+	U8	value = (m_enablePacketAddressCheck ? 0x01 : 0x00)
 				  | 0x04;	// No preamble quality estimator, disable auto flush on CRC error, append 2 status bytes at the end of packet payloads
 	SetRegister( PKTCTRL1, value );
 }
 void	CC1101::ReadPKTCTRL1() {
-	byte	value = SPIReadSingle( PKTCTRL1 );
+	U8	value = SPIReadSingle( PKTCTRL1 );
 	m_enablePacketAddressCheck = (value & 0x03) != 0;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// As per 2017/10, default register values after a RESET are:
+// 	IOCFG2			(0x00) = 0x29	Signal CHIP_RDYn on GDO2, No invert
+// 	IOCFG1			(0x01) = 0x2E	3-state on GDO1 (default to be able to use SO), No invert
+// 	IOCFG0			(0x02) = 0x3F	Signal CLK_XOSC/192, No invert
+// 	FIFOTHR			(0x03) = 0x07	RX Attenuation = 0dB. Set the threshold for the TX FIFO and RX FIFO to 7 = 33 (half the queue size)
+// 	SYNC1			(0x04) = 0xD3	Sync Word MSB
+// 	SYNC0			(0x05) = 0x91	Sync Word LSB
+// 	PKTLEN			(0x06) = 0xFF	Default Packet Length
+// 	PKTCTRL1		(0x07) = 0x04	Always accept sync word. Don't autoflush when CRC is wrong. Append 2 status bytes to packets. No address check.
+// 	PKTCTRL0		(0x08) = 0x45	Data whitening enabled. Packet format normal mode (use FIFO). CRC enabled. Variable packet length.
+// 	ADDR			(0x09) = 0x00	Broadcast address 0x00
+// 	CHANNR			(0x0A) = 0x00	Broadcast on channel 0x00
+// 	FSCTRL1			(0x0B) = 0x0F	FREQ_IF = 15 (IF = Fosc * FREQ_IF * 2^-10 = 381KHz) 
+// 	FSCTRL0			(0x0C) = 0x00	Frequency offset (FREQOFF) added to the base frequency before being used by the frequency synthesizer.
+// 	FREQ2			(0x0D) = 0x1E	MSB of Fcarrier = Fosc * FREQ * 2^-16 = 26Mhz * 0x1EC4EC / 65536 = 26 * 30.76922607421875 = 799.9998779296875 MHz
+// 	FREQ1			(0x0E) = 0xC4	MidSB of Fcarrier
+// 	FREQ0			(0x0F) = 0xEC	LSB of Fcarrier
+// 	MDMCFG4			(0x10) = 0x8C	Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E) = 203.125 KHz (with CHANBW_M=0 & CHANBW_E=2). DRATE_E = 12
+// 	MDMCFG3			(0x11) = 0x22	Data Rate = Fosc * (256 + DRATE_M)*2^(DRATE_E-28) = 26 * 0.004425048828125 = 115.05126953125 KBauds (with DRATE_M=34 & DRATE_E=12)
+// 	MDMCFG2			(0x12) = 0x02	Enable digital DC blocking (better sensitivity). Modulation format = 2-FSK. Disable Manchester Encoding. 16/16 Sync word bits must match.
+// 	MDMCFG1			(0x13) = 0x22	Forward Error Correction (FEC) disabled. A minimum of 4 preamble bytes must be transmitted. CHANSPC_E = 2
+// 	MDMCFG0			(0x14) = 0xF8	Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18) = 26 * 0.0076904296875 = 199.951171875 KHz (with CHANSPC_M = 0xF8 and CHANSPC_E = 2)
+// 	DEVIATN			(0x15) = 0x47	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17) = 26 * 0.0018310546875 = 47.607421875 KHz (with DEVIATION_E = 4 & DEVIATION_M = 7)
+// 	MCSM2			(0x16) = 0x07	No direct RX termination based on RSSI measurement. Only check Sync word on RX_TIME expired. Wait until end of packet for timeout. 
+// 	MCSM1			(0x17) = 0x30	Clear Channel Assessment (CCA) Mode = If RSSI below threshold unless currently receiving a packet. RXOFF_MODE goes to IDLE after packet received. TXOFF_MODE goes to IDLE after packet received.
+// 	MCSM0			(0x18) = 0x04	Auto calibration disabled. Xosc stabilized after counter reaches 16. Disable pin radio control option. Force Xosc to stay on during sleep state is DISABLED.
+// 	FOCCFG			(0x19) = 0x76	Freeze demodulator state until CS goes high. Frequency compensation loop gain BEFORE sync word detection to 3K. Fres. comp AFTER sync word to K/2. Saturation point for freq. offset compensation algorithm = +-BWchan/4
+// 	BSCFG			(0x1A) = 0x6C	Clock recovery feedback loop integral gain BEFORE sync word to 2Ki. Proportional gain to 3Kp. Ki/2 for AFTER sync word integral gain. Kp for AFTER sync word proportional gain. Saturation point for data rate offset compensation algorithm = 0 (no compensation performed)
+// 	AGCTRL2			(0x1B) = 0x03	All gain settings can be used. Maximum possible LNA + LNA 2 gain. Average amplitude for from digital channel filter = 33 dB.
+// 	AGCTRL1			(0x1C) = 0x40	LNA gain is decreased first. Relative carrier sense threshold disabled. Carrier sense RSSI threshold at MAGN_TARGET.
+// 	AGCTRL0			(0x1D) = 0x91	Medium hysteresis on magnitude deviation. 16 channel filter samples. Never freeze AGC. Use 16 samples for amplitude filtering.
+// 	WOREVT1			(0x1E) = 0x87	High U8 of EVENT0 timeout register t_EVENT0 = 750 / F_osc * EVENT0*2^(5*WOR_RES) = 750 / 26.0E6 * 0x876B * 2^(5*0) ~= 1s
+// 	WOREVT0			(0x1F) = 0x6B	High U8 of EVENT0 timeout register
+// 	WORCTRL			(0x20) = 0xF8	Power down signal not set. Timeout of EVENT1 = 48 clocks. RC oscillator calibration enabled. WOR_RES = 0
+// 	FREND1			(0x21) = 0x56	<ADVANCED> Front-end RX current settings (not very detailed :'().
+// 	FREND0			(0x22) = 0x10	<ADVANCED> Front-end TX settings (not very detailed either). PA power setting set to index 0 in PATABLE.
+// 	FSCAL3			(0x23) = 0xA9	<ADVANCED> Frequency synthesizer calibration settings (not very detailed).
+// 	FSCAL2			(0x24) = 0x0A	<ADVANCED> Basically, all these settings are set by the Texas Instrument's proprietary tool SmartRF Studio (http://www.ti.com/tool/SMARTRFTM-STUDIO)
+// 	FSCAL1			(0x25) = 0x20	<ADVANCED> 
+// 	FSCAL0			(0x26) = 0x0D	<ADVANCED> 
+// 	RCCTRL1			(0x27) = 0x41	<ADVANCED> 
+// 	RCCTRL0			(0x28) = 0x00	<ADVANCED> 
+// 	FSTEST			(0x29) = 0x59	<TEST ONLY> Don't write!
+// 	PTEST			(0x2A) = 0x7F	Writing 0xBF to this register makes the on-chip temperature sensor available in the IDLE state. The default 0x7F value should then be written back before leaving the IDLE state
+// 	AGCTEST			(0x2B) = 0x3F	<TEST ONLY> Don't write!
+// 	TEST2			(0x2C) = 0x88	<TEST ONLY>
+// 	TEST1			(0x2D) = 0x31	<TEST ONLY>
+// 	TEST0			(0x2E) = 0x0B	<TEST ONLY>
+//
+// 	<<< 0x2F is undefined >>>
+//
+// Status registers are:
+// 	PARTNUM			(0x30) = 0x00
+// 	VERSION			(0x31) = 0x14
+// 	FREQEST			(0x32) = 0x00
+// 	LQI				(0x33) = 0x05
+// 	RSSI			(0x34) = 0x80
+// 	MARCSTATE		(0x35) = 0x01
+// 	WORTIME1		(0x36) = 0x00
+// 	WORTIME0		(0x37) = 0x00
+// 	PKTSTATUS		(0x38) = 0x00
+// 	VCO_VC_DAC		(0x39) = 0x94
+// 	TXBYTES			(0x3A) = 0x00
+// 	RXBYTES			(0x3B) = 0x00
+// 	RCCTRL1_STATUS	(0x3C) = 0x00
+// 	RCCTRL0_STATUS	(0x3D) = 0x00
+//
 void	CC1101::InternalCustomReset() {
+	#ifdef SPI_DEBUG_VERBOSE
+		Serial.println( "Internal Custom Reset" );
+	#endif
+
 	// Change GDO modes to avoid costly CLK_XOSC settings
 	SetNormalTransferMode();
 
-	// Setup custom PA table (even though only the first byte is used because FREND0.PA_POWER is set to 0)
-	byte	temp[8] = { 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6 };
-	WritePATable( temp );
+	//////////////////////////////////////////////////////////////////////////
+	// Setup some registers exported from SmartRF Studio (http://www.ti.com/tool/SMARTRFTM-STUDIO)
+	//////////////////////////////////////////////////////////////////////////
+	//
+	// Address Config = No address check 
+	// Base Frequency = 867.999939 
+	// CRC Autoflush = false 
+	// CRC Enable = true 
+	// Carrier Frequency = 867.999939 
+	// Channel Number = 0 
+	// Channel Spacing = 199.951172 
+	// Data Format = Normal mode 
+	// Data Rate = 99.9756 
+	// Deviation = 47.607422 
+	// Device Address = 0 
+	// Manchester Enable = false 
+	// Modulated = true 
+	// Modulation Format = GFSK 
+	// PA Ramping = false 
+	// Packet Length = 255 
+	// Packet Length Mode = Variable packet length mode. Packet length configured by the first U8 after sync word 
+	// Preamble Count = 4 
+	// RX Filter BW = 325.000000 
+	// Sync Word Qualifier Mode = 30/32 sync word bits detected 
+	// TX Power = 0 
+	// Whitening = true 
+	// PA table 
+	#define PA_TABLE {0x50,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
+	//
+	// Rf settings for CC1101
+	//
+//	SetRegister( IOCFG0, 0x06 );      // (0002) GDO0 Output Pin Configuration
+	SetRegister( FSCTRL1, 0x08 );     // (000B) Frequency Synthesizer Control
+	SetRegister( FREQ2, 0x21 );       // (000D) Frequency Control Word, High Byte
+	SetRegister( FREQ1, 0x62 );       // (000E) Frequency Control Word, Middle Byte
+	SetRegister( FREQ0, 0x76 );       // (000F) Frequency Control Word, Low Byte
+	SetRegister( MDMCFG4, 0x5B );     // (0010) Modem Configuration
+	SetRegister( MDMCFG3, 0xF8 );     // (0011) Modem Configuration
+	SetRegister( MDMCFG2, 0x13 );     // (0012) Modem Configuration
+	SetRegister( MCSM0, 0x18 );       // (0018) Main Radio Control State Machine Configuration
+	SetRegister( FOCCFG, 0x1D );      // (0019) Frequency Offset Compensation Configuration
+	SetRegister( BSCFG, 0x1C );       // (001A) Bit Synchronization Configuration
+	SetRegister( AGCCTRL2, 0xC7 );    // (001B) AGC Control
+	SetRegister( AGCCTRL1, 0x00 );    // (001C) AGC Control
+	SetRegister( AGCCTRL0, 0xB2 );    // (001D) AGC Control
+	SetRegister( WORCTRL, 0xFB );     // (0020) Wake On Radio Control
+	SetRegister( FREND1, 0xB6 );      // (0021) Front End RX Configuration
+	SetRegister( FSCAL3, 0xEA );      // (0023) Frequency Synthesizer Calibration
+	SetRegister( FSCAL2, 0x2A );      // (0024) Frequency Synthesizer Calibration
+	SetRegister( FSCAL1, 0x00 );      // (0025) Frequency Synthesizer Calibration
+	SetRegister( FSCAL0, 0x1F );      // (0026) Frequency Synthesizer Calibration
+	SetRegister( TEST0, 0x09 );       // (002E) Various Test Settings
+
+	//////////////////////////////////////////////////////////////////////////
+	// Setup custom PA table (even though only the first U8 is used if FREND0.PA_POWER is set to 0)
+//	U8	table[8] = { 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6, 0xC6 };
+	U8	table[8] = PA_TABLE;
+	WritePATable( table );
 
 	#ifdef SPI_DEBUG_VERBOSE
 		Serial.println( "<PATable>" );
-		ReadPATable( temp );
-		for ( int i=0; i < 8; i++ )
-			Serial.println( temp[i], HEX );
+		ReadPATable( table );
+		for ( U32 i=0; i < 8; i++ )
+			Serial.println( table[i], HEX );
 		Serial.println( "</PATable>" );
 	#endif
-
-	// Setup some default registers
-	// Default values after a RESET are:
-	// 	IOCFG2			(0x00) = 0x29	Signal CHIP_RDYn on GDO2, No invert
-	// 	IOCFG1			(0x01) = 0x2E	3-state on GDO1 (default to be able to use SO), No invert
-	// 	IOCFG0			(0x02) = 0x3F	Signal CLK_XOSC/192, No invert
-	// 	FIFOTHR			(0x03) = 0x07	RX Attenuation = 0dB. Set the threshold for the TX FIFO and RX FIFO to 7 = 33 (half the queue size)
-	// 	SYNC1			(0x04) = 0xD3	Sync Word MSB
-	// 	SYNC0			(0x05) = 0x91	Sync Word LSB
-	// 	PKTLEN			(0x06) = 0xFF	Default Packet Length
-	// 	PKTCTRL1		(0x07) = 0x04	Always accept sync word. Don't autoflush when CRC is wrong. Append 2 status bytes to packets. No address check.
-	// 	PKTCTRL0		(0x08) = 0x45	Data whitening enabled. Packet format normal mode (use FIFO). CRC enabled. Variable packet length.
-	// 	ADDR			(0x09) = 0x00	Broadcast address 0x00
-	// 	CHANNR			(0x0A) = 0x00	Broadcast on channel 0x00
-	// 	FSCTRL1			(0x0B) = 0x0F	FREQ_IF = 15 (IF = Fosc * FREQ_IF * 2^-10 = 381KHz) 
-	// 	FSCTRL0			(0x0C) = 0x00	Frequency offset (FREQOFF) added to the base frequency before being used by the frequency synthesizer.
-	// 	FREQ2			(0x0D) = 0x1E	MSB of Fcarrier = Fosc * FREQ * 2^-16 = 26Mhz * 0x1EC4EC / 65536 = 26 * 30.76922607421875 = 799.9998779296875 MHz
-	// 	FREQ1			(0x0E) = 0xC4	MidSB of Fcarrier
-	// 	FREQ0			(0x0F) = 0xEC	LSB of Fcarrier
-	// 	MDMCFG4			(0x10) = 0x8C	Channel Bandwidth = Fosc / (8*(4+CHANBW_M)*2^CHANBW_E) = 203.125 KHz (with CHANBW_M=0 & CHANBW_E=2). DRATE_E = 12
-	// 	MDMCFG3			(0x11) = 0x22	Data Rate = Fosc * (256 + DRATE_M)*2^(DRATE_E-28) = 26 * 0.004425048828125 = 115.05126953125 KBauds (with DRATE_M=34 & DRATE_E=12)
-	// 	MDMCFG2			(0x12) = 0x02	Enable digital DC blocking (better sensitivity). Modulation format = 2-FSK. Disable Manchester Encoding. 16/16 Sync word bits must match.
-	// 	MDMCFG1			(0x13) = 0x22	Forward Error Correction (FEC) disabled. A minimum of 4 preamble bytes must be transmitted. CHANSPC_E = 2
-	// 	MDMCFG0			(0x14) = 0xF8	Channel spacing frequency = Fosc * (256+CHANSPC_M)*2^(CHANSPC_E-18) = 26 * 0.0076904296875 = 199.951171875 KHz (with CHANSPC_M = 0xF8 and CHANSPC_E = 2)
-	// 	DEVIATN			(0x15) = 0x47	Nominal frequency deviation from the carrier Fdev = Fosc * (8+DEVIATION_M)^2(DEVIATION_E-17) = 26 * 0.0018310546875 = 47.607421875 KHz (with DEVIATION_E = 4 & DEVIATION_M = 7)
-	// 	MCSM2			(0x16) = 0x07	No direct RX termination based on RSSI measurement. Only check Sync word on RX_TIME expired. Wait until end of packet for timeout. 
-	// 	MCSM1			(0x17) = 0x30	Clear Channel Assessment (CCA) Mode = If RSSI below threshold unless currently receiving a packet. RXOFF_MODE goes to IDLE after packet received. TXOFF_MODE goes to IDLE after packet received.
-	// 	MCSM0			(0x18) = 0x04	Auto calibration disabled. Xosc stabilized after counter reaches 16. Disable pin radio control option. Force Xosc to stay on during sleep state is DISABLED.
-	// 	FOCCFG			(0x19) = 0x76	Freeze demodulator state until CS goes high. Frequency compensation loop gain BEFORE sync word detection to 3K. Fres. comp AFTER sync word to K/2. Saturation point for freq. offset compensation algorithm = +-BWchan/4
-	// 	BSCFG			(0x1A) = 0x6C	Clock recovery feedback loop integral gain BEFORE sync word to 2Ki. Proportional gain to 3Kp. Ki/2 for AFTER sync word integral gain. Kp for AFTER sync word proportional gain. Saturation point for data rate offset compensation algorithm = 0 (no compensation performed)
-	// 	AGCTRL2			(0x1B) = 0x03	All gain settings can be used. Maximum possible LNA + LNA 2 gain. Average amplitude for from digital channel filter = 33 dB.
-	// 	AGCTRL1			(0x1C) = 0x40	LNA gain is decreased first. Relative carrier sense threshold disabled. Carrier sense RSSI threshold at MAGN_TARGET.
-	// 	AGCTRL0			(0x1D) = 0x91	Medium hysteresis on magnitude deviation. 16 channel filter samples. Never freeze AGC. Use 16 samples for amplitude filtering.
-	// 	WOREVT1			(0x1E) = 0x87	High byte of EVENT0 timeout register t_EVENT0 = 750 / F_osc * EVENT0*2^(5*WOR_RES) = 750 / 26.0E6 * 0x876B * 2^(5*0) ~= 1s
-	// 	WOREVT0			(0x1F) = 0x6B	High byte of EVENT0 timeout register
-	// 	WORCTRL			(0x20) = 0xF8	Power down signal not set. Timeout of EVENT1 = 48 clocks. RC oscillator calibration enabled. WOR_RES = 0
-	// 	FREND1			(0x21) = 0x56	<ADVANCED> Front-end RX current settings (not very detailed :'().
-	// 	FREND0			(0x22) = 0x10	<ADVANCED> Front-end TX settings (not very detailed either). PA power setting set to index 0 in PATABLE.
-	// 	FSCAL3			(0x23) = 0xA9	<ADVANCED> Frequency synthesizer calibration settings (not very detailed).
-	// 	FSCAL2			(0x24) = 0x0A	<ADVANCED> Basically, all these settings are set by the Texas Instrument's proprietary tool SmartRF Studio (http://www.ti.com/tool/SMARTRFTM-STUDIO)
-	// 	FSCAL1			(0x25) = 0x20	<ADVANCED> 
-	// 	FSCAL0			(0x26) = 0x0D	<ADVANCED> 
-	// 	RCCTRL1			(0x27) = 0x41	<ADVANCED> 
-	// 	RCCTRL0			(0x28) = 0x00	<ADVANCED> 
-	// 	FSTEST			(0x29) = 0x59	<TEST ONLY> Don't write!
-	// 	PTEST			(0x2A) = 0x7F	Writing 0xBF to this register makes the on-chip temperature sensor available in the IDLE state. The default 0x7F value should then be written back before leaving the IDLE state
-	// 	AGCTEST			(0x2B) = 0x3F	<TEST ONLY> Don't write!
-	// 	TEST2			(0x2C) = 0x88	<TEST ONLY>
-	// 	TEST1			(0x2D) = 0x31	<TEST ONLY>
-	// 	TEST0			(0x2E) = 0x0B	<TEST ONLY>
-	//
-	// 	<<< 0x2F is undefined >>>
-	//
-	// Status registers are:
-	// 	PARTNUM			(0x30) = 0x00
-	// 	VERSION			(0x31) = 0x14
-	// 	FREQEST			(0x32) = 0x00
-	// 	LQI				(0x33) = 0x05
-	// 	RSSI			(0x34) = 0x80
-	// 	MARCSTATE		(0x35) = 0x01
-	// 	WORTIME1		(0x36) = 0x00
-	// 	WORTIME0		(0x37) = 0x00
-	// 	PKTSTATUS		(0x38) = 0x00
-	// 	VCO_VC_DAC		(0x39) = 0x94
-	// 	TXBYTES			(0x3A) = 0x00
-	// 	RXBYTES			(0x3B) = 0x00
-	// 	RCCTRL1_STATUS	(0x3C) = 0x00
-	// 	RCCTRL0_STATUS	(0x3D) = 0x00
-
-// This is the configuration proposed by the ELECHOUSE library
-// 	SpiWriteReg(FSCTRL1,  0x08);	// IF = 203KHz
-// 	SpiWriteReg(FREQ2,    0x10);	// 433MHz
-// 	SpiWriteReg(FREQ1,    0xA7);
-// 	SpiWriteReg(FREQ0,    0x62);
-// 	SpiWriteReg(IOCFG2,   0x0B); 	//serial clock.synchronous to the data in synchronous serial mode
-// 	SpiWriteReg(IOCFG0,   0x06);  	//asserts when sync word has been sent/received, and de-asserts at the end of the packet 
-// 	SpiWriteReg(PKTLEN,   0x3D); 	//61 bytes max length
-
-// 	SpiWriteReg(MDMCFG4,  0x5B);
-// 	SpiWriteReg(MDMCFG3,  0xF8);
-// 	SpiWriteReg(MDMCFG2,  0x03);
-// 	SpiWriteReg(MDMCFG1,  0x22);
-// 	SpiWriteReg(MDMCFG0,  0xF8);
-// 	SpiWriteReg(FREND1,   0xB6);
-// 	SpiWriteReg(MCSM0 ,   0x18);
-// 	SpiWriteReg(FOCCFG,   0x1D);
-// 	SpiWriteReg(BSCFG,    0x1C);
-// 	SpiWriteReg(AGCTRL2,  0xC7);
-// 	SpiWriteReg(AGCTRL1,  0x00);
-// 	SpiWriteReg(AGCTRL0,  0xB2);
-// 	SpiWriteReg(FSCAL3,   0xEA);
-// 	SpiWriteReg(FSCAL2,   0x2A);
-// 	SpiWriteReg(FSCAL1,   0x00);
-// 	SpiWriteReg(FSCAL0,   0x11);
 }
 
 
@@ -674,7 +812,7 @@ void	CC1101::InternalCustomReset() {
 // NOTES: This function expects CS and SO to be LOW
 // Details can be found at http://avrbeginners.net/architecture/spi/spi.html and https://www.arduino.cc/en/Tutorial/SPIEEPROM
 //
-byte	CC1101::SPITransfer( byte _value ) {
+U8	CC1101::SPITransfer( U8 _value ) {
 	#ifdef SPI_DEBUG_VERBOSE
 		Serial.print( "SPI Write 0x" );
 		Serial.print( _value, HEX );
@@ -704,28 +842,27 @@ byte	CC1101::SPITransfer( byte _value ) {
 	return _value;
 }
 
-byte	CC1101::SPIReadSingle( byte _address ) {
-	byte	data;
-	SPIRead( _address, 0x00, 1, &data );	// Status is simply ignored
+U8	CC1101::SPIReadSingle( U8 _address ) {
+	U8	data;
+	SPIRead( _address, 1, &data );	// Status is simply ignored
 	return data;
 }
-byte	CC1101::SPIReadBurst( byte _address, uint32_t _dataLength, byte* _data ) {
-	byte	status = SPIRead( _address, 0x40U, _dataLength, _data );
+U8	CC1101::SPIReadBurst( U8 _address, U32 _dataLength, U8* _data ) {
+	U8	status = SPIRead( _address | 0x40U, _dataLength, _data );
 	#ifdef SPI_DEBUG_VERBOSE
 		Serial.println( "BURST END" );
 	#endif
 	return status;
 }
-byte	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
+U8	CC1101::SPIRead( U8 _address, U32 _dataLength, U8* _data ) {
 	digitalWrite( m_pin_CS, LOW );		// Enable the line
 	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
 	delayns( 20 );						// 20ns before transmit (as per table 22)
 
 	// Now shift out the opcode
-	byte	opcode  = 0x80	// READ
-					| _opcodeOR
-					| (_address & 0x3F);
-	byte	status = SPITransfer( opcode );
+	U8	opcode  = 0x80	// READ
+					| (_address & 0x7F);
+	U8	status = SPITransfer( opcode );
 
 	// Shift in data
 	while ( _dataLength-- ) {
@@ -743,25 +880,24 @@ byte	CC1101::SPIRead( byte _address, byte _opcodeOR, uint32_t _dataLength, byte*
 	return status;
 }
 
-byte	CC1101::SPIWriteSingle( byte _address, byte _data ) {
-	return SPIWrite( _address, 0x00, 1, &_data );
+U8	CC1101::SPIWriteSingle( U8 _address, U8 _data ) {
+	return SPIWrite( _address, 1, &_data );
 }
-byte	CC1101::SPIWriteBurst( byte _address, uint32_t _dataLength, byte* _data ) {
-	byte	status = SPIWrite( _address, 0x40U, _dataLength, _data );
+U8	CC1101::SPIWriteBurst( U8 _address, U32 _dataLength, U8* _data ) {
+	U8	status = SPIWrite( _address | 0x40U, _dataLength, _data );
 	#ifdef SPI_DEBUG_VERBOSE
 		Serial.println( "BURST END" );
 	#endif
 	return status;
 }
-byte	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte* _data ) {
+U8	CC1101::SPIWrite( U8 _address, U32 _dataLength, U8* _data ) {
 	digitalWrite( m_pin_CS, LOW );		// Enable the line
 	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
 	delayns( 20 );						// 20ns before transmit (as per table 22)
 
 	// Now shift out the opcode
-	byte	opcode  = _opcodeOR
-					| (_address & 0x3F);
-	byte	status = SPITransfer( opcode );
+	U8	opcode  = _address & 0x7F;
+	U8	status = SPITransfer( opcode );
 
 	// Shift out data
 	while ( _dataLength-- ) {
@@ -784,7 +920,7 @@ byte	CC1101::SPIWrite( byte _address, byte _opcodeOR, uint32_t _dataLength, byte
 // DEBUG
 #ifdef SPI_DEBUG_VERBOSE
 
-void	CC1101::DisplayStatus( byte _status ) {
+void	CC1101::DisplayStatus( U8 _status ) {
 	Serial.print( (_status & 0x80) ? "Chip NOT READY " : "Chip READY " );
 	switch ( (_status >> 4) & 0x7 ) {
 		case 0:	Serial.print( "IDLE" ); break;
@@ -800,11 +936,11 @@ void	CC1101::DisplayStatus( byte _status ) {
 	Serial.println( _status & 0x0F );
 }
 
-void	CC1101::DisplayDecodedWrittenValue( byte _writtenValue ) {
+void	CC1101::DisplayDecodedWrittenValue( U8 _writtenValue ) {
 	Serial.print( (_writtenValue & 0x80) != 0 ? "READ " : "WRITE " );
 	Serial.print( (_writtenValue & 0x40) != 0 ? "BURST " : "SINGLE " );
 
-	byte	address = _writtenValue & 0x3F;
+	U8	address = _writtenValue & 0x3F;
 	if ( address < 0x30 ) {
 		// Register access
 		Serial.print( "REG " );
@@ -836,9 +972,9 @@ void	CC1101::DisplayDecodedWrittenValue( byte _writtenValue ) {
 			case MCSM0		:	Serial.print( "MCSM0" ); break;
 			case FOCCFG		:	Serial.print( "FOCCFG" ); break;
 			case BSCFG		:	Serial.print( "BSCFG" ); break;
-			case AGCTRL2	:	Serial.print( "AGCTRL2" ); break;
-			case AGCTRL1	:	Serial.print( "AGCTRL1" ); break;
-			case AGCTRL0	:	Serial.print( "AGCTRL0" ); break;
+			case AGCCTRL2	:	Serial.print( "AGCCTRL2" ); break;
+			case AGCCTRL1	:	Serial.print( "AGCCTRL1" ); break;
+			case AGCCTRL0	:	Serial.print( "AGCCTRL0" ); break;
 			case WOREVT1	:	Serial.print( "WOREVT1" ); break;
 			case WOREVT0	:	Serial.print( "WOREVT0" ); break;
 			case WORCTRL	:	Serial.print( "WORCTRL" ); break;
@@ -901,12 +1037,12 @@ void	CC1101::DisplayDecodedWrittenValue( byte _writtenValue ) {
 	}
 }
 
-void	CC1101::DumpAllRegisters( byte _registerValues[0x3E] ) {
+void	CC1101::DumpAllRegisters( U8 _registerValues[0x3D] ) {
 	SPIReadBurst( 0x00, 0x2F, _registerValues );	// Read initial register values
 
 	_registerValues[0x2F] = 0x00;	// Undefined
 
-	for ( int i=0; i < 0xE; i++ ) {
+	for ( U32 i=0; i < 0xD; i++ ) {
 		_registerValues[PARTNUM+i] = ReadStatusRegister( PARTNUM + i );
 	}
 }
