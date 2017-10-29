@@ -84,6 +84,7 @@
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Pom.h" />
     <ClInclude Include="PulseTrain\PulseTrain.h" />
+    <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PulseTrain\PulseTrainASM.S" />

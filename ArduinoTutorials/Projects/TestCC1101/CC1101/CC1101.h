@@ -60,6 +60,7 @@ namespace Pom {
 		void	SetAsynchronousTransferMode();					// Asynchronous transfer mode (no support, MCU must be polling and feeding data at oversampled rate on GDOx pins)
 
 		U8		Transmit( U8 _size, U8* _data );				// Transmits a small amount of data (< 256 bytes). Returns the amount of actually transmitted data.
+		bool	EnterReceiveMode();								// Attempts to enter receive mode. Returns true if success.
 		U8		Receive( U8* _data );							// Reads a small amount of data (< 256 bytes). Returns 0 if nothing is present in the pipe.
 
 		// Configures packets
@@ -176,7 +177,11 @@ namespace Pom {
 		};
 		MACHINE_STATE	ReadFSMState();
 
-	private:
+	#if _DEBUG
+		public:
+	#else
+		private:
+	#endif
 		U8		SPITransfer( U8 _value );										// Base SPI transfer used by all other routines
 
 		U8		SPIReadSingle( U8 _opcode );									// Returns READ byte (NOT! Status byte)
@@ -202,13 +207,16 @@ namespace Pom {
 
 		void	InternalCustomReset();							// Some internal custom reset operations that are executed right after Reset() is called
 
-		void	DumpManyStates( U8 _stateRegister, U64 _startTime, U16 _count=2048 );
-		void	DisplayStatusRegisters();
+		public:
+		#ifdef _DEBUG
+			void	DumpManyStates( U8 _stateRegister, U64 _startTime, U16 _count=2048 );
+			void	DisplayStatusRegisters();
+			void	DisplayStatus( U8 _status );
+		#endif
 
 		#ifdef SPI_DEBUG_VERBOSE
 			public:
 				// DEBUG
-				void	DisplayStatus( U8 _status );
 				void	DisplayDecodedWrittenValue( U8 _writtenValue );	// Shows a decoded written value as a readable string
 				void	DumpAllRegisters( U8 _registerValues[0x3E] );	// Dumps all of the registers's current state
 		#endif

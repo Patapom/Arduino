@@ -163,11 +163,7 @@ void	CC1101::Reset() {
 	// Pull CSn low and wait for SO to go low (CHIP_RDYn).
 	digitalWrite( m_pin_CS, LOW );
 
-//Serial.println( "CS LOW" );
-
 	while ( digitalRead( m_pin_SO ) );
-
-//Serial.println( "SO LOW" );
 
 	// Issue the SRES strobe on the SI line.
 	SendCommandStrobe( SRES );
@@ -175,17 +171,13 @@ void	CC1101::Reset() {
 	// When SO goes low again, reset is complete and the chip is in the IDLE state.
 	while ( digitalRead( m_pin_SO ) );
 
-//Serial.println( "SO LOW" );
-
 	// Release the line
 	digitalWrite( m_pin_CS, HIGH );
 
 
 	//////////////////////////////////////////////////////////////////////////
-	// Custom reset steps
+	// Custom reset steps (i.e. custom configuration from RFSmart Studio +  choice of packet transfer mode)
 	//
-
-	// Perform custom reset operations
 	InternalCustomReset();
 
 	// Synchronize our internal state flags
@@ -196,6 +188,7 @@ void	CC1101::Reset() {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 // Data Transfer
+//
 void	CC1101::SetNormalTransferMode() {
 	#ifdef SPI_DEBUG_VERBOSE
 		Serial.println( "Using Normal Transfer Mode" );
@@ -295,6 +288,22 @@ U8	CC1101::Transmit( U8 _size, U8* _data ) {
 	return _size;
 }
 
+bool	CC1101::EnterReceiveMode() {
+
+	U32		count = 0;
+	while ( ReadFSMState() != RX && count < 1000 ) {
+		if ( count++ == 0 ) {
+// Perform manual calibration
+// SendCommandStrobe( SCAL );
+// while ( ReadFSMState() != IDLE );
+			SendCommandStrobe( SRX );
+//DumpManyStates( MARCSTATE, 0 );
+		}
+		delay( 1 );
+	}
+	return count < 1000;	// Timeout reached after 1s
+}
+
 U8	CC1101::Receive( U8* _data ) {
 
 	#if SPI_DEBUG_VERBOSE
@@ -374,88 +383,67 @@ DisplayStatusRegisters();
 // }
 */
 
-	SendCommandStrobe( SRX );
+U64		startTime = millis();
+// DumpManyStates( PKTSTATUS, startTime );
+
+// 	if ( ReadFSMState() == IDLE ) {
+// 		Serial.println( "Switching from IDLE to SRX..." );
+// 		SendCommandStrobe( SRX );
+// 	}
+//DisplayStatus( ReadStatus() );
+
+// Serial.println();
+// Serial.println();
+// Serial.println( "================= SRX ================= " );
+// Serial.println();
+// Serial.println();
+// DumpManyStates( PKTSTATUS, startTime );
+
 
 	U8	availableBytes = ReadStatusRegister( RXBYTES );
-	if ( availableBytes & 0x80 ) {
+	U8	packetSize = 0;
+
+// 	Serial.print( "Available bytes = " );
+// 	Serial.println( availableBytes );
+
+	bool	overflow = availableBytes & 0x80;
+	availableBytes &= 0x7F;
+	if ( availableBytes >= 3 ) {
+		packetSize = SPIReadSingle( TX_RX_FIFO );		// Read payload size
+		if ( packetSize != availableBytes-3 ) {
+			// Unexpected packet size!
+			Serial.print( "Invalid packet size! Available bytes = " );
+			Serial.print( availableBytes );
+			Serial.print( " Packet size = " );
+			Serial.print( packetSize );
+			Serial.print( " Expected Avail. Bytes - 3 = " );
+			Serial.println( availableBytes-3 );
+
+			packetSize = availableBytes - 3;
+		}
+		SPIReadBurst( TX_RX_FIFO, packetSize, _data );	// Read entire data
+
+		U8	status[2];
+		SPIReadBurst( TX_RX_FIFO, 2, status );			// Read status bytes (PKTCTRL1 was set with a state that automatically appends 2 status bytes to the packets)
+	} else if ( availableBytes > 0 ) {
+		// Strangely enough, we don't even have 3 bytes (payload size byte + 2 status bytes) so just clear the FIFO...
+		Serial.print( "Available bytes < 3! Flush..." );
+		overflow = true;
+	}
+
+	if ( overflow ) {
 		// Overflow! Flush...
 		SendCommandStrobe( SFRX );
 		return 0;
 	}
 
-	availableBytes &= 0x7F;
-	if ( availableBytes == 0 )
-		return 0;	// Nothing in the pipe...
-
-	U8	packetSize = SPIReadSingle( TX_RX_FIFO );	// Read payload size
-	SPIReadBurst( TX_RX_FIFO, packetSize, _data );		// Read entire data
-
-	U8	status[2];
-	SPIReadBurst( TX_RX_FIFO, 2, status );		// Read status bytes (PKTCTRL1 was set with a state that automatically appends 2 status bytes to the packets)
-
 	return packetSize;
-}
-
-void	CC1101::DumpManyStates( U8 _stateRegister, U64 _startTime, U16 _count ) {
-	_count = min( 1024, _count );
-
-	// Read a lot of states
-	U8	states[1024];
-	U8*	p = states;
-	for ( U32 i=0; i < _count; i++ ) {
-		SPIRead( _stateRegister | 0x40, 1, p++ );
-		delayMicroseconds( 10 );
-	}
-	U64	endTime = millis();
-
-	// Print them
-	Serial.println( "Printing state values..." );
-	for ( U32 i=0; i < _count; i++ ) {
-		U8	s = states[i];// & 0x1F;
-		for ( U32 j=0; j < 2; j++ ) {
-			U8	v = (s >> (j ? 0 : 4)) & 0xF;
-			if ( v < 10 )
-				Serial.print( char('0' + v) );
-			else
-				Serial.print( char('A' + v - 10) );
-		}
-		Serial.print( ' ' );
-	}
-	Serial.println( "" );
-	Serial.println( "" );
-	Serial.print( "Total time = " );
-	Serial.println( U32(endTime - _startTime) );
-}
-
-void	CC1101::DisplayStatusRegisters() {
-	const char*	registerNames[] = {
-	"PARTNUM    (0x30)",
-	"VERSION    (0x31)",
-	"FREQEST    (0x32)",
-	"LQI        (0x33)",
-	"RSSI       (0x34)",
-	"MARCSTATE  (0x35)",
-	"WORTIME1   (0x36)",
-	"WORTIME0   (0x37)",
-	"PKTSTATUS  (0x38)",
-	"VCO_VC_DAC (0x39)",
-	"TXBYTES    (0x3A)",
-	"RXBYTES    (0x3B)",
-	"RCCTRL1    (0x3C)",
-	"RCCTRL0    (0x3D)",
-	};
-	Serial.println( "Status register values..." );
-	for ( byte i=0x30; i < 0x3D; i++ ) {
-	 	Serial.print( registerNames[i-0x30] );
-		Serial.print( " = 0x" );
-	 	Serial.print( ReadStatusRegister( i ), HEX );
-		Serial.println();
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 // High-Level User Access Functions
+//
 void	CC1101::SetAddress( U8 _address ) {
 	SetRegister( ADDR, _address );
 }
@@ -640,7 +628,7 @@ CC1101::MACHINE_STATE	CC1101::ReadFSMState() {
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-// Med-Level Helpers Functions
+// Mid-Level Helpers Functions
 //
 U8	CC1101::ReadPATable( U8 _powerTable[8] ) {
 	return SPIReadBurst( 0x3E, 8, _powerTable );
@@ -763,9 +751,6 @@ void	CC1101::InternalCustomReset() {
 		Serial.println( "Internal Custom Reset" );
 	#endif
 
-	// Change GDO modes to avoid costly CLK_XOSC settings
-	SetNormalTransferMode();
-
 	//////////////////////////////////////////////////////////////////////////
 	// Setup some registers exported from SmartRF Studio (http://www.ti.com/tool/SMARTRFTM-STUDIO)
 	//////////////////////////////////////////////////////////////////////////
@@ -832,6 +817,10 @@ void	CC1101::InternalCustomReset() {
 			Serial.println( table[i], HEX );
 		Serial.println( "</PATable>" );
 	#endif
+
+	//////////////////////////////////////////////////////////////////////////
+	// Change GDO modes to avoid costly CLK_XOSC settings
+	SetNormalTransferMode();
 }
 
 
@@ -963,7 +952,64 @@ U8	CC1101::SendCommandStrobe( U8 _command ) {
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 // DEBUG
-#ifdef SPI_DEBUG_VERBOSE
+#ifdef _DEBUG
+
+void	CC1101::DumpManyStates( U8 _stateRegister, U64 _startTime, U16 _count ) {
+	_count = min( 1024, _count );
+
+	// Read a lot of states
+	U8	states[1024];
+	U8*	p = states;
+	for ( U32 i=0; i < _count; i++ ) {
+		SPIRead( _stateRegister | 0x40, 1, p++ );
+		delayMicroseconds( 10 );
+	}
+	U64	endTime = millis();
+
+	// Print them
+	Serial.println( "Printing state values..." );
+	for ( U32 i=0; i < _count; i++ ) {
+		U8	s = states[i];// & 0x1F;
+		for ( U32 j=0; j < 2; j++ ) {
+			U8	v = (s >> (j ? 0 : 4)) & 0xF;
+			if ( v < 10 )
+				Serial.print( char('0' + v) );
+			else
+				Serial.print( char('A' + v - 10) );
+		}
+		Serial.print( ' ' );
+	}
+	Serial.println( "" );
+	Serial.println( "" );
+	Serial.print( "Total time = " );
+	Serial.println( U32(endTime - _startTime) );
+}
+
+void	CC1101::DisplayStatusRegisters() {
+	const char*	registerNames[] = {
+	"PARTNUM    (0x30)",
+	"VERSION    (0x31)",
+	"FREQEST    (0x32)",
+	"LQI        (0x33)",
+	"RSSI       (0x34)",
+	"MARCSTATE  (0x35)",
+	"WORTIME1   (0x36)",
+	"WORTIME0   (0x37)",
+	"PKTSTATUS  (0x38)",
+	"VCO_VC_DAC (0x39)",
+	"TXBYTES    (0x3A)",
+	"RXBYTES    (0x3B)",
+	"RCCTRL1    (0x3C)",
+	"RCCTRL0    (0x3D)",
+	};
+	Serial.println( "Status register values..." );
+	for ( byte i=0x30; i < 0x3D; i++ ) {
+	 	Serial.print( registerNames[i-0x30] );
+		Serial.print( " = 0x" );
+	 	Serial.print( ReadStatusRegister( i ), HEX );
+		Serial.println();
+	}
+}
 
 void	CC1101::DisplayStatus( U8 _status ) {
 	Serial.print( (_status & 0x80) ? "Chip NOT READY " : "Chip READY " );
@@ -980,6 +1026,10 @@ void	CC1101::DisplayStatus( U8 _status ) {
 	Serial.print( " Av. Bytes: " );
 	Serial.println( _status & 0x0F );
 }
+
+#endif
+
+#ifdef SPI_DEBUG_VERBOSE
 
 void	CC1101::DisplayDecodedWrittenValue( U8 _writtenValue ) {
 	Serial.print( (_writtenValue & 0x80) != 0 ? "READ " : "WRITE " );

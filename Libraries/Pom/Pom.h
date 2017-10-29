@@ -4,6 +4,7 @@
 // 
 #include "Arduino.h"
 
+#include "Types.h"
 #include "Math/Math.h"
 #include "PulseTrain/PulseTrain.h"
 
