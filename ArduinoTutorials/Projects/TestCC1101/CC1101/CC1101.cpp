@@ -170,10 +170,7 @@ void	CC1101::Reset() {
 //Serial.println( "SO LOW" );
 
 	// Issue the SRES strobe on the SI line.
-//Serial.println( "Strobe" );
 	SendCommandStrobe( SRES );
-//DisplayStatus( SendCommandStrobe( SRES ) );
-//Serial.println( "Strobe DONE!" );
 
 	// When SO goes low again, reset is complete and the chip is in the IDLE state.
 	while ( digitalRead( m_pin_SO ) );
@@ -257,7 +254,32 @@ void	CC1101::SetAsynchronousTransferMode() {
 	SetPacketFormat( ASYNCHRONOUS );		// Enable asynchronous mode
 }
 
+#include "..\ELECHOUSE_CC1101.h"
+
 void	CC1101::Transmit( U8 _size, U8* _data ) {
+
+
+//ELECHOUSE_CC1101::SpiWriteReg(CC1101_TXFIFO,_size);
+//ELECHOUSE_CC1101::SpiWriteBurstReg(CC1101_TXFIFO,_data,_size);			//write data to send
+SetRegister( TX_RX_FIFO, _size );
+SPIWriteBurst( TX_RX_FIFO, _size, _data );
+//ELECHOUSE_CC1101::SpiStrobe(CC1101_STX);									//start send	
+SendCommandStrobe( STX );
+while (!digitalRead(PIN_GDO0));								// Wait for GDO0 to be set -> sync transmitted  
+while (digitalRead(PIN_GDO0));								// Wait for GDO0 to be cleared -> end of packet
+ELECHOUSE_CC1101::SpiStrobe(CC1101_SFTX);									//flush TXfifo
+
+
+// SendCommandStrobe( STX );
+// while (!digitalRead(GDO0));								// Wait for GDO0 to be set -> sync transmitted  
+// while (digitalRead(GDO0));								// Wait for GDO0 to be cleared -> end of packet
+// SendCommandStrobe( SFTX );
+
+
+return;
+
+
+
 
 SendCommandStrobe( SFSTXON );
 SendCommandStrobe( SCAL );
@@ -314,11 +336,16 @@ Serial.println( "WAITING FOR PACKET SEND" );
 Serial.println( "SENDING" );
  	while ( digitalRead( m_pin_GDO0 ) );	// Wait for packet end
 Serial.println( "SENT" );
- 
+
  	SendCommandStrobe( SFTX );				// Flush
 }
 
 U8	CC1101::Receive( U8* _data ) {
+
+Serial.println( "SRX" );
+
+
+U64		startTime = millis();
 
 // Reset
 digitalWrite(m_pin_CS, LOW);
@@ -331,56 +358,50 @@ SendCommandStrobe(SRES);
 while(digitalRead(m_pin_SO));
 digitalWrite(m_pin_CS, HIGH);
 
-Serial.println( "SRX" );
+// AUTOCAL
+SetRegister( MCSM0, 0x24 );
+// AUTOCAL
 
-	U64	startTime = millis();
-	SendCommandStrobe( SRX );					// Start receiving
+const char*	message = "BISOU!";
+SPIWriteSingle( TX_RX_FIFO, 6 );	// Write message size
+SPIWriteBurst( TX_RX_FIFO, 6, (U8*) message );
 
-	// Read a lot of states
-	U8	states[1000];
-	U8*	p = states;
-	for ( U32 i=0; i < 1000; i++ ) {
-		SPIRead( MARCSTATE, 1, p++ );
-//		delay( 1 );
-	}
-	U64	endTime = millis();
+byte	temp0, temp1;
+//temp0 = SendCommandStrobe( SRX );					// Start receiving
+//temp0 = SendCommandStrobe( STX );					// Start transmitting
+//temp0 = SendCommandStrobe( SFSTXON );
+//temp0 = SendCommandStrobe( SCAL );
+//temp0 = SendCommandStrobe( SFTX );				// Flush
+//temp0 = SendCommandStrobe( SNOP );
+//temp0  = SPITransfer( SFRX );
+//temp0  = SPITransfer( SIDLE );
+//temp0  = SPITransfer( SRX );
+//temp0  = SPITransfer( STX );
+temp0  = SPITransfer( SFSTXON );
+temp0  = SPITransfer( STX );
 
-	// Print them
-	Serial.println( "Printing state values..." );
-	Serial.println( "" );
-	for ( U32 i=0; i < 1000; i++ ) {
-		for ( U32 j=0; j < 2; j++ ) {
-			U8	v = (states[i] >> (j ? 0 : 4)) & 0xF;
-			if ( v < 10 )
-				Serial.print( char('0' + v) );
-			else
-				Serial.print( char('A' + v - 10) );
-		}
-	}
-	Serial.println();
-	Serial.print( "Total time = " );
-	Serial.println( U32(endTime - startTime) );
+while ( ReadFSMState() != IDLE );
 
+temp0 = SPITransfer( SFTX );
+temp1 = SendCommandStrobe( SNOP );
 
-//SPITransfer( SFRX );
-//SPITransfer( SIDLE );
-//SPITransfer( SRX );
-//SPITransfer( STX );
+//	DumpManyStates( RXBYTES, startTime );
+	DumpManyStates( TXBYTES, startTime );
+//	DumpManyStates( RCCTRL1_STATUS, startTime );
+//	DumpManyStates( RCCTRL0_STATUS, startTime );
+//	DumpManyStates( PKTSTATUS, startTime );
+//	DumpManyStates( MARCSTATE, startTime );
+
+	Serial.print( "tmp0 = " );
+	Serial.println( temp0, HEX );
+	Serial.print( "tmp1 = " );
+	Serial.println( temp1, HEX );
+
 
 // 	U8	availableBytes2 = ReadStatusRegister( RXBYTES );
 // Serial.println( availableBytes2 );
 
-
-//*	// Write registers
-	Serial.println( "Status register values..." );
-	for ( byte i=0x30; i < 0x3D; i++ ) {
-		Serial.print( "0x" );
-	 	Serial.print( i, HEX );
-		Serial.print( " = 0x" );
-	 	Serial.print( ReadStatusRegister( i ), HEX );
-		Serial.println();
-	}
-//*/
+DisplayStatusRegisters();
 
 
 
@@ -418,6 +439,63 @@ Serial.println( "ENTERED RX" );
 	SPIReadBurst( TX_RX_FIFO, 2, status );		// Read status bytes (PKTCTRL1 was set with a state that automatically appends 2 status bytes to the packets)
 
 	return packetSize;
+}
+
+void	CC1101::DumpManyStates( U8 _stateRegister, U64 _startTime, U16 _count ) {
+	_count = min( 1024, _count );
+
+	// Read a lot of states
+	U8	states[1024];
+	U8*	p = states;
+	for ( U32 i=0; i < _count; i++ ) {
+		SPIRead( _stateRegister | 0x40, 1, p++ );
+		delayMicroseconds( 10 );
+	}
+	U64	endTime = millis();
+
+	// Print them
+	Serial.println( "Printing state values..." );
+	for ( U32 i=0; i < _count; i++ ) {
+		U8	s = states[i];// & 0x1F;
+		for ( U32 j=0; j < 2; j++ ) {
+			U8	v = (s >> (j ? 0 : 4)) & 0xF;
+			if ( v < 10 )
+				Serial.print( char('0' + v) );
+			else
+				Serial.print( char('A' + v - 10) );
+		}
+		Serial.print( ' ' );
+	}
+	Serial.println( "" );
+	Serial.println( "" );
+	Serial.print( "Total time = " );
+	Serial.println( U32(endTime - _startTime) );
+}
+
+void	CC1101::DisplayStatusRegisters() {
+	const char*	registerNames[] = {
+	"PARTNUM    (0x30)",
+	"VERSION    (0x31)",
+	"FREQEST    (0x32)",
+	"LQI        (0x33)",
+	"RSSI       (0x34)",
+	"MARCSTATE  (0x35)",
+	"WORTIME1   (0x36)",
+	"WORTIME0   (0x37)",
+	"PKTSTATUS  (0x38)",
+	"VCO_VC_DAC (0x39)",
+	"TXBYTES    (0x3A)",
+	"RXBYTES    (0x3B)",
+	"RCCTRL1    (0x3C)",
+	"RCCTRL0    (0x3D)",
+	};
+	Serial.println( "Status register values..." );
+	for ( byte i=0x30; i < 0x3D; i++ ) {
+	 	Serial.print( registerNames[i-0x30] );
+		Serial.print( " = 0x" );
+	 	Serial.print( ReadStatusRegister( i ), HEX );
+		Serial.println();
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -622,11 +700,8 @@ U8	CC1101::GetRegister( U8 _address ) {
 U8	CC1101::SetRegister( U8 _address, U8 _value ) {
 	return SPIWriteSingle( _address, _value );
 }
-U8	CC1101::SendCommandStrobe( U8 _command ) {
-	return SPITransfer( _command );
-}
 U8	CC1101::ReadStatus() {
-	return SPITransfer( SNOP );
+	return SendCommandStrobe( SNOP );
 }
 
 U8	CC1101::ReadStatusRegister( U8 _address ) {
@@ -652,7 +727,7 @@ void	CC1101::ReadPKTCTRL0() {
 
 void	CC1101::WritePKTCTRL1() {
 	U8	value = (m_enablePacketAddressCheck ? 0x01 : 0x00)
-				  | 0x04;	// No preamble quality estimator, disable auto flush on CRC error, append 2 status bytes at the end of packet payloads
+			  | 0x04;	// No preamble quality estimator, disable auto flush on CRC error, append 2 status bytes at the end of packet payloads
 	SetRegister( PKTCTRL1, value );
 }
 void	CC1101::ReadPKTCTRL1() {
@@ -823,16 +898,16 @@ U8	CC1101::SPITransfer( U8 _value ) {
 		#endif
 	#endif
 
-	SPDR = _value;						// Write value to be transfered
+	SPDR = _value;					// Write value to be transfered
 
 	// (Stolen from SPI library)
 	// The following NOP introduces a small delay that can prevent the wait loop form iterating when running at the maximum speed.
 	// This gives about 10% more speed, even if it seems counter-intuitive. At lower speeds it is unnoticed.
 	asm volatile( "nop" );
 
-	while ( !(SPSR & (1 << SPIF)) );	// Wait until shifting is complete
+	while ( !(SPSR & _BV(SPIF)) );	// Wait until shifting is complete
 
-	_value = SPDR;						// Read received value
+	_value = SPDR;					// Read received value
 
 	#ifdef SPI_DEBUG_VERBOSE
 		Serial.print( " - Read 0x" );
@@ -914,6 +989,21 @@ U8	CC1101::SPIWrite( U8 _address, U32 _dataLength, U8* _data ) {
 
 	return status;
 }
+
+U8	CC1101::SendCommandStrobe( U8 _command ) {
+	digitalWrite( m_pin_CS, LOW );		// Enable the line
+	while ( digitalRead( m_pin_SO ) );	// Ensure SO goes low
+	delayns( 20 );						// 20ns before transmit (as per table 22)
+
+	// Now shift out the command
+	U8	status = SPITransfer( _command );
+
+	delayns( 20 );						// 20ns after transmit (as per table 22)
+	digitalWrite( m_pin_CS, HIGH );		// Release the line
+
+	return status;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////

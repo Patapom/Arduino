@@ -202,6 +202,9 @@ namespace Pom {
 
 		void	InternalCustomReset();							// Some internal custom reset operations that are executed right after Reset() is called
 
+		void	DumpManyStates( U8 _stateRegister, U64 _startTime, U16 _count=2048 );
+		void	DisplayStatusRegisters();
+
 		#ifdef SPI_DEBUG_VERBOSE
 			public:
 				// DEBUG

@@ -1,7 +1,8 @@
 #include "Pom/Pom.h"
 #include "CC1101/CC1101.h"
+#include "ELECHOUSE_CC1101.h"
 
-#define	PIN_GDO0	8
+#define	PIN_GDO0	2
 #define	PIN_GDO2	9
 #define	PIN_CS		10
 #define	PIN_SI		11
@@ -11,6 +12,8 @@
 // the setup function runs once when you press reset or power the board
 Pom::CC1101	C( PIN_CS, PIN_CLOCK, PIN_SI, PIN_SO, PIN_GDO0, PIN_GDO2 );
 
+ELECHOUSE_CC1101	C2;
+
 
 // http://www.st.com/content/ccc/resource/technical/document/application_note/2f/bb/7f/94/76/fa/4b/3c/DM00054821.pdf/files/DM00054821.pdf/jcr:content/translations/en.DM00054821.pdf
 // EN 300 220 
@@ -18,9 +21,22 @@ Pom::CC1101	C( PIN_CS, PIN_CLOCK, PIN_SI, PIN_SO, PIN_GDO0, PIN_GDO2 );
 // The data rate is set to 9.6 kbps.
 // The frequency deviation is set to 2.4 kHz, and the modulation is set to gaussian FSK (GFSK) with a BT = 1. 
 //
-void setup() {
-	Serial.begin( 9600 );
 
+void setup() {
+	Serial.begin( 19200 );
+
+	while ( !Serial.availableForWrite() );
+//	delay( 10000 );
+
+//	Serial.println( "Init" );
+//	C.Init();
+
+	Serial.println( "Sending data" );
+//	C2.SendData( (U8*) "BISOU", 6 );
+	C.Transmit( 6, (U8*) "BISOU" );
+	Serial.println( "Data sent!" );
+
+#if 0
 //C.Reset();
 C.SetNormalTransferMode();
 
@@ -89,10 +105,13 @@ C.SetNormalTransferMode();
 		Serial.println();
 	}
 //*/
+#endif
 }
 
 // the loop function runs over and over again until power down or reset
 void loop() {
+
+/*
 
 	#if 0
 		// Send a bisou!
@@ -116,4 +135,6 @@ void loop() {
 			Serial.println( "\"" );
 		}
 	#endif
+*/
+
 }
