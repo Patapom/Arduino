@@ -2,7 +2,7 @@
 #include "CC1101/CC1101.h"
 //#include "ELECHOUSE_CC1101.h"
 
-#define	RECEIVE	1	// Define this to receive, comment to transmit
+#define	RECEIVE	2	// Define this to receive, comment to transmit
 
 #define	PIN_GDO0	2
 #define	PIN_GDO2	9
@@ -32,6 +32,10 @@ void setup() {
 	#if RECEIVE
 		if ( !C.EnterReceiveMode() )
 			Serial.println( "Failed at entering RX mode! (time out)" );
+	#endif
+	#if RECEIVE == 2
+		// Enable asynchronous mode: plug-in the oscilloscope probe onto GDO2 pin to observe received data in real time
+		C.SetAsynchronousTransferMode();
 	#endif
 
 //	C2.Init();
@@ -137,7 +141,8 @@ void loop() {
 //	#endif
 
 //*
-	#if RECEIVE
+	#if RECEIVE == 1
+
 //		if ( digitalRead( PIN_GDO0 ) ) {
 //			while ( digitalRead( PIN_GDO0 ) );
 
@@ -174,6 +179,9 @@ void loop() {
 //			C.SendCommandStrobe( 0x3A );
 
 //		}
+	#elif RECEIVE == 2
+		// Asynchronous spying mode
+
 	#else
 		// Send a bisou!
 		const char*	string = "BISOU!";

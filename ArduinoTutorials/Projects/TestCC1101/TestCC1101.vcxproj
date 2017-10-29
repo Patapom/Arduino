@@ -84,10 +84,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CC1101\CC1101.h" />
+    <ClInclude Include="ELECHOUSE_CC1101.h" />
     <ClInclude Include="__vm\.TestCC1101.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CC1101\CC1101.cpp" />
+    <ClCompile Include="ELECHOUSE_CC1101.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
