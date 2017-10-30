@@ -242,7 +242,7 @@ void	CC1101::SetAsynchronousTransferMode() {
 	SetPacketFormat( ASYNCHRONOUS );		// Enable asynchronous mode
 }
 
-U8	CC1101::Transmit( U8 _size, U8* _data ) {
+U8		CC1101::Transmit( U8 _size, U8* _data ) {
 
 // SetRegister( TX_RX_FIFO, _size );
 // SPIWriteBurst( TX_RX_FIFO, _size, _data );
@@ -383,7 +383,7 @@ DisplayStatusRegisters();
 // }
 */
 
-U64		startTime = millis();
+// U64		startTime = millis();
 // DumpManyStates( PKTSTATUS, startTime );
 
 // 	if ( ReadFSMState() == IDLE ) {
@@ -403,8 +403,8 @@ U64		startTime = millis();
 	U8	availableBytes = ReadStatusRegister( RXBYTES );
 	U8	packetSize = 0;
 
-// 	Serial.print( "Available bytes = " );
-// 	Serial.println( availableBytes );
+	Serial.print( "Available bytes = 0x" );
+	Serial.println( availableBytes, HEX );
 
 	bool	overflow = availableBytes & 0x80;
 	availableBytes &= 0x7F;
@@ -655,9 +655,9 @@ U8	CC1101::ReadStatusRegister( U8 _address ) {
 
 void	CC1101::WritePKTCTRL0() {
 	U8	value = (m_enableWhitening ? 0x40 : 0x00)
-				  | (m_packetFormat << 4)
-				  | (m_enableCRC ? 0x04 : 0x00)
-				  | (m_packetLengthConfig & 0x3);
+			  | (m_packetFormat << 4)
+			  | (m_enableCRC ? 0x04 : 0x00)
+			  | (m_packetLengthConfig & 0x3);
 	SetRegister( PKTCTRL0, value );
 }
 void	CC1101::ReadPKTCTRL0() {
@@ -755,6 +755,7 @@ void	CC1101::InternalCustomReset() {
 	// Setup some registers exported from SmartRF Studio (http://www.ti.com/tool/SMARTRFTM-STUDIO)
 	//////////////////////////////////////////////////////////////////////////
 	//
+#if 0
 	// Address Config = No address check 
 	// Base Frequency = 867.999939 
 	// CRC Autoflush = false 
@@ -803,6 +804,59 @@ void	CC1101::InternalCustomReset() {
 	SetRegister( FSCAL1, 0x00 );      // (0025) Frequency Synthesizer Calibration
 	SetRegister( FSCAL0, 0x1F );      // (0026) Frequency Synthesizer Calibration
 	SetRegister( TEST0, 0x09 );       // (002E) Various Test Settings
+
+#else
+
+	// Address Config = No address check 
+	// Base Frequency = 867.999939 
+	// CRC Autoflush = false 
+	// CRC Enable = true 
+	// Carrier Frequency = 867.999939 
+	// Channel Number = 0 
+	// Channel Spacing = 199.951172 
+	// Data Format = Normal mode 
+	// Data Rate = 1.19948 
+	// Deviation = 5.157471 
+	// Device Address = 0 
+	// Manchester Enable = false 
+	// Modulated = true 
+	// Modulation Format = 2-FSK 
+	// PA Ramping = false 
+	// Packet Length = 255 
+	// Packet Length Mode = Variable packet length mode. Packet length configured by the first byte after sync word 
+	// Preamble Count = 4 
+	// RX Filter BW = 58.035714 
+	// Sync Word Qualifier Mode = 30/32 sync word bits detected 
+	// TX Power = 12 
+	// Whitening = false 
+	// PA table 
+	#define PA_TABLE {0xc0,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
+	//
+	// Rf settings for CC1101
+	//
+//	SetRegister( IOCFG0, 0x06 );      // (0002) GDO0 Output Pin Configuration
+	SetRegister( FIFOTHR, 0x47 );     // (0003) RX FIFO and TX FIFO Thresholds
+	SetRegister( PKTCTRL0, 0x05 );    // (0008) Packet Automation Control
+	SetRegister( FSCTRL1, 0x06 );     // (000B) Frequency Synthesizer Control
+	SetRegister( FREQ2, 0x21 );       // (000D) Frequency Control Word, High Byte
+	SetRegister( FREQ1, 0x62 );       // (000E) Frequency Control Word, Middle Byte
+	SetRegister( FREQ0, 0x76 );       // (000F) Frequency Control Word, Low Byte
+	SetRegister( MDMCFG4, 0xF5 );     // (0010) Modem Configuration
+	SetRegister( MDMCFG3, 0x83 );     // (0011) Modem Configuration
+	SetRegister( MDMCFG2, 0x03 );     // (0012) Modem Configuration
+	SetRegister( DEVIATN, 0x15 );     // (0015) Modem Deviation Setting
+	SetRegister( MCSM0, 0x18 );       // (0018) Main Radio Control State Machine Configuration
+	SetRegister( FOCCFG, 0x16 );      // (0019) Frequency Offset Compensation Configuration
+	SetRegister( WORCTRL, 0xFB );     // (0020) Wake On Radio Control
+	SetRegister( FSCAL3, 0xE9 );      // (0023) Frequency Synthesizer Calibration
+	SetRegister( FSCAL2, 0x2A );      // (0024) Frequency Synthesizer Calibration
+	SetRegister( FSCAL1, 0x00 );      // (0025) Frequency Synthesizer Calibration
+	SetRegister( FSCAL0, 0x1F );      // (0026) Frequency Synthesizer Calibration
+	SetRegister( TEST2, 0x81 );       // (002C) Various Test Settings
+	SetRegister( TEST1, 0x35 );       // (002D) Various Test Settings
+	SetRegister( TEST0, 0x09 );       // (002E) Various Test Settings
+
+#endif
 
 	//////////////////////////////////////////////////////////////////////////
 	// Setup custom PA table (even though only the first U8 is used if FREND0.PA_POWER is set to 0)

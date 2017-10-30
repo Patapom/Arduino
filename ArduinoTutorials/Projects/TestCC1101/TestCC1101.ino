@@ -36,6 +36,8 @@ void setup() {
 	#if RECEIVE == 2
 		// Enable asynchronous mode: plug-in the oscilloscope probe onto GDO2 pin to observe received data in real time
 		C.SetAsynchronousTransferMode();
+	#else
+		C.SetNormalTransferMode();
 	#endif
 
 //	C2.Init();
@@ -142,9 +144,8 @@ void loop() {
 
 //*
 	#if RECEIVE == 1
-
-//		if ( digitalRead( PIN_GDO0 ) ) {
-//			while ( digitalRead( PIN_GDO0 ) );
+		if ( digitalRead( PIN_GDO0 ) ) {
+			while ( digitalRead( PIN_GDO0 ) );
 
 			// Receive a bisou!
 			byte	buffer[256];
@@ -159,10 +160,10 @@ void loop() {
 
 				delay( 500 );
 			}
-//			Serial.println( "AMOUR!" );
-//		} else {
+			Serial.println( "AMOUR!" );
+		} else {
 
-//			delay( 50 );
+			delay( 50 );
 //			//	FREQEST			= 0x32, // Frequency Offset Estimate
 //			//	LQI				= 0x33, // Demodulator estimate for Link Quality
 //			//	RSSI			= 0x34, // Received signal strength indication
@@ -178,22 +179,26 @@ void loop() {
 //			C.DumpManyStates( 0x35, 0 );
 //			C.SendCommandStrobe( 0x3A );
 
-//		}
+		}
 	#elif RECEIVE == 2
 		// Asynchronous spying mode
-
+		// TODO: Log in a bunch of input bits, analyze...
 	#else
 		// Send a bisou!
 		const char*	string = "BISOU!";
-		U8	transmittedSize = C.Transmit( 6, string );
-		if ( transmittedSize != 6 )
+		U8	transmittedSize = C.Transmit( 6, (U8*) string );
+		if ( transmittedSize != 6 ) {
 			Serial.println( "Failed to transmit entire data!" );
+			Serial.println( transmittedSize );
+//		} else {
+//			Serial.println( "SUCCESS!" );
+		}
 	
 //C.DisplayStatusRegisters();
 //Serial.print( digitalRead( PIN_GDO2 ) ? "1 " : "0 " );
 
 		// Wait a little
-//		delay( 500 );
+		delay( 500 );
 	#endif
 //*/
 
