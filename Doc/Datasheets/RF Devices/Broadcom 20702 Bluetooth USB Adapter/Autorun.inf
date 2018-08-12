@@ -1,0 +1,4 @@
+[autorun]
+open=Autorun.exe
+icon=btw.ico
+label=Bluetooth Adapter
