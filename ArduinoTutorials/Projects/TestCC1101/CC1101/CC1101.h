@@ -84,7 +84,7 @@ namespace Pom {
 		float	GetFrequencyOffset();										// Sets the frequency offset (in KHz)
 		void	SetFrequencyOffset( float _Foffset_KHz=0.0f );				// Sets the frequency offset (in KHz) added to the base frequency before being sent to the synthesizer. Range is from ±202 kHz by steps of 1.587KHz
 		void	GetChannelBandwithAndDataRate( float& _bandwidth_KHz, float& _dataRate_KBauds );
-		void	SetChannelBandwithAndDataRate( float _bandwidth_KHz=325.0f, float _dataRate_KBauds=99.9756f );	// Sets the bandwidth (in KHz) of each channel (WARNING: must NOT be larger than channel spacing!) and  the data rate (in KBauds)
+		void	SetChannelBandwithAndDataRate( float _bandwidth_KHz=325.0f, float _dataRate_KBauds=99.9756f );	// Sets the bandwidth (in KHz) of each channel (WARNING: must NOT be larger than channel spacing!) and the data rate (in KBauds)
 		float	GetChannelSpacing();										// Sets the frequency spacing (in KHz) between channels
 		void	SetChannelSpacing( float _spacing_KHz=199.951172f );		// Sets the frequency spacing (in KHz) between channels (we have a maximum of 256 channels, each of them this value appart) (WARNING: must NOT be smaller than bandwidth!)
 		float	GetFrequencyDeviation();									// Gets the frequency deviation (in KHz) for frequency shift keying

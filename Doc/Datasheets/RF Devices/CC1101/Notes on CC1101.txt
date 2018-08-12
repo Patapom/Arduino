@@ -1,0 +1,461 @@
+﻿The IC1101 is a Sub 1GHz RF Transceiver from Texas Instrument (http://www.ti.com/product/CC1101)
+I managed to write a very nice library to drive the IC1101, it reads/writes to the board but I completely failed to get any transmission working between 2 modules configures in Receive/Transmit.
+At the moment my investigations have failed and I'll try again with another RF module some time later, this time
+
+Abbreviations
+	• 2-FSK Binary Frequency Shift Keying
+	• 4-FSK Quaternary Frequency Shift Keying
+	• ACP Adjacent Channel Power
+	• ADC Analog to Digital Converter
+	• AFC Automatic Frequency Compensation
+	• AGC Automatic Gain Control
+	• AMR Automatic Meter Reading
+	• ASK Amplitude Shift Keying
+	• BER Bit Error Rate
+	• BT Bandwidth-Time product
+	• CCA Clear Channel Assessment
+	• CFR Code of Federal Regulations
+	• CRC Cyclic Redundancy Check
+	• CS Carrier Sense
+	• CW Continuous Wave (Unmodulated Carrier)
+	• DC Direct Current
+	• DVGA Digital Variable Gain Amplifier
+	• ESR Equivalent Series Resistance
+	• FCC Federal Communications Commission
+	• FEC Forward Error Correction
+	• FIFO First-In-First-Out
+	• FHSS Frequency Hopping Spread Spectrum
+	• FS Frequency Synthesizer
+	• GFSK Gaussian shaped Frequency Shift Keying
+	• IF Intermediate Frequency
+	• I/Q In-Phase/Quadrature
+	• ISM Industrial, Scientific, Medical
+	• LC Inductor-Capacitor
+	• LNA Low Noise Amplifier
+	• LO Local Oscillator
+	• LSB Least Significant Bit
+	• LQI Link Quality Indicator
+	• MCU Microcontroller Unit
+	• MSB Most Significant Bit
+	• MSK Minimum Shift Keying
+	• N/A Not Applicable
+	• NRZ Non Return to Zero (Coding)
+	• OOK On-Off Keying
+	• PA Power Amplifier
+	• PCB Printed Circuit Board
+	• PD Power Down
+	• PER Packet Error Rate
+	• PLL Phase Locked Loop
+	• POR Power-On Reset
+	• PQI Preamble Quality Indicator
+	• PQT Preamble Quality Threshold
+	• PTAT Proportional To Absolute Temperature
+	• QLP Quad Leadless Package
+	• QPSK Quadrature Phase Shift Keying
+	• RC Resistor-Capacitor
+	• RF Radio Frequency
+	• RSSI Received Signal Strength Indicator
+	• RX Receive, Receive Mode
+	• SAW Surface Acoustic Wave
+	• SMD Surface Mount Device
+	• SNR Signal to Noise Ratio
+	• SPI Serial Peripheral Interface
+	• SRD Short Range Devices
+	• TBD To Be Defined
+	• T/R Transmit/Receive
+	• TX Transmit, Transmit Mode
+	• UHF Ultra High frequency
+	• VCO Voltage Controlled Oscillator
+	• WOR Wake on Radio, Low power polling
+	• XOSC Crystal Oscillator
+	• XTAL Crystal
+
+
+Various Transimission Modes & Encoding:
+_______________________________________
+
+Transmission rate
+2-FSK			up to 500 kBaud
+GFSK, OOK, ASK	up to 250 kBaud
+4-FSK			up to 300 kBaud but ==► Data rate TWICE the baud rate!
+MSK				up to 500 kBaud
+Optional "Manchester Encoding" ==► Data rate HALF the baud rate!
+
+
+Exposed Pins:
+_____________
+
+• SCLK [IN], Serial Clock
+• SI [IN], Serial Data In from MCU to CC1101
+• SO (GDO1) [OUT], Serial Data Out from CC1101 to MCU (optional general output pin when CSn is HIGH)
+• GDO2 [OUT], Digital output pin for general use:
+				► Test signals
+				► FIFO status signals
+				► Clear channel indicator
+				► Clock output, down-divided from XOSC
+				► Serial output RX data
+• GDO0 (ATEST) [IN/OUT], Digital output pin for general use:
+				► Test signals
+				► FIFO status signals
+				► Clear channel indicator
+				► Clock output, down-divided from XOSC
+				► Serial output RX data
+				► Serial input TX data
+• CSn [IN], Serial Configuration Interface, Chip Select
+
+
+Data Transmission and Modulation:
+_________________________________
+
+Internally uses I/Q modulation (http://www.keysight.com/upload/cmc_upload/All/IQ_Modulation.htm?&cc=FR&lc=fre)
+
+
+Configuration:
+______________
+
+• Done through 4-wire SPI (Serial Peripheral Interface) where CC1101 is the slave and Arduino board the master
+	• SI
+	• SO
+	• SCLK
+	• CSn
+
+• Tweakable parameters via registers:
+	• Power-down / power up mode
+	• Crystal oscillator power-up / power-down
+	• Receive / transmit mode
+	• RF channel selection
+	• Data rate
+	• Modulation format
+	• RX channel filter bandwidth
+	• RF output power
+	• Data buffering with separate 64-byte receive and transmit FIFOs
+	• Packet radio hardware support
+	• Forward Error Correction (FEC) with interleaving
+	• Data whitening
+	• Wake-On-Radio (WOR)
+
+Check "State Diagram.png" for an overview of the chip's on-board state diagram.
+
+Initialization:
+	[1] Turn Frequency Synthesizer on
+	(2 opt) Calibrate the Frequency Synthesizer
+
+TX / RX Modes Switching:
+	• Send "STX" command ==► Switch to "Transmit Mode"
+	• Send "SRX" command ==► Switch to "Receive Mode"
+
+Stop (back to IDLE state):
+	• Happens on buffer underflow in TX FIFO Mode (i.e. no more data to transmit, buffer is empty so back to sleep)
+	• Happens on buffer overflow in RX FIFO Mode (i.e. too many received data, buffer is full so back to sleep)
+
+
+SPI:
+____
+
+• Transfers are done MSB first!
+• CSn must be set to LOW during transfers on the SPI bus
+	=► When CSn is pulled LOW, MCU must wait for SO to go LOW before transmitting (indicates crystal is running).
+		(unless in sleep or XOFF mode, the SO goes LOW immediately)
+• CSn must be set to HIGH after a data burst transfer to notify of the end of the burst.
+
+• Max CLK frequency
+	► for "Single Access" mode:
+		• 10 MHz if a 100ns delay is inserted between address and data bytes
+		•  9 MHz if no delay
+	► for "Burst Access" mode:
+		• 10 MHz if a 100ns delay is inserted between address and data bytes
+		•  6.5 MHz if no delay
+
+• Timings
+	• Clock Low [50 -] ns
+	• Clock High [50 -] ns
+	• CSn goes LOW to first bit => 20ns in ACTIVE mode (150ns from POWER DOWN mode)
+	• CSn goes HIGH after last bit => 20ns
+	• Tsd = Time Setup Data (applies between address/data and data/data bytes)
+		► min 55ns in "Single Access" mode
+		► min 76ns in "Burst Access" mode
+
+• Transactions
+
+	WRITE
+	► starts with a HEADER BYTE that contains:
+		[7] R/W_ bit
+		[6] Burst access bit
+		[5-0] 6-address bits (A5-A0)
+
+	► After <Tsd> delay (see above) we can send the DATA BYTE:
+		[7-0] Dw7 to Dw0 (data write)
+
+	READ
+	► We receive a STATUS BYTE that is sent on the SO pin each time a header byte or data byte is transmitted on the SI pin.
+	 It contains:
+		[7] CHIP_RDYn bit. HIGH until power and crystal have stabilized. Should be LOW to use SPI!
+		[6-4] STATE[2:0] A 3-bits states that indicates the current main state machine mode:
+			000 IDLE
+			001 RX mode
+			010 TX mode
+			011 FSTXON (Fast TX mode ready)
+			100 CALIBRATE (Frequency Synthesizer calibration is running)
+			101 SETTLING (Phase Locked Loop (PLL) is settling)
+			110 RXFIFO_OVERFLOW (RX FIFO has overflowed. Read out any useful data, then flush the FIFO with SFRX)
+			111 TXFIFO_UNDERFLOW (TX FIFO has underflowed. Acknowledge with SFTX)
+
+		[3-0] FIFO_BYTES_AVAILABLE[3:0] Indicates the number of bytes available in the RX FIFO or free bytes in the TX FIFO (When FIFO_BYTES_AVAILABLE=15, 15 or more bytes are available/free)
+
+	► After <Tsd> delay (see above) we can read the DATA BYTE:
+		[7-0] Dr7 to Dr0 (data read)
+
+
+Register Access:
+________________
+► The configuration registers on the CC1101 are located on SPI addresses from 0x00 to 0x2E.
+► Registers with consecutive addresses can be accessed in an efficient way by setting the burst bit (B) in the header byte.
+	The address bits (A5 – A0) set the start address in an internal address counter that is incremented by one each new byte (every 8 clock pulses).
+	The burst access is either a read or a write access and must be terminated by setting CSn high.
+► For register addresses in the range 0x30-0x3D (i.e. COMMAND STROBE), the burst bit is used to select between status registers when burst bit is one, and between command strobes when burst bit is zero.
+	Because of this, burst access is not available for status registers and they must be accessed one at a time. The status registers can only be read.
+
+List (from table 43 page 68):
+																	Preserved in
+																	SLEEP State
+	0x00	 IOCFG2		GDO2 output pin configuration					Yes
+	0x01	 IOCFG1		GDO1 output pin configuration					Yes
+	0x02	 IOCFG0		GDO0 output pin configuration					Yes
+	0x03	 FIFOTHR	RX FIFO and TX FIFO thresholds					Yes
+	0x04	 SYNC1		Sync word, high byte							Yes
+	0x05	 SYNC0		Sync word, low byte								Yes
+	0x06	 PKTLEN		Packet length									Yes
+	0x07	 PKTCTRL1	Packet automation control						Yes
+	0x08	 PKTCTRL0	Packet automation control						Yes
+	0x09	 ADDR		Device address									Yes
+	0x0A	 CHANNR		Channel number									Yes
+	0x0B	 FSCTRL1	Frequency synthesizer control					Yes
+	0x0C	 FSCTRL0	Frequency synthesizer control					Yes
+	0x0D	 FREQ2		Frequency control word, high byte				Yes
+	0x0E	 FREQ1		Frequency control word, middle byte				Yes
+	0x0F	 FREQ0		Frequency control word, low byte				Yes
+	0x10	 MDMCFG4	Modem configuration								Yes
+	0x11	 MDMCFG3	Modem configuration								Yes
+	0x12	 MDMCFG2	Modem configuration								Yes
+	0x13	 MDMCFG1	Modem configuration								Yes
+	0x14	 MDMCFG0	Modem configuration								Yes
+	0x15	 DEVIATN	Modem deviation setting							Yes
+	0x16	 MCSM2		Main Radio Control State Machine configuration	Yes
+	0x17	 MCSM1		Main Radio Control State Machine configuration	Yes
+	0x18	 MCSM0		Main Radio Control State Machine configuration	Yes
+	0x19	 FOCCFG		Frequency Offset Compensation configuration		Yes
+	0x1A	 BSCFG		Bit Synchronization configuration				Yes
+	0x1B	 AGCTRL2	AGC control										Yes
+	0x1C	 AGCTRL1	AGC control										Yes
+	0x1D	 AGCTRL0	AGC control										Yes
+	0x1E	 WOREVT1	High byte Event 0 timeout						Yes
+	0x1F	 WOREVT0	Low byte Event 0 timeout						Yes
+	0x20	 WORCTRL	Wake On Radio control							Yes
+	0x21	 FREND1		Front end RX configuration						Yes
+	0x22	 FREND0		Front end TX configuration						Yes
+	0x23	 FSCAL3		Frequency synthesizer calibration				Yes
+	0x24	 FSCAL2		Frequency synthesizer calibration				Yes
+	0x25	 FSCAL1		Frequency synthesizer calibration				Yes
+	0x26	 FSCAL0		Frequency synthesizer calibration				Yes
+	0x27	 RCCTRL1	RC oscillator configuration						Yes
+	0x28	 RCCTRL0	RC oscillator configuration						Yes
+	0x29	 FSTEST		Frequency synthesizer calibration control		No
+	0x2A	 PTEST		Production test									No
+	0x2B	 AGCTEST	AGC test										No
+	0x2C	 TEST2		Various test settings							No
+	0x2D	 TEST1		Various test settings							No
+	0x2E	 TEST0		Various test settings							No
+
+
+Command Strobes (WRITE):
+________________________
+Can be viewed as single-byte instructions.
+By addressing a command strobe register, internal sequences will be started.
+These commands are used to disable the crystal oscillator, enable receive mode, enable wake-on-radio etc.
+
+	WRITE A COMMAND
+		1) Set CSn to LOW
+		2) Send command strobe byte [?011xxxx] where xxxx from 0x0 to 0xD
+			R/W_ bit is either set to 1 or 0 and will determine how the FIFO_BYTES_AVAILABLE field in the status byte should be interpreted.
+				0 = ?
+				1 = ?
+
+List (from table 42 page 67):
+	0x30	SRES	Reset chip.
+	0x31	SFSTXON	Enable and calibrate frequency synthesizer (if MCSM0.FS_AUTOCAL=1). If in RX (with CCA): Go to a wait state where only the synthesizer is running (for quick RX / TX turnaround).
+	0x32	SXOFF	Turn off crystal oscillator.
+	0x33	SCAL	Calibrate frequency synthesizer and turn it off. SCAL can be strobed from IDLE mode without setting manual calibration mode (MCSM0.FS_AUTOCAL=0)
+	0x34	SRX		Enable RX. Perform calibration first if coming from IDLE and MCSM0.FS_AUTOCAL=1.
+	0x35	STX		In IDLE state: Enable TX. Perform calibration first if MCSM0.FS_AUTOCAL=1. If in RX state and CCA is enabled: Only go to TX if channel is clear.
+	0x36	SIDLE	Exit RX / TX, turn off frequency synthesizer and exit Wake-On-Radio mode if applicable.
+	0x38	SWOR	Start automatic RX polling sequence (Wake-on-Radio) as described in Section 19.5 if WORCTRL.RC_PD=0.
+	0x39	SPWD	Enter power down mode when CSn goes high.
+	0x3A	SFRX	Flush the RX FIFO buffer. Only issue SFRX in IDLE or RXFIFO_OVERFLOW states.
+	0x3B	SFTX	Flush the TX FIFO buffer. Only issue SFTX in IDLE or TXFIFO_UNDERFLOW states.
+	0x3C	SWORRST Reset real time clock to Event1 value.
+	0x3D	SNOP	No operation. May be used to get access to the chip status byte.
+
+
+Status Registers (READ):
+________________________
+Should be read with BURST bit set, otherwise a strobe command is issued (even in READ)
+
+List (from table 42 page 67):
+	0x30 (0xF0) PARTNUM			Part number for CC1101
+	0x31 (0xF1) VERSION			Current version number
+	0x32 (0xF2) FREQEST			Frequency Offset Estimate
+	0x33 (0xF3) LQI				Demodulator estimate for Link Quality
+	0x34 (0xF4) RSSI			Received signal strength indication
+	0x35 (0xF5) MARCSTATE		Control state machine state
+	0x36 (0xF6) WORTIME1		High byte of WOR timer
+	0x37 (0xF7) WORTIME0		Low byte of WOR timer
+	0x38 (0xF8) PKTSTATUS		Current GDOx status and packet status
+	0x39 (0xF9) VCO_VC_DAC		Current setting from PLL calibration module
+	0x3A (0xFA) TXBYTES			Underflow and number of bytes in the TX FIFO
+	0x3B (0xFB) RXBYTES			Overflow and number of bytes in the RX FIFO
+	0x3C (0xFC) RCCTRL1_STATUS	Last RC oscillator calibration result
+	0x3D (0xFD) RCCTRL0_STATUS	Last RC oscillator calibration result
+
+
+FIFO Access:
+____________
+The 64-byte TX FIFO and the 64-byte RX FIFO are accessed through the 0x3F address.
+When the R/W¯ bit is zero, the TX FIFO is accessed, and the RX FIFO is accessed when the R/W¯ bit is one.
+
+• Single Byte Access
+	Expects a header byte with the burst bit set to zero and one data byte.
+	After the data byte, a new header byte is expected; hence, CSn can remain low.
+• "Burst Access"
+	Expects one header byte and then consecutive data bytes until terminating the access by setting CSn high.
+
+
+PATABLE Access:
+_______________
+The 0x3E address is used to access the PATABLE, which is used for selecting Power Amplifier (PA) power control settings.
+The SPI expects up to eight data bytes after receiving the address.
+
+By programming the PATABLE, controlled PA power ramp-up and ramp-down can be achieved, as well as ASK modulation shaping for reduced bandwidth.
+
+
+Bitrate / Bandwidth Config:
+___________________________
+
+Data rate setup using DRATE_M (mantissa) and DRATE_E (exponent):
+	R_data = ((256 + DRATE_M) * 2^(DRATE_E)) / 2^28 * F_osc
+
+One can retrieve:
+	DRATE_E = floor( log2( R_data * 2^20 / F_osc )
+	DRATE_M = R_data * 2^28 / (F_osc * 2^DRATE_E) - 256		(round DRATE_E up if DRATE_M ends up being 256)
+
+Receiver channel bandwidth
+	BW_channel = F_osc / (8*(4+CHANBW_M)*2^CHANBW_E)
+
+
+Synch Config:
+_____________
+• Bit Synch algorithm extracts the clock from the incoming symbols.
+ The algorithm requires that the expected data rate is programmed as described above.
+
+• Byte Synch is achieved by a continuous sync word search.
+ The sync word is a 16 bit configurable field (can be repeated to get a 32 bit) that is automatically inserted at the start of the packet by the modulator in transmit mode.
+
+
+Packet Mode:
+____________
+The CC1101 has built-in hardware support for packet oriented radio protocols.
+This can be enabled on packet reception:
+	• Preamble detection
+	• Sync word detection
+	• CRC computation and CRC check
+	• One byte address check
+	• Packet length check (length byte checked against a programmable maximum length)
+	• De-whitening
+	• De-interleaving and decoding
+
+See <Packet Format.png> for a description of the packets.
+
+Filtering:
+	► Packets can have an "address" header used for filtering so various devices can have multiple addresses and packets quickly addressed to each of them, packets with the wrong address are simply dropped and listening continues.
+	► CRC filtering can be used to discard (i.e. flush) packets that failed the CRC test.
+
+
+Modulation Formats:
+___________________
+• CC1101 supports amplitude, frequency, and phase shift modulation formats.
+• Optionally, the data stream can be "Manchester coded" by the modulator and decoded by the demodulator (basically 0's are encoded by descending fronts while 1's are encoded by ascending fronts).
+	Wikipedia: https://en.wikipedia.org/wiki/Manchester_code
+	Video: https://www.youtube.com/watch?v=i_TLLACZuRk (various encoding methods)
+
+► Phase-shift keying https://en.wikipedia.org/wiki/Phase-shift_keying
+► Quadrature Amplitude Modulation (QAM)	https://en.wikipedia.org/wiki/Quadrature_amplitude_modulation
+► Non-Return to Zero Encoding https://en.wikipedia.org/wiki/Non-return-to-zero (basically, 1 is +V, 0 is -V)
+
+
+Signal Qualifiers and Link Quality:
+___________________________________
+Several tools exist:
+	• Sync Word Qualifier
+	• Preamble Quality Threshold
+	• RSSI
+	• Carrier Sense
+	• Clear Channel Assessment
+	• Link Quality Indicator
+
+
+Starting Up:
+____________
+• When the power supply is turned on, the system must be reset.
+	This is achieved by one of the two sequences described below, i.e. automatic power-on reset (POR) or manual reset.
+• After the automatic power-on reset or manual reset, it is also recommended to change the signal that is output on the GDO0 pin.
+	The default setting is to output a clock signal with a frequency of CLK_XOSC/192.
+	However, to optimize performance in TX and RX, an alternative GDO setting from the settings found in Table 41 on page 62 should be selected.
+
+► Power-On Reset (POR)
+A power-on reset circuit is included in the CC1101
+Minimum requirements are:
+	Parameter				Min	Typ	Max Unit	Condition/Note
+	Power-up ramp-up time	-	-	5	ms		From 0V until reaching 1.8V
+	Power off time			1	-	-	ms		Minimum time between power-on and power-off
+
+The internal powerup sequence is completed when CHIP_RDYn goes low.
+CHIP_RDYn is observed on the SO pin after CSn is pulled low.
+
+► Manual Reset
+The other global reset possibility on CC1101 uses the SRES command strobe. By issuing this strobe, all internal registers and states are set to the default, IDLE state.
+The manual power-up sequence is as follows (see Figure 27):
+	• Set SCLK = 1 and SI = 0, to avoid potential problems with pin control mode (see Section 11.3).
+	• Strobe CSn low / high.
+	• Hold CSn low and then high for at least 40 μs relative to pulling CSn low
+	• Pull CSn low and wait for SO to go low (CHIP_RDYn).
+	• Issue the SRES strobe on the SI line.
+	• When SO goes low again, reset is complete and the chip is in the IDLE state.
+
+Wake On Radio (WOR):
+____________________
+The optional Wake on Radio (WOR) functionality enables CC1101 to periodically wake up from SLEEP and listen for incoming packets without MCU interaction.
+When the SWOR strobe command is sent on the SPI interface, the CC1101 will go to the SLEEP state when CSn is released.
+NOTE: The RC oscillator must be enabled before the SWOR strobe can be used, as it is the clock source for the WOR timer.
+
+
+General Purpose / Test Output Control Pins:
+___________________________________________
+The three digital output pins GDO0, GDO1, and GDO2 are general control pins configured with IOCFG0.GDO0_CFG, IOCFG1.GDO1_CFG, and IOCFG2.GDO2_CFG respectively.
+• GDO1 is the same pin as the SO pin on the SPI interface, thus the output programmed on this pin will only be valid when CSn is high.
+	The default value for GDO1 is 3-stated which is useful when the SPI interface is shared with other devices.
+• The default value for GDO0 is a 135-141 kHz clock output (XOSC frequency divided by 192).
+	Since the XOSC is turned on at poweron-reset, this can be used to clock the MCU in systems with only one crystal.
+
+	***************
+	NOTE: Can we use this to "DEBUG" the input line with an oscilloscope???
+	Like maybe the input signal is "downsampled" at 1/192 from the 26MHz frequency down to 136 KHz "slowed down" version???
+
+	Check modes in GDOx_CFG:
+		12 (0x0C) Serial Synchronous Data Output. Used for synchronous serial mode.
+		13 (0x0D) Serial Data Output. Used for asynchronous serial mode.
+
+	OR use asynchronous mode that looks like it's feeding RAW data to the GDOx pins:
+	§27.1 « In asynchronous serial mode no data decision is done on-chip and the raw data is put on the data output line in RX.
+			When using asynchronous serial mode make sure the interfacing MCU does proper oversampling and that it can handle the jitter on the data output line.
+			The MCU should tolerate a jitter of ±1/8 of a bit period as the data stream is timediscrete using 8 samples per bit. »
+
+	***************
