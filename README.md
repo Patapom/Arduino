@@ -22,3 +22,19 @@ You can also find the basic Arduino lessons (the most complex ones at least, I d
 * RFID Sensor
 * etc.
 
+## Notes
+
+I kept interesting [notes](Arduino ROOT DOC.txt) to quickly remember the subtleties of the Arduino dialect and environment.
+
+Maybe of interest to you:
+* How to add your custom C/C++ library to the core library
+* How to easily compile you C files into assembly language (**i.e.** making the GCC compiler generate a .S file that you can later modify)
+
+
+## Tests
+
+### CC1101
+
+I played a bit with the Radio-Frequency chip CC1101 by Texas Instrument, I rewrote the driver and kind of managed to drive it correctly except at the moment I never quite could receive anything.
+
+I'll try again with another RF device, the nRF24L01 this time.
