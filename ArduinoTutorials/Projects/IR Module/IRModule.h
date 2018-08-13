@@ -1,3 +1,6 @@
+// This is LESSON 14 = IR Receiver Module
+// ./Wiring.png
+//
 #include "Arduino.h"
 #include "PulseTrain.h"
 

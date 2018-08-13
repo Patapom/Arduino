@@ -1,9 +1,7 @@
-/*
- Name:		Speaker.ino
- Created:	10/7/2017 5:18:45 PM
- Author:	Patapom
-*/
+Nothing done yet!
+Code from Lesson 24
 
+/*
 #define	PIN_DATA	12
 #define	PIN_CLOCK	9
 #define	PIN_LATCH	11
@@ -83,3 +81,4 @@ void loop() {
 
 //	value ^= 0xFF;
 }
+*/

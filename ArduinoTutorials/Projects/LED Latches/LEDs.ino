@@ -1,8 +1,5 @@
-/*
- Name:		Speaker.ino
- Created:	10/7/2017 5:18:45 PM
- Author:	Patapom
-*/
+// Lesson 24 + 25 => We are driving the LEDs display using the Serial port
+//
 
 #define	PIN_DATA	12
 #define	PIN_CLOCK	9

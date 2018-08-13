@@ -1,7 +1,10 @@
+Nothing done yet!
+Code coming from LED Matrix
+
 #define	PIN_DATA	12
 #define	PIN_CS		11
 #define	PIN_CLOCK	10
-
+/*
 // The opcodes for the MAX7221 and MAX7219
 #define OP_NOOP			0
 #define OP_DIGIT0		1
@@ -59,6 +62,7 @@ byte	values[8] = {	// Smiley face
 	B01000010,
 	B00111100,
 };
+
 void loop() {
 
 	#if 1	// SINE WAVE
@@ -88,3 +92,4 @@ void loop() {
 
 	delay( 100 );
 }
+*/
