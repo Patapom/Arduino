@@ -1,4 +1,4 @@
-#2018-08-12 Patapom#
+## 2018-08-12 Patapom
 
 Amount of chips: 4
 Ordered from https://www.elecrow.com/433mhz-rf-transceiver-cc1101-module-p-374.html

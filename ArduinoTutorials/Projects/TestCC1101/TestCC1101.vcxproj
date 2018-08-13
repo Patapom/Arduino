@@ -80,7 +80,7 @@
     <None Include="TestCC1101.ino" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Notes on IC1101.txt" />
+    <Text Include="Notes on CC1101.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CC1101\CC1101.h" />

@@ -1,6 +1,6 @@
-#2018-08-12 Patapom#
+## 2018-08-12 Patapom
 
-nRF24L01
+**nRF24L01**
 Amount of chips: 10
 Ordered from https://www.mouser.fr/new/rfdigital/rfdigital-RFD21733/
 
@@ -8,5 +8,5 @@ Tutorial: https://www.carnetdumaker.net/articles/communiquer-sans-fil-avec-un-mo
 
 
 First RF chip I ever checked.
-	• 2.4GHz
-	• Max 2 MBauds!! Great!
+* 2.4GHz
+* Max 2 MBauds!! Great!

@@ -1,6 +1,6 @@
-#2018-08-12 Patapom#
+## 2018-08-12 Patapom
 
-Espressif ESP32-wroom-32
+*Espressif ESP32-wroom-32*
 # of pieces: 2
 
 Ordered from e-bay:			
