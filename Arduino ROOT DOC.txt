@@ -29,6 +29,7 @@ Acronyms and Names
 			communicating with one or more peripheral devices quickly over short distances.
 			It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
 	• SS, Slave Select
+	• TWI, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
 	• UART, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
 
 
