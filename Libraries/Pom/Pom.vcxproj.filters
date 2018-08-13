@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Pulse Train">
+      <UniqueIdentifier>{b1cb99d3-95a0-41f0-b9e5-2f84ef2fb814}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CC1101">
+      <UniqueIdentifier>{fb85a111-7b5c-4edb-add4-7f57d694a14f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{f2a46562-351f-4686-807b-16f1d06f371d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PulseTrain\PulseTrain.cpp">
+      <Filter>Pulse Train</Filter>
+    </ClCompile>
+    <ClCompile Include="CC1101\CC1101.cpp">
+      <Filter>CC1101</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Math.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PulseTrain\PulseTrain.h">
+      <Filter>Pulse Train</Filter>
+    </ClInclude>
+    <ClInclude Include="CC1101\CC1101.h">
+      <Filter>CC1101</Filter>
+    </ClInclude>
+    <ClInclude Include="Pom.h" />
+    <ClInclude Include="Math\Math.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PulseTrain\PulseTrainASM.S">
+      <Filter>Pulse Train</Filter>
+    </None>
+  </ItemGroup>
+</Project>

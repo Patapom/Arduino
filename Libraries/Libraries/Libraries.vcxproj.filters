@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="EEPROM">
+      <UniqueIdentifier>{4a9c8b13-54c3-457f-8554-b82f8eb3eb15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HID">
+      <UniqueIdentifier>{6e58e028-cf2a-42fd-ac51-fe31adf7d5d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SPI">
+      <UniqueIdentifier>{42bf35cd-e778-4f84-b0df-512120bfa1a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SoftwareSerial">
+      <UniqueIdentifier>{16054f23-ae06-468c-bba0-826d72f40789}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Wire">
+      <UniqueIdentifier>{3aa84ffe-b5ee-4f50-941d-8e2c7a44cd47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Wire\utility">
+      <UniqueIdentifier>{c94472dd-9060-47b3-8a85-451cb4a60bc9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\EEPROM\src\EEPROM.h">
+      <Filter>EEPROM</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\HID\src\HID.h">
+      <Filter>HID</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\Wire.h">
+      <Filter>Wire</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility\twi.h">
+      <Filter>Wire\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src\SoftwareSerial.h">
+      <Filter>SoftwareSerial</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\SPI.h">
+      <Filter>SPI</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\HID\src\HID.cpp">
+      <Filter>HID</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\Wire.cpp">
+      <Filter>Wire</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\src\utility\twi.c">
+      <Filter>Wire\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\src\SoftwareSerial.cpp">
+      <Filter>SoftwareSerial</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\src\SPI.cpp">
+      <Filter>SPI</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
