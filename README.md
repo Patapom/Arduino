@@ -24,7 +24,7 @@ You can also find the basic Arduino lessons (the most complex ones at least, I d
 
 ## Notes
 
-I kept interesting [notes](./Arduino%20ROOT%20DOC.txt) to quickly remember the subtleties of the Arduino dialect and environment.
+I kept interesting [notes](./Arduino%20ROOT%20DOC.md) to quickly remember the subtleties of the Arduino dialect and environment.
 
 Maybe of interest to you:
 * How to add your custom C/C++ library to the core library

@@ -1,50 +1,51 @@
 ﻿
 ======================================================================================================
 ======================================================================================================
- This documentation is a summary of how I understand the Arduino software architecture is working
-  as I go along in my investigations.
+ This documentation is a summary of how I understand the Arduino software architecture is working as I go along in my investigations.
   
- Dates are 		YYYY-MM-DD
+ Date Format Is	YYYY-MM-DD
  Creation Date:	2017-08-04
- Last Update:	2017-08-04
+ Last Update:	2018-08-13
  Author:		Patapom (www.patapom.com)
+				@patapom2 (twitter)
 ======================================================================================================
 ======================================================================================================
 
 
-Acronyms and Names
-	• Arduino, a combination of both chips and board.
-	• Atmel, the company that builds the micro-controller (http://www.atmel.com/)
-	• AVR, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
-	• CDC, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
-	• ISP, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
-	• I2C (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
-	• MISO, Master In Slave Out
-	• MOSI, Master Out Slave In
-	• PCD, Proximity Coupling Device e.g. RFID contactless reader/writer like MFRC522 (check public datasheet)
-	• PICC, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
-	• RSSI, Received Signal Strength Indication is a measurement of the power present in a received radio signal.
-	• SCK, Serial Clock
-	• SPI, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
+# Acronyms and Names
+	• *Arduino*, a combination of both chips and board.
+	• *Atmel*, the company that builds the micro-controller (http://www.atmel.com/)
+	• *AVR*, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
+	• *CDC*, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
+	• *ISP*, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
+	• *I2C* (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
+	• *MISO*, Master In Slave Out
+	• *MOSI*, Master Out Slave In
+	• *PCD*, Proximity Coupling Device e.g. RFID contactless reader/writer like MFRC522 (check public datasheet)
+	• *PICC*, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
+	• *RSSI*, Received Signal Strength Indication is a measurement of the power present in a received radio signal.
+	• *SCK*, Serial Clock
+	• *SPI*, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
 			communicating with one or more peripheral devices quickly over short distances.
 			It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
-	• SS, Slave Select
-	• TWI, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
-	• UART, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
+	• *SS*, Slave Select
+	• *TWI*, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
+	• *UART*, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
 
 
-Chips on the Arduino Boards
+# Chips on the Arduino Boards
 
 	• Arduino UNO:
-		► ATMega328P-PU: the central AVR micro-controller. 8-bit picoPower AVR Microcontroller, 32KB Flash EEPROM, 2KB RAM. 28/32-pin. Digital Communication Peripherals > 1-UART, 2-SPI, 1-I2C
-		► ATmega8U2: the USB controller. 8-bit AVR Microcontroller, 8KB Flash EEPROM, 32-pin, USB Controller. Digital Communication Peripherals > 1-UART, 2-SPI
+		► *ATMega328P-PU*: the central AVR micro-controller. 8-bit picoPower AVR Microcontroller, 32KB Flash EEPROM, 2KB RAM. 28/32-pin. Digital Communication Peripherals > 1-UART, 2-SPI, 1-I2C
+		► *ATmega8U2*: the USB controller. 8-bit AVR Microcontroller, 8KB Flash EEPROM, 32-pin, USB Controller. Digital Communication Peripherals > 1-UART, 2-SPI
 
 
+# Folder Hierarchy
 ________________
  Root Directory
 ________________
 
-It is the Install Directory: c:\program files (x86)\Arduino
+It is the Install Directory, on my machine it's: c:\program files (x86)\Arduino
 You can find the following subdirectories:
 	• drivers
 		This folder apparently contains drivers for USB ports communication with the Arduino boards
@@ -110,13 +111,12 @@ You can find the following subdirectories:
 				For example, the Uno MCU is the "Atmega328p"
 		
 		
-________
- VMicro
-________
+# VMicro
 
 VMicro is the Visual Studio plug-in that allows us to build and run (and "debug") an arduino executable to send it to the board for writing.
 
-Subtleties:
+## Subtleties
+
 	► VMicro auto-generates a file named "__vm/.<Project Name>.vsarduino.h" every compilation. It includes the "<Project Name>.INO" file at the very end
 	
 	► The "<Project Name>.INO" files are nothing more than C++ header files.
