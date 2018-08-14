@@ -10,3 +10,4 @@
 //	_timeout_us, (default = 1s) the time after which we should return with a timeout (use 0 for infinite wait; i.e. until a pulse)
 //
 uint32_t	pulseTrainInLOW( byte _pin, uint32_t* _pulseTimes_us, uint16_t _maxPulses, uint32_t _endTrainTimeOut_us, uint32_t _timeout_us=1000000 );
+
