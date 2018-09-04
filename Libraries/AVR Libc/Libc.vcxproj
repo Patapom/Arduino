@@ -394,6 +394,9 @@
     <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\twi.h" />
     <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\tools\avr\avr\include\util\usa_dst.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>
   </PropertyGroup>

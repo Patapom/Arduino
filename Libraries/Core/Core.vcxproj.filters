@@ -59,11 +59,11 @@
     <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WMath.cpp">
       <Filter>Wiring</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WString.cpp">
-      <Filter>Wiring</Filter>
-    </ClCompile>
     <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\CDC.cpp">
       <Filter>USB</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WString.cpp">
+      <Filter>String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,14 +107,14 @@
     <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\PluggableUSB.h">
       <Filter>USB</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WCharacter.h">
-      <Filter>Wiring</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WString.h">
-      <Filter>Wiring</Filter>
-    </ClInclude>
     <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\USBDesc.h">
       <Filter>USB</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WCharacter.h">
+      <Filter>String</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\WString.h">
+      <Filter>String</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +133,9 @@
     <Filter Include="USB">
       <UniqueIdentifier>{620f631a-6e86-4394-a423-7e29de4bf877}</UniqueIdentifier>
     </Filter>
+    <Filter Include="String">
+      <UniqueIdentifier>{e893580a-3499-412b-a388-f0099b8a0533}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino\wiring_pulse.S">
@@ -140,6 +143,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="README.txt" />
+    <Text Include="README.md" />
   </ItemGroup>
 </Project>

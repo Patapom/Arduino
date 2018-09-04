@@ -39,5 +39,6 @@
     <None Include="PulseTrain\PulseTrainASM.S">
       <Filter>Pulse Train</Filter>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

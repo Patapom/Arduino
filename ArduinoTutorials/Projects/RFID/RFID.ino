@@ -1,5 +1,6 @@
+// Lesson 21 - 
 Nothing done yet!
-Code coming from LED Matrix
+Code from LED Matrix
 
 #define	PIN_DATA	12
 #define	PIN_CS		11

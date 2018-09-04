@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PulseTrain\PulseTrainASM.S" />
+    <None Include="README.md" />
   </ItemGroup>
   <PropertyGroup>
     <DebuggerFlavor>VisualMicroDebugger</DebuggerFlavor>

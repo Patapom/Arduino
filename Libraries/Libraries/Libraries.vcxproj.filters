@@ -57,4 +57,7 @@
       <Filter>SPI</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="README.md" />
+  </ItemGroup>
 </Project>

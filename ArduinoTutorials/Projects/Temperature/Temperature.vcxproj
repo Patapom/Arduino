@@ -14,7 +14,7 @@
     <ProjectGuid>{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}</ProjectGuid>
     <RootNamespace>
     </RootNamespace>
-    <ProjectName>Temperature</ProjectName>
+    <ProjectName>Lesson 12 - Temperature</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

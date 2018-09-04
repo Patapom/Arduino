@@ -1,4 +1,5 @@
 /*
+	LESSON 2
   Blink
   Turns on an LED on for one second, then off for one second, repeatedly.
 
@@ -36,8 +37,8 @@ void loop() {
   
 	int bitMask = 1;
 	for ( int bitIndex=0; bitIndex < 20; bitIndex++, bitMask <<= 1 ) {
-	bool  bitValue = (value & bitMask) != 0 ? HIGH : LOW;
-	digitalWrite(LED_BUILTIN, bitValue);
-	delay(1);
+		bool  bitValue = (value & bitMask) != 0 ? HIGH : LOW;
+		digitalWrite(LED_BUILTIN, bitValue);
+		delay(1);
 	}
 }

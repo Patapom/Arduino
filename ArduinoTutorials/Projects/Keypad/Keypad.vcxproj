@@ -14,7 +14,7 @@
     <ProjectGuid>{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}</ProjectGuid>
     <RootNamespace>
     </RootNamespace>
-    <ProjectName>Keypad</ProjectName>
+    <ProjectName>Lesson 11 - Keypad</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
