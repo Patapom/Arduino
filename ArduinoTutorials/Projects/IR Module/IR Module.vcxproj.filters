@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Internal">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Helpers">
+      <UniqueIdentifier>{c3257747-6fd9-480a-b30a-45e3a277999e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.IR Module.vsarduino.h">
+      <Filter>Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="IRModule.h" />
+    <ClInclude Include="PulseTrain.h">
+      <Filter>Helpers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="IRModule.cpp" />
+    <ClCompile Include="PulseTrain.cpp">
+      <Filter>Helpers</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="IR Module.ino" />
+    <None Include="PulseTrainASM.S">
+      <Filter>Helpers</Filter>
+    </None>
+    <None Include="MakeASM.cmd" />
+  </ItemGroup>
+</Project>
