@@ -409,11 +409,11 @@ public:
 	
 	// Advanced functions for MIFARE
 	void MIFARE_SetAccessBits(byte *accessBitBuffer, byte g0, byte g1, byte g2, byte g3);
-	DEPRECATED_MSG("will move to extra class in next version")
+// 	DEPRECATED_MSG("will move to extra class in next version")
 	bool MIFARE_OpenUidBackdoor(bool logErrors);
-	DEPRECATED_MSG("will move to extra class in next version")
+// 	DEPRECATED_MSG("will move to extra class in next version")
 	bool MIFARE_SetUid(byte *newUid, byte uidSize, bool logErrors);
-	DEPRECATED_MSG("will move to extra class in next version")
+// 	DEPRECATED_MSG("will move to extra class in next version")
 	bool MIFARE_UnbrickUidSector(bool logErrors);
 	
 	/////////////////////////////////////////////////////////////////////////////////////
