@@ -37,13 +37,14 @@ MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance
 #define NEW_UID {0xDE, 0xAD, 0xBE, 0xEF}
 
 MFRC522::MIFARE_Key key;
+bool	overwriteUID = false;
 
 void setup() {
 	Serial.begin(9600);  // Initialize serial communications with the PC
 	while (!Serial);     // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
 	SPI.begin();         // Init SPI bus
 	mfrc522.PCD_Init();  // Init MFRC522 card
-	Serial.println(F("Warning: this example overwrites the UID of your UID changeable card, use with care!"));
+//	Serial.println(F("Warning: this example overwrites the UID of your UID changeable card, use with care!"));
   
 	// Prepare key - all keys are set to FFFFFFFFFFFFh at chip delivery from the factory.
 	for ( byte i = 0; i < 6; i++ )
@@ -64,6 +65,18 @@ void loop() {
   
 	// Look for new cards, and select one if present
 	if ( !mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial() ) {
+		if ( Serial.available() ) {
+			char	bisou = Serial.read();
+			if ( bisou == 'w' ) {
+				// Write
+				overwriteUID = true;
+				Serial.println( F("Warning: Next card will have its UID overwritten!") );
+			} else if ( bisou == 'c' ) {
+				// Cancel
+				overwriteUID = false;
+				Serial.println( F("Cleared danger of overwriting UID!") );
+			}
+		}
 		delay(50);
 		return;
 	}
@@ -93,18 +106,21 @@ void loop() {
 //  }
   
 	// Set new UID
-	byte newUid[] = NEW_UID;
-	if ( mfrc522.MIFARE_SetUid(newUid, (byte)4, true) )
-		Serial.println(F("Wrote new UID to card."));
-  
+	if ( overwriteUID ) {
+		overwriteUID = false;
+		byte newUid[] = NEW_UID;
+		if ( mfrc522.MIFARE_SetUid(newUid, (byte)4, true) )
+			Serial.println(F("Wrote new UID to card."));
+	}
+
 	// Halt PICC and re-select it so DumpToSerial doesn't get confused
 	mfrc522.PICC_HaltA();
-	if ( ! mfrc522.PICC_IsNewCardPresent() || ! mfrc522.PICC_ReadCardSerial() )
+	if ( !mfrc522.PICC_IsNewCardPresent() || !mfrc522.PICC_ReadCardSerial() )
 		return;
   
 	// Dump the new memory contents
 	Serial.println(F("New UID and contents:"));
-	mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
+	mfrc522.PICC_DumpToSerial( &mfrc522.uid );
   
 	delay(2000);
 }
