@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{66438E29-04BC-48C7-856D-238B2516F832}</ProjectGuid>
     <RootNamespace>LEDs</RootNamespace>
-    <ProjectName>LEDs</ProjectName>
+    <ProjectName>Lesson 24+25 - LEDs</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -74,7 +74,7 @@
     <ProjectCapability Include="VisualMicro" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="LEDs.ino" />
+    <None Include="Lesson 24+25 - LEDs.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.LED Latches.vsarduino.h" />

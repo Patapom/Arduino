@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Temperature", "Projects\Temperature\Temperature.vcxproj", "{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 12 - Temperature", "Projects\Temperature\Temperature.vcxproj", "{4ECF9C4F-1CFE-49C7-BF23-7726A2E34D6B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Joystick", "Projects\Joystick\Joystick.vcxproj", "{1D9DF740-53EE-47D6-B114-1B492B561064}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 13 - Joystick", "Projects\Joystick\Joystick.vcxproj", "{1D9DF740-53EE-47D6-B114-1B492B561064}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Keypad", "Projects\Keypad\Keypad.vcxproj", "{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 11 - Keypad", "Projects\Keypad\Keypad.vcxproj", "{4E54CDE5-53E5-4944-B81D-376FCCD03EB2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IR Module", "Projects\IR Module\IR Module.vcxproj", "{8B9DA153-8CCB-49BA-AAA2-0D3679E1CDAC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 14 - IR Module", "Projects\IR Module\IR Module.vcxproj", "{8B9DA153-8CCB-49BA-AAA2-0D3679E1CDAC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BlinkFaster", "Projects\BlinkFaster\BlinkFaster.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 02 - BlinkFaster", "Projects\BlinkFaster\BlinkFaster.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "..\Libraries\Core\Core.vcxproj", "{49B272EE-00C8-4AC9-A6A6-2FC4931D3B8B}"
 EndProject
@@ -17,9 +17,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Speaker", "Projects\Speaker
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pom", "..\Libraries\Pom\Pom.vcxproj", "{5B7800AF-4C9D-48F3-8D9E-97B345931C3C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LEDs", "Projects\LED Latches\LEDs.vcxproj", "{66438E29-04BC-48C7-856D-238B2516F832}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 24+25 - LEDs", "Projects\LED Latches\LEDs.vcxproj", "{66438E29-04BC-48C7-856D-238B2516F832}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LEDMatrix", "Projects\LED Matrix\LEDMatrix.vcxproj", "{C1DF3612-DE2F-433B-811E-6B31E8039101}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 15 - LEDMatrix", "Projects\LED Matrix\LEDMatrix.vcxproj", "{C1DF3612-DE2F-433B-811E-6B31E8039101}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Libc", "..\Libraries\AVR Libc\Libc.vcxproj", "{D56077A8-28D5-4586-89C7-C65737B521B0}"
 EndProject
@@ -27,7 +27,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Libraries", "..\Libraries\L
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{65967F38-4E3D-41A6-9375-EFDC92B5065C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 21 - RFID", "Projects\RFID\Lesson 21 - RFID.vcxproj", "{08CFB3E4-5927-471D-9852-1A803D670812}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 20 - SoundSensor", "Projects\Sound Sensor\SoundSensor.vcxproj", "{8A26A34D-2202-49EF-A687-278B95004F73}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 21 - RFID", "Projects\RFID\RFID.vcxproj", "{08CFB3E4-5927-471D-9852-1A803D670812}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,6 +85,10 @@ Global
 		{9D3E4D80-6CD8-4218-AF35-5FC5ADA47296}.Debug|Win32.Build.0 = Debug|Win32
 		{9D3E4D80-6CD8-4218-AF35-5FC5ADA47296}.Release|Win32.ActiveCfg = Release|Win32
 		{9D3E4D80-6CD8-4218-AF35-5FC5ADA47296}.Release|Win32.Build.0 = Release|Win32
+		{8A26A34D-2202-49EF-A687-278B95004F73}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8A26A34D-2202-49EF-A687-278B95004F73}.Debug|Win32.Build.0 = Debug|Win32
+		{8A26A34D-2202-49EF-A687-278B95004F73}.Release|Win32.ActiveCfg = Release|Win32
+		{8A26A34D-2202-49EF-A687-278B95004F73}.Release|Win32.Build.0 = Release|Win32
 		{08CFB3E4-5927-471D-9852-1A803D670812}.Debug|Win32.ActiveCfg = Debug|Win32
 		{08CFB3E4-5927-471D-9852-1A803D670812}.Debug|Win32.Build.0 = Debug|Win32
 		{08CFB3E4-5927-471D-9852-1A803D670812}.Release|Win32.ActiveCfg = Release|Win32

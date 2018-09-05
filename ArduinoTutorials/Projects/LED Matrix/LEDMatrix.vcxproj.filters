@@ -4,6 +4,6 @@
     <ClInclude Include="__vm\.LED Matrix.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="LEDMatrix.ino" />
+    <None Include="Lesson 15 - LEDMatrix.ino" />
   </ItemGroup>
 </Project>

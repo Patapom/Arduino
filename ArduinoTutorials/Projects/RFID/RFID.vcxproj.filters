@@ -4,6 +4,6 @@
     <ClInclude Include="__vm\.RFID.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="RFID.ino" />
+    <None Include="Lesson 21 - RFID.ino" />
   </ItemGroup>
 </Project>

@@ -7,11 +7,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="BlinkFaster.ino" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="__vm\.BlinkFaster.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Lesson 02 - BlinkFaster.ino" />
   </ItemGroup>
 </Project>

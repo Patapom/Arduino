@@ -5,9 +5,9 @@
     <ClInclude Include="__vm\.Sound Sensor.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="SoundSensor.ino" />
+    <ClCompile Include="SoundSensor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="SoundSensor.cpp" />
+    <None Include="Lesson 20 - SoundSensor.ino" />
   </ItemGroup>
 </Project>

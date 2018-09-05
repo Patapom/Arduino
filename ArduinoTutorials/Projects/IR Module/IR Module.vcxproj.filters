@@ -25,10 +25,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="IR Module.ino" />
     <None Include="PulseTrainASM.S">
       <Filter>Helpers</Filter>
     </None>
     <None Include="MakeASM.cmd" />
+    <None Include="Lesson 14 - IR Module.ino" />
   </ItemGroup>
 </Project>
