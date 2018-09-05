@@ -6,4 +6,7 @@
   <ItemGroup>
     <None Include="Lesson 21 - RFID.ino" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="RFID.cpp" />
+  </ItemGroup>
 </Project>
