@@ -14,7 +14,7 @@
     <ProjectGuid>{1D9DF740-53EE-47D6-B114-1B492B561064}</ProjectGuid>
     <RootNamespace>
     </RootNamespace>
-    <ProjectName>Lesson 13 - Joystick</ProjectName>
+    <ProjectName>Joystick</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -14,7 +14,7 @@
     <ProjectGuid>{8B9DA153-8CCB-49BA-AAA2-0D3679E1CDAC}</ProjectGuid>
     <RootNamespace>
     </RootNamespace>
-    <ProjectName>Lesson 14 - IR Module</ProjectName>
+    <ProjectName>IR Module</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

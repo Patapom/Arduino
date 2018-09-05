@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C1DF3612-DE2F-433B-811E-6B31E8039101}</ProjectGuid>
     <RootNamespace>LEDMatrix</RootNamespace>
-    <ProjectName>Lesson 15 - LEDMatrix</ProjectName>
+    <ProjectName>LEDMatrix</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
