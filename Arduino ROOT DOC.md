@@ -1,6 +1,6 @@
 ﻿
-======================================================================================================
-======================================================================================================
+================
+
  This documentation is a summary of how I understand the Arduino software architecture is working as I go along in my investigations.
   
  Date Format Is	YYYY-MM-DD
@@ -8,36 +8,37 @@
  Last Update:	2018-08-13
  Author:		Patapom (www.patapom.com)
 				@patapom2 (twitter)
-======================================================================================================
-======================================================================================================
+
+================
 
 
 # Acronyms and Names
-	• *Arduino*, a combination of both chips and board.
-	• *Atmel*, the company that builds the micro-controller (http://www.atmel.com/)
-	• *AVR*, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
-	• *CDC*, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
-	• *ISP*, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
-	• *I2C* (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
-	• *MISO*, Master In Slave Out
-	• *MOSI*, Master Out Slave In
-	• *PCD*, Proximity Coupling Device e.g. RFID contactless reader/writer like MFRC522 (check public datasheet)
-	• *PICC*, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
-	• *RSSI*, Received Signal Strength Indication is a measurement of the power present in a received radio signal.
-	• *SCK*, Serial Clock
-	• *SPI*, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
-			communicating with one or more peripheral devices quickly over short distances.
-			It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
-	• *SS*, Slave Select
-	• *TWI*, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
-	• *UART*, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
+
+* *Arduino*, a combination of both chips and board.
+* *Atmel*, the company that builds the micro-controller (http://www.atmel.com/)
+* *AVR*, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
+* *CDC*, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
+* *ISP*, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
+* *I2C* (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
+* *MISO*, Master In Slave Out
+* *MOSI*, Master Out Slave In
+* *PCD*, Proximity Coupling Device e.g. RFID contactless reader/writer like MFRC522 (check public datasheet)
+* *PICC*, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
+* *RSSI*, Received Signal Strength Indication is a measurement of the power present in a received radio signal.
+* *SCK*, Serial Clock
+* *SPI*, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
+		communicating with one or more peripheral devices quickly over short distances.
+		It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
+* *SS*, Slave Select
+* *TWI*, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
+* *UART*, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
 
 
 # Chips on the Arduino Boards
 
-	• Arduino UNO:
-		► *ATMega328P-PU*: the central AVR micro-controller. 8-bit picoPower AVR Microcontroller, 32KB Flash EEPROM, 2KB RAM. 28/32-pin. Digital Communication Peripherals > 1-UART, 2-SPI, 1-I2C
-		► *ATmega8U2*: the USB controller. 8-bit AVR Microcontroller, 8KB Flash EEPROM, 32-pin, USB Controller. Digital Communication Peripherals > 1-UART, 2-SPI
+* Arduino UNO:
+	* *ATMega328P-PU*: the central AVR micro-controller. 8-bit picoPower AVR Microcontroller, 32KB Flash EEPROM, 2KB RAM. 28/32-pin. Digital Communication Peripherals > 1-UART, 2-SPI, 1-I2C
+	* *ATmega8U2*: the USB controller. 8-bit AVR Microcontroller, 8KB Flash EEPROM, 32-pin, USB Controller. Digital Communication Peripherals > 1-UART, 2-SPI
 
 
 # Folder Hierarchy
