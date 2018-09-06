@@ -79,8 +79,8 @@ You can then find the following subdirectories from there:
 	A summary of what a tool is can be found in the "howto.txt" file at the root of this folder:
 
 			« A Tool is a chunk of code that runs from the Tools menu. Tools are a means 
-				of building onto the Processing Development Environment without needing to
-				rebuild the beast from source. »
+			   of building onto the Processing Development Environment without needing to
+			   rebuild the beast from source. »
 
 * [arduinodir]\tools-builder
 
@@ -122,8 +122,9 @@ You can then find the following subdirectories from there:
 			Apparently, contains low-level libraries to interact with the various board components...
 			For example, the Readme.md found in EEPROM writes:
 
-				« The EEPROM library provides an easy to use interface to interact with the internal non-volatile storage found
-				in AVR based Arduino boards. This library will work on many AVR devices like ATtiny and ATmega chips. »
+				« The EEPROM library provides an easy to use interface to interact with the internal
+				   non-volatile storage found in AVR based Arduino boards. This library will work on
+				   many AVR devices like ATtiny and ATmega chips. »
 
 		* arduino\avr\variants\<board variant>\pins_arduino.h
 
@@ -147,6 +148,7 @@ VMicro is the Visual Studio plug-in that allows us to build and run (and "debug"
 	* They **MUST** exist for every project!
 	* They **MUST** be kept at the root of the project: even though C++ Visual Studio project filters
 		are virtual folders without any existence on the disk, VMicro doesn't seem to find the INO file otherwise.
+	* They **MUST** have the same name as the project, otherwise VMicro won't recognize it as an arduino project and will attempt to build it as C++
 	* They **MUST** contain the setup() function. Otherwise nothing works: no **serial**, no nothing...
 		 I guess VMicro attempts to poorly patch the exe assuming the functions have to be there... :/
 	* Serial.begin() **MUST** be called in the setup() function in the INO file or it won't fire

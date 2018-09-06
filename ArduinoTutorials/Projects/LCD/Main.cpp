@@ -50,7 +50,8 @@ LiquidCrystal	lcd( 7, 8, 9, 10, 11, 12 );
 #define	ROT_PIN_B		3	// DT
 #define	ROT_PIN_SWITCH	4	// Switch => Doesn't work very well, it randomly switches on and off when rotating the shaft + clicking on it will stay clicked for a long time before coming down again! :'(
 
-bool	lastSwitch = false;
+bool	lastSwitch = true;
+U8		switchCounter = 0;
 U8		lastStateA = false;
 U8		lastStateB = false;
 S32		counter = 0;
@@ -98,7 +99,6 @@ void loop() {
 
 // Doesn't work very well, it randomly switches on and off when rotating the shaft + clicking on it will stay clicked for a long time before coming down again! :'(
 //  	// Handle switch click
-// 	Serial.println( digitalRead( ROT_PIN_SWITCH ) );
 //  	bool	sw = digitalRead( ROT_PIN_SWITCH ) == LOW;
 //  	if ( sw && !lastSwitch ) {
 //  		lcd.setCursor( 0, 0 );
@@ -109,6 +109,27 @@ void loop() {
 //  		lcd.print( "Hello, World!        " );
 //  	}
 //  	lastSwitch = sw;
+
+//  	Serial.print( digitalRead( ROT_PIN_SWITCH ) );
+//  	Serial.print(  " - last = " );
+//  	Serial.print(  lastSwitch );
+//  	Serial.print(  " - count = " );
+//  	Serial.println( switchCounter );
+
+	// I made a "buffered read" function that only returns true if the state equals the expected value for a given amount of time
+ 	bool	sw = bufferedRead( ROT_PIN_SWITCH, lastSwitch ? LOW : HIGH, 8, switchCounter );	// Expect inverse state
+ 	if ( sw ) {
+		if ( lastSwitch ) {
+			// Going from HIGH to LOW => Clicked!
+ 			lcd.setCursor( 0, 0 );
+ 			lcd.print( "CLICK!               " );
+ 		} else {
+			// Going from LOW to HIGH => Released!
+ 			lcd.setCursor( 0, 0 );
+ 			lcd.print( "Hello, World!        " );
+ 		}
+	 	lastSwitch = !lastSwitch;
+	}
 
 	lcd.setCursor( 0, 1 );			// set the cursor to column 0, line 1 (note: line 1 is the second row, since counting begins with 0):
 //	lcd.print( millis() / 1000 );	// print the number of seconds since reset:

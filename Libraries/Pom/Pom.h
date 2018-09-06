@@ -7,5 +7,6 @@
 #include "Types.h"
 #include "Math/Math.h"
 #include "PulseTrain/PulseTrain.h"
+#include "BufferedRead.h"
 
 #include "CC1101/CC1101.h"
