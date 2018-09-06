@@ -7,7 +7,6 @@
     Author:			Patapom (www.patapom.com)
     				@patapom2 (twitter)
 
-------
 
 # Acronyms and Names
 
