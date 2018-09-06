@@ -41,74 +41,72 @@
 
 
 # Folder Hierarchy
-________________
- Root Directory
-________________
 
-It is the Install Directory, on my machine it's: c:\program files (x86)\Arduino
-You can find the following subdirectories:
-	• drivers
-		This folder apparently contains drivers for USB ports communication with the Arduino boards
-	• examples
-		Contains the various tutorial projects (.ino files + .txt doc + image of board configuration)
-	• java
-		Certainly used by the Arduino.exe front end, not important for root usage
-	• lib
-		Java and resource files for the Arduino.exe front end, not important for root usage
-	• libraries
-		"High-Level" libraries for various devices and sensors (IR, temperature, servo, etc.)
-		This is interesting to show how to write additional libraries but these are not "core libraries" since
-		 they're only a bunch of .CPP/.H files that get included and compiled along your main .INO file when
-		 included by your project.
-	• reference
-		A bunch of help files.
-	• tools
-		A tool seems to be a java plug-in for the Arduino.exe front end and I believe it's not important for root usage.
-		 A summary of what a tool is can be found in the "howto.txt" file at the root of this folder:
-			« A Tool is a chunk of code that runs from the Tools menu. Tools are a means 
-				of building onto the Processing Development Environment without needing to
-				rebuild the beast from source. »
-	• tools-builder
-		No idea what that is. Maybe the library that is capable of building a user tool?
+ _Root Directory_
+	It is the Install Directory, on my machine it's: <arduinodir> = "c:\program files (x86)\Arduino"
+	You can find the following subdirectories:
 
-	____________
-	► hardware ◄
-	------------
-		This is the directory that will interest us the most for root usage of the arduino boards!
+* <arduinodir>\drivers
+	This folder apparently contains drivers for USB ports communication with the Arduino boards
+* <arduinodir>\examples
+	Contains the various tutorial projects (.ino files + .txt doc + image of board configuration)
+* <arduinodir>\java
+	Certainly used by the Arduino.exe front end, not important for root usage
+* <arduinodir>\lib
+	Java and resource files for the Arduino.exe front end, not important for root usage
+* <arduinodir>\libraries
+	"High-Level" libraries for various devices and sensors (IR, temperature, servo, etc.)
+	This is interesting to show how to write additional libraries but these are not "core libraries" since
+		they're only a bunch of .CPP/.H files that get included and compiled along your main .INO file when
+		included by your project.
+* <arduinodir>\reference
+	A bunch of help files.
+* <arduinodir>\tools
+	A tool seems to be a java plug-in for the Arduino.exe front end and I believe it's not important for root usage.
+		A summary of what a tool is can be found in the "howto.txt" file at the root of this folder:
+		« A Tool is a chunk of code that runs from the Tools menu. Tools are a means 
+			of building onto the Processing Development Environment without needing to
+			rebuild the beast from source. »
+* <arduinodir>\tools-builder
+	No idea what that is. Maybe the library that is capable of building a user tool?
+
+
+* <arduinodir>\hardware
+	This is the directory that will interest us the most for root usage of the arduino boards!
 		
-		• arduino\tools\
+	* arduino\tools\
 		
-			TODO
+		TODO
 		
-		• arduino\avr\
-			• arduino\avr\bootloaders
-				Contains some bootloader in .C and .HEX files for the various boards
+	* arduino\avr\
+		* arduino\avr\bootloaders
+			Contains some bootloader in .C and .HEX files for the various boards
 
-			• arduino\avr\cores\  (arduino\)
-				►►► This is the core library files! ◄◄◄
+		* arduino\avr\cores\  (arduino\)
+			**This is the core library files!**
 
-				Most notably:
-					► Contains the main "arduino.h" file defining the core functions like pinMode, analogRead, pulseIn, etc.
-					► Contains the "main.cpp" with the void main() {} loop that calls the user setup() and indefinitely calls the user loop() functions
+			Most notably:
+				* Contains the main "arduino.h" file defining the core functions like pinMode, analogRead, pulseIn, etc.
+				* Contains the "main.cpp" with the void main() {} loop that calls the user setup() and indefinitely calls the user loop() functions
 				
-			• arduino\avr\firmwares
-				Contains firmwares for the various onboard chips like:
-					► arduinoISP, In-System Programmer... Not clear. Must be for programming other boards from an arduino board.
-					► atmegaxxu2, firmware for the ATmega8U2 USB controller.
-					► wifishield, firmware for the wifi-shield that can be plugged into the board for wifi communication.
+		* arduino\avr\firmwares
+			Contains firmwares for the various onboard chips like:
+				* arduinoISP, In-System Programmer... Not clear. Must be for programming other boards from an arduino board.
+				* atmegaxxu2, firmware for the ATmega8U2 USB controller.
+				* wifishield, firmware for the wifi-shield that can be plugged into the board for wifi communication.
 
-			• arduino\avr\libraries
-				Apparently, contains low-level libraries to interact with the various board components...
-				For example, the Readme.md found in EEPROM writes:
-					« The EEPROM library provides an easy to use interface to interact with the internal non-volatile storage found
-					in AVR based Arduino boards. This library will work on many AVR devices like ATtiny and ATmega chips. »
+		* arduino\avr\libraries
+			Apparently, contains low-level libraries to interact with the various board components...
+			For example, the Readme.md found in EEPROM writes:
+				« The EEPROM library provides an easy to use interface to interact with the internal non-volatile storage found
+				in AVR based Arduino boards. This library will work on many AVR devices like ATtiny and ATmega chips. »
 
-			• arduino\avr\variants\<board variant>\pins_arduino.h
-				The only file that varies with the board. It defines the various pins of the board.
+		* arduino\avr\variants\<board variant>\pins_arduino.h
+			The only file that varies with the board. It defines the various pins of the board.
 
-			• arduino\avr\boards.txt
-				► Contains many definitions for all the existing Arduino Boards
-				For example, the Uno MCU is the "Atmega328p"
+		* arduino\avr\boards.txt
+			Contains many definitions for all the existing Arduino Boards
+			For example, the Uno MCU is the "Atmega328p"
 		
 		
 # VMicro
