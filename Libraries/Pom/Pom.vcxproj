@@ -80,6 +80,7 @@
     <ClCompile Include="PulseTrain\PulseTrain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BufferedRead.h" />
     <ClInclude Include="CC1101\CC1101.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Pom.h" />

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="TestCC1101.ino" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.TestCC1101.vsarduino.h" />
+    <ClInclude Include="CC1101\CC1101.h" />
+    <ClInclude Include="ELECHOUSE_CC1101.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CC1101\CC1101.cpp" />
+    <ClCompile Include="ELECHOUSE_CC1101.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Notes on CC1101.txt" />
+  </ItemGroup>
+</Project>
