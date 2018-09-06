@@ -1,33 +1,34 @@
 ﻿
  This documentation is a summary of how I understand the Arduino software architecture is working as I go along in my investigations.
   
-	 Date Format Is	YYYY-MM-DD
-	 Creation Date:	2017-08-04
-	 Last Update:	2018-08-13
-	 Author:		Patapom (www.patapom.com)
-					@patapom2 (twitter)
+    Date Format Is:	YYYY-MM-DD
+    Creation Date:	2017-08-04
+    Last Update:	2018-08-13
+    Author:			Patapom (www.patapom.com)
+    				@patapom2 (twitter)
 
+------
 
 # Acronyms and Names
 
-* *Arduino*, a combination of both chips and board.
-* *Atmel*, the company that builds the micro-controller (http://www.atmel.com/)
-* *AVR*, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
-* *CDC*, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
-* *ISP*, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
-* *I2C* (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
-* *MISO*, Master In Slave Out
-* *MOSI*, Master Out Slave In
-* *PCD*, Proximity Coupling Device e.g. RFID contactless reader/writer like MFRC522 (check public datasheet)
-* *PICC*, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
-* *RSSI*, Received Signal Strength Indication is a measurement of the power present in a received radio signal.
-* *SCK*, Serial Clock
-* *SPI*, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
-		communicating with one or more peripheral devices quickly over short distances.
-		It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
-* *SS*, Slave Select
-* *TWI*, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
-* *UART*, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
+* **Arduino**, a combination of both chips and board.
+* **Atmel**, the company that builds the micro-controller (http://www.atmel.com/)
+* **AVR**, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
+* **CDC**, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
+* **ISP**, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
+* **I2C** (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
+* **MISO**, Master In Slave Out
+* **MOSI**, Master Out Slave In
+* **PCD**, Proximity Coupling Device e.g. RFID contactless reader/writer like MFRC522 (check public datasheet)
+* **PICC**, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
+* **RSSI**, Received Signal Strength Indication is a measurement of the power present in a received radio signal.
+* **SCK**, Serial Clock
+* **SPI**, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
+			communicating with one or more peripheral devices quickly over short distances.
+			It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
+* **SS**, Slave Select
+* **TWI**, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
+* **UART**, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
 
 
 # Chips on the Arduino Boards
@@ -39,9 +40,12 @@
 
 # Folder Hierarchy
 
- _Root Directory_
+**Root Directory**
+
 	It is the Install Directory, on my machine it's: [arduinodir] = "c:\program files (x86)\Arduino"
-	You can find the following subdirectories:
+
+
+You can then find the following subdirectories from there:
 
 * [arduinodir]\drivers
 
@@ -84,6 +88,7 @@
 
 
 * [arduinodir]\hardware
+
 	This is the directory that will interest us the most for root usage of the arduino boards!
 		
 	* arduino\tools\
@@ -92,34 +97,40 @@
 		
 	* arduino\avr\
 		* arduino\avr\bootloaders
+
 			Contains some bootloader in .C and .HEX files for the various boards
 
 		* arduino\avr\cores\  (arduino\)
+
 			**This is the core library files!**
 
 			Most notably:
 
-				* Contains the main "arduino.h" file defining the core functions like pinMode, analogRead, pulseIn, etc.
-				* Contains the "main.cpp" with the void main() {} loop that calls the user setup() and indefinitely calls the user loop() functions
+			* Contains the main "arduino.h" file defining the core functions like pinMode, analogRead, pulseIn, etc.
+			* Contains the "main.cpp" with the void main() {} loop that calls the user setup() and indefinitely calls the user loop() functions
 				
 		* arduino\avr\firmwares
+
 			Contains firmwares for the various onboard chips like:
 
-				* arduinoISP, In-System Programmer... Not clear. Must be for programming other boards from an arduino board.
-				* atmegaxxu2, firmware for the ATmega8U2 USB controller.
-				* wifishield, firmware for the wifi-shield that can be plugged into the board for wifi communication.
+			* arduinoISP, In-System Programmer... Not clear. Must be for programming other boards from an arduino board.
+			* atmegaxxu2, firmware for the ATmega8U2 USB controller.
+			* wifishield, firmware for the wifi-shield that can be plugged into the board for wifi communication.
 
 		* arduino\avr\libraries
+
 			Apparently, contains low-level libraries to interact with the various board components...
 			For example, the Readme.md found in EEPROM writes:
 
-				« The EEPROM library provides an easy to use interface to interact with the internal non-volatile storage found
-				in AVR based Arduino boards. This library will work on many AVR devices like ATtiny and ATmega chips. »
+			« The EEPROM library provides an easy to use interface to interact with the internal non-volatile storage found
+			in AVR based Arduino boards. This library will work on many AVR devices like ATtiny and ATmega chips. »
 
 		* arduino\avr\variants\<board variant>\pins_arduino.h
+
 			The only file that varies with the board. It defines the various pins of the board.
 
 		* arduino\avr\boards.txt
+
 			Contains many definitions for all the existing Arduino Boards
 			For example, the Uno MCU is the "Atmega328p"
 		
