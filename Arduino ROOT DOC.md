@@ -117,27 +117,30 @@ VMicro is the Visual Studio plug-in that allows us to build and run (and "debug"
 
 ## Subtleties
 
-	► VMicro auto-generates a file named "__vm/.<Project Name>.vsarduino.h" every compilation. It includes the "<Project Name>.INO" file at the very end
+* VMicro auto-generates a file named "__vm/.<Project Name>.vsarduino.h" every compilation. It includes the "<Project Name>.INO" file at the very end
 	
-	► The "<Project Name>.INO" files are nothing more than C++ header files.
-		• They **MUST** exist for every project!
-		• They **MUST** be kept at the root of the project: even though C++ Visual Studio project filters are virtual folders without any existence on the disk, VMicro doesn't seem to find the INO file otherwise.
-		• They **MUST** contain the setup() and loop() functions. Otherwise nothing works: no serial, no nothing... I guess VMicro attempts to poorly patch the exe assuming the functions have to be there... :/
+* The "<Project Name>.INO" files are nothing more than C++ header files.
+	* They **MUST** exist for every project!
+	* They **MUST** be kept at the root of the project: even though C++ Visual Studio project filters
+		are virtual folders without any existence on the disk, VMicro doesn't seem to find the INO file otherwise.
+	* They **MUST** contain the setup() function. Otherwise nothing works: no **serial**, no nothing...
+		 I guess VMicro attempts to poorly patch the exe assuming the functions have to be there... :/
+	* Serial.begin() **MUST** be called in the setup() function in the INO file or it won't fire
 
-	► It's easy to revert to a usual C++ project by making the "<Project Name>.INO" a single line:
-		#include "MyRootHeader.h"
+* It's easy to revert to a usual C++ project by making the "<Project Name>.INO" a single line:
+	#include "MyRootHeader.h"
 
-	► Output files are found in:
-		C:\Users\<User Name>\AppData\Local\Temp\VMBuilds\<Project Name>\uno\<ConfigName>\
-		Example: C:\Users\Patapom\AppData\Local\Temp\VMBuilds\BlinkFaster\uno\Debug
+* Output files are found in:
+	C:\Users\<User Name>\AppData\Local\Temp\VMBuilds\<Project Name>\uno\<ConfigName>\
+	Example: C:\Users\Patapom\AppData\Local\Temp\VMBuilds\BlinkFaster\uno\Debug
 
-	► We notice that ALL files are compiled, including the "core library" files since we find files like "main.cpp.o" and "Stream.cpp.o" that are the compiled versions of the files found in the arduino\avr\cores directory!
+* We notice that ALL files are compiled, including the "core library" files since we find files like "main.cpp.o" and "Stream.cpp.o" that are the compiled versions of the files found in the arduino\avr\cores directory!
 
-	► I'm still wondering how it knows where to find the "core files"?
-		• What if I want to add my own root library? Do I have to adde my files to the "<INSTALL DIR>\arduino\avr\" directory?
-		• I think I found the solution!!!
-			1) Install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html
-			2) Pick the folder of your custom library as "link source"
-			3) Drop as junction into the "<INSTALL DIR>\arduino\avr\cores\" directory
-			4) Voilà! VMicro will compile your cpp files along regular core library files each time!
+* I'm still wondering how it knows where to find the "core files"?
+	* What if I want to add my own root library? Do I have to adde my files to the "<INSTALL DIR>\arduino\avr\" directory?
+	* I think I found the solution!!!
+		1) Install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html
+		2) Pick the folder of your custom library as "link source"
+		3) Drop as junction into the "<INSTALL DIR>\arduino\avr\cores\" directory
+		4) Voilà! VMicro will compile your cpp files along regular core library files each time!
 

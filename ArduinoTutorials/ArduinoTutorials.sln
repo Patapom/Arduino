@@ -31,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 20 - SoundSensor", "
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 21 - RFID", "Projects\RFID\RFID.vcxproj", "{08CFB3E4-5927-471D-9852-1A803D670812}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lesson 22 - LCD", "Projects\LCD\LCD.vcxproj", "{D9B9E3AE-DF77-4BD1-904C-F5AE78C219B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -93,6 +95,10 @@ Global
 		{08CFB3E4-5927-471D-9852-1A803D670812}.Debug|Win32.Build.0 = Debug|Win32
 		{08CFB3E4-5927-471D-9852-1A803D670812}.Release|Win32.ActiveCfg = Release|Win32
 		{08CFB3E4-5927-471D-9852-1A803D670812}.Release|Win32.Build.0 = Release|Win32
+		{D9B9E3AE-DF77-4BD1-904C-F5AE78C219B1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D9B9E3AE-DF77-4BD1-904C-F5AE78C219B1}.Debug|Win32.Build.0 = Debug|Win32
+		{D9B9E3AE-DF77-4BD1-904C-F5AE78C219B1}.Release|Win32.ActiveCfg = Release|Win32
+		{D9B9E3AE-DF77-4BD1-904C-F5AE78C219B1}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
