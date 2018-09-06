@@ -1,5 +1,4 @@
 ﻿
-------
  This documentation is a summary of how I understand the Arduino software architecture is working as I go along in my investigations.
   
 	 Date Format Is	YYYY-MM-DD
@@ -8,7 +7,6 @@
 	 Author:		Patapom (www.patapom.com)
 					@patapom2 (twitter)
 
-------
 
 # Acronyms and Names
 
