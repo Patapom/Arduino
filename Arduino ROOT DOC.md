@@ -42,7 +42,7 @@
 
 **Root Directory**
 
-	It is the Install Directory, on my machine it's: [arduinodir] = "c:\program files (x86)\Arduino"
+It is the Install Directory, on my machine it's: [arduinodir] = "c:\program files (x86)\Arduino"
 
 
 You can then find the following subdirectories from there:
@@ -77,10 +77,11 @@ You can then find the following subdirectories from there:
 * [arduinodir]\tools
 
 	A tool seems to be a java plug-in for the Arduino.exe front end and I believe it's not important for root usage.
-		A summary of what a tool is can be found in the "howto.txt" file at the root of this folder:
-		« A Tool is a chunk of code that runs from the Tools menu. Tools are a means 
-			of building onto the Processing Development Environment without needing to
-			rebuild the beast from source. »
+	A summary of what a tool is can be found in the "howto.txt" file at the root of this folder:
+
+			« A Tool is a chunk of code that runs from the Tools menu. Tools are a means 
+				of building onto the Processing Development Environment without needing to
+				rebuild the beast from source. »
 
 * [arduinodir]\tools-builder
 
@@ -122,8 +123,8 @@ You can then find the following subdirectories from there:
 			Apparently, contains low-level libraries to interact with the various board components...
 			For example, the Readme.md found in EEPROM writes:
 
-			« The EEPROM library provides an easy to use interface to interact with the internal non-volatile storage found
-			in AVR based Arduino boards. This library will work on many AVR devices like ATtiny and ATmega chips. »
+				« The EEPROM library provides an easy to use interface to interact with the internal non-volatile storage found
+				in AVR based Arduino boards. This library will work on many AVR devices like ATtiny and ATmega chips. »
 
 		* arduino\avr\variants\<board variant>\pins_arduino.h
 
@@ -151,8 +152,9 @@ VMicro is the Visual Studio plug-in that allows us to build and run (and "debug"
 		 I guess VMicro attempts to poorly patch the exe assuming the functions have to be there... :/
 	* Serial.begin() **MUST** be called in the setup() function in the INO file or it won't fire
 
-* It's easy to revert to a usual C++ project by making the "<Project Name>.INO" a single line:
-	#include "MyRootHeader.h"
+* It's easy to revert to a usual C++ project by just creating a "<Project Name>.INO" file with a setup() function
+	that calls setup2() defined as an external reference, the setup2() and loop() functions can easily be defined
+	in another CPP file somewhere else in the project (I usually create a main.cpp file).
 
 * Output files are found in:
 	C:\Users\<User Name>\AppData\Local\Temp\VMBuilds\<Project Name>\uno\<ConfigName>\
