@@ -10,6 +10,9 @@
     <Filter Include="Math">
       <UniqueIdentifier>{f2a46562-351f-4686-807b-16f1d06f371d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Timers">
+      <UniqueIdentifier>{b1603d50-605b-4763-abde-4ea223d9e109}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PulseTrain\PulseTrain.cpp">
@@ -20,6 +23,9 @@
     </ClCompile>
     <ClCompile Include="Math\Math.cpp">
       <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Timers\Timer1.cpp">
+      <Filter>Timers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +41,9 @@
     </ClInclude>
     <ClInclude Include="Types.h" />
     <ClInclude Include="BufferedRead.h" />
+    <ClInclude Include="Timers\Timer1.h">
+      <Filter>Timers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PulseTrain\PulseTrainASM.S">

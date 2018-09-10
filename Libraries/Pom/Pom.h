@@ -9,4 +9,8 @@
 #include "PulseTrain/PulseTrain.h"
 #include "BufferedRead.h"
 
+// Timers & Interrupt Helpers
+#include "Timers/Timer1.h"
+
+// Device Drivers
 #include "CC1101/CC1101.h"

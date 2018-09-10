@@ -57,32 +57,32 @@ From section "8.3 SRAM Data Memory" of the Arduino UNO ["ATMega328P" datasheet](
 
 	Vector No.	|  Program Address	|  Source		| Interrupt Definition
 	-------------------------------------------------------------------
-		01		|		0x0000 (1)	| RESET			| External Pin, Power-on Reset, Brown-out Reset and Watchdog System Reset
-		02		|		0x0002		| INT0			| External Interrupt Request 0
-		03		|		0x0004		| INT1			| External Interrupt Request 1
-		04		|		0x0006		| PCINT0		| Pin Change Interrupt Request 0
-		05		|		0x0008		| PCINT1		| Pin Change Interrupt Request 1
-		06		|		0x000A		| PCINT2		| Pin Change Interrupt Request 2
-		07		|		0x000C		| WDT			| Watchdog Time-out Interrupt
-		08		|		0x000E		| TIMER2		| COMPA Timer/Counter2 Compare Match A
-		09		|		0x0010		| TIMER2		| COMPB Timer/Counter2 Compare Match B
-		10		|		0x0012		| TIMER2		| OVF Timer/Counter2 Overflow
-		11		|		0x0014		| TIMER1		| CAPT Timer/Counter1 Capture Event
-		12		|		0x0016		| TIMER1		| COMPA Timer/Counter1 Compare Match A
-		13		|		0x0018		| TIMER1		| COMPB Timer/Coutner1 Compare Match B
-		14		|		0x001A		| TIMER1		| OVF Timer/Counter1 Overflow
-		15		|		0x001C		| TIMER0		| COMPA Timer/Counter0 Compare Match A
-		16		|		0x001E		| TIMER0		| COMPB Timer/Counter0 Compare Match B
-		17		|		0x0020		| TIMER0		| OVF Timer/Counter0 Overflow
-		18		|		0x0022		| SPI, STC		| SPI Serial Transfer Complete
-		19		|		0x0024		| USART, RX		| USART Rx Complete
-		20		|		0x0026		| USART, UDRE	| USART, Data Register Empty
-		21		|		0x0028		| USART, TX		| USART, Tx Complete
-		22		|		0x002A		| ADC			| ADC Conversion Complete
-		23		|		0x002C		| EE READY		| EEPROM Ready
-		24		|		0x002E		| ANALOG COMP	| Analog Comparator
-		25		|		0x0030		| TWI			| 2-wire Serial Interface
-		26		|		0x0032		| SPM READY		| Store Program Memory Ready
+		00		|		0x0000 (1)	| RESET			| External Pin, Power-on Reset, Brown-out Reset and Watchdog System Reset
+		01		|		0x0002		| INT0			| External Interrupt Request 0
+		02		|		0x0004		| INT1			| External Interrupt Request 1
+		03		|		0x0006		| PCINT0		| Pin Change Interrupt Request 0
+		04		|		0x0008		| PCINT1		| Pin Change Interrupt Request 1
+		05		|		0x000A		| PCINT2		| Pin Change Interrupt Request 2
+		06		|		0x000C		| WDT			| Watchdog Time-out Interrupt
+		07		|		0x000E		| TIMER2		| COMPA Timer/Counter2 Compare Match A
+		08		|		0x0010		| TIMER2		| COMPB Timer/Counter2 Compare Match B
+		09		|		0x0012		| TIMER2		| OVF Timer/Counter2 Overflow
+		10		|		0x0014		| TIMER1		| CAPT Timer/Counter1 Capture Event
+		11		|		0x0016		| TIMER1		| COMPA Timer/Counter1 Compare Match A
+		12		|		0x0018		| TIMER1		| COMPB Timer/Coutner1 Compare Match B
+		13		|		0x001A		| TIMER1		| OVF Timer/Counter1 Overflow
+		14		|		0x001C		| TIMER0		| COMPA Timer/Counter0 Compare Match A
+		15		|		0x001E		| TIMER0		| COMPB Timer/Counter0 Compare Match B
+		16		|		0x0020		| TIMER0		| OVF Timer/Counter0 Overflow
+		17		|		0x0022		| SPI, STC		| SPI Serial Transfer Complete
+		18		|		0x0024		| USART, RX		| USART Rx Complete
+		19		|		0x0026		| USART, UDRE	| USART, Data Register Empty
+		20		|		0x0028		| USART, TX		| USART, Tx Complete
+		21		|		0x002A		| ADC			| ADC Conversion Complete
+		22		|		0x002C		| EE READY		| EEPROM Ready
+		23		|		0x002E		| ANALOG COMP	| Analog Comparator
+		24		|		0x0030		| TWI			| 2-wire Serial Interface
+		25		|		0x0032		| SPM READY		| Store Program Memory Ready
 
 	(1) When the BOOTRST Fuse is programmed, the device will jump to the Boot Loader address at reset
 
@@ -106,6 +106,7 @@ From section "8.3 SRAM Data Memory" of the Arduino UNO ["ATMega328P" datasheet](
 
 
 		* Range [0x20,0x5F] = I/O Memory
+
 			0x23 => PINB	(The Port B Input Pins Address, section 14.4.4)\
 			0x24 => DDRB	(The Port B Data Direction Register, section 14.4.3)\
 			0x25 => PORTB	(The Port B Data Register, section 14.4.2)\
@@ -129,8 +130,8 @@ From section "8.3 SRAM Data Memory" of the Arduino UNO ["ATMega328P" datasheet](
 			0x41 => EEARH	(EEPROM Address Register, section 8.6.1)\
 			0x42 => EEARL
 			0x43 => GTCCR	(General Timer/Counter Control Register, section 17.4.1)\
-			0x44 => TCCR0A	(Timer/Counter Control Register A, section 15.9.1)\
-			0x45 => TCCR0B	(Timer/Counter Control Register B, section 15.9.2)\
+			0x44 => TCCR0A	(Timer/Counter 0 Control Register A, section 15.9.1)\
+			0x45 => TCCR0B	(Timer/Counter 0 Control Register B, section 15.9.2)\
 			0x46 => TCNT0	(Timer/Counter Register, section 15.9.3)\
 			0x47 => OCR0A	(Output Compare Register A, section 15.9.4)\
 			0x48 => OCR0B	(Output Compare Register B, section 15.9.5)\
@@ -189,8 +190,8 @@ From section "8.3 SRAM Data Memory" of the Arduino UNO ["ATMega328P" datasheet](
 			   (...)\
 			0x7E => DIDR0	(Digital Input Disable Register 0, section 24.9.5)\
 			0x7F => DIDR1	(Digital Input Disable Register 1, section 23.3.3)\
-			0x80 => TCCR0A	(Timer/Counter 1 Control Register A, section 16.11.1)\
-			0x81 => TCCR0B	(Timer/Counter 1 Control Register B, section 16.11.2)\
+			0x80 => TCCR1A	(Timer/Counter 1 Control Register A, section 16.11.1)\
+			0x81 => TCCR1B	(Timer/Counter 1 Control Register B, section 16.11.2)\
 			0x82 => TCCR1C	(Timer/Counter 1 Control Register C, section 16.11.3)\
 			   (...)\
 			0x84 => TCNT1L	(Timer/Counter 1, section 16.11.4)\

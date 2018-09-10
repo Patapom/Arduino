@@ -78,6 +78,7 @@
     <ClCompile Include="CC1101\CC1101.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="PulseTrain\PulseTrain.cpp" />
+    <ClCompile Include="Timers\Timer1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BufferedRead.h" />
@@ -85,6 +86,7 @@
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Pom.h" />
     <ClInclude Include="PulseTrain\PulseTrain.h" />
+    <ClInclude Include="Timers\Timer1.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
