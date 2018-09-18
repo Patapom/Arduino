@@ -2,6 +2,9 @@
 // 
 //////////////////////////////////////////////////////////////////////////
 // 
+#ifndef POM_INCLUDED
+#define POM_INCLUDED
+
 #include "Arduino.h"
 
 #include "Types.h"
@@ -14,3 +17,5 @@
 
 // Device Drivers
 #include "CC1101/CC1101.h"
+
+#endif
