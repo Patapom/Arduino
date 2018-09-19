@@ -128,28 +128,77 @@ void	TWI::SetFrequency( U32 _frequencyMHz, PRESCALER_VALUE _prescaler ) {
 }
 
 void	TWI::BeginTransmit( U8 _address ) {
-	m_transmitAddress = _address;
+	if ( _address == m_address && m_master && m_transmit )
+		return;	// No change...
+
+	cli();
+	m_address = _address;
 	m_master = true;
 	m_transmit = true;
+	m_needsRestart = m_status != STATUS_WAITING;	// If already busy and the address or mode changed, we need to restart
+	sei();
 }
-void	TWI::BeginReply( U8 _address ) {
-	m_transmitAddress = _address;
-	m_master = false;
-	m_transmit = true;
-}
+// void	TWI::BeginReply( U8 _address ) {
+// 	if ( _address == m_address && m_master && m_transmit )
+// 		return;	// No change...
+// 
+// 	cli();
+// 	m_address = _address;
+// 	m_master = false;
+// 	m_transmit = true;
+// 	m_needsRestart = m_status != STATUS_WAITING;	// If already busy and the address or mode changed, we need to restart
+// 	sei();
+// }
 
 void	TWI::Push( U8* _data, U8 _length ) {
 	cli();	// Prevent any interruption
+
 	m_dataLength += _length;	// We have stuff to transmit!
 	for ( ; _length > 0; _length-- ) {
 		m_ringBuffer[m_bufferIndex++] = *_data++;
 		m_bufferIndex &= m_bufferIndexMask;
 	}
 
-	if ( m_status != STATUS_TRANSMITTING )
+	if ( m_status != STATUS_TRANSMITTING || m_needsRestart ) {
+		m_needsRestart = false;
 		TWCR = CTRL_ACK | _BV(TWSTA);	// Send a start bit, otherwise let the transmission continue...
+	}
 
 	sei();	// Continue...
+}
+
+void	TWI::BeginReceive( U8 _address ) {
+	if ( _address == m_address && m_master && !m_transmit )
+		return;	// No change...
+
+	cli();
+	m_address = _address;
+	m_master = true;
+	m_transmit = false;
+	m_needsRestart = m_status != STATUS_WAITING;	// If already busy and the address or mode changed, we need to restart
+	sei();
+}
+U8	TWI::GetAvailableDataLength() const {
+	cli();
+	U8	count = m_dataLength;
+	sei();
+	return count;
+}
+U8	TWI::Pull( U8* _data, U8 _length ) {
+	cli();
+	U8	count = m_dataLength;
+	if ( _length != 0xFF )
+		count = min( count, _length );
+
+	U8	bufferIndex = m_bufferIndex - m_dataLength;
+	for ( U8 i=count; i > 0; i-- ) {
+		bufferIndex &= m_bufferIndexMask;
+		*_data++ = m_ringBuffer[bufferIndex++];
+	}
+	m_dataLength -= count;
+	sei();
+
+	return count;
 }
 
 
@@ -157,7 +206,7 @@ void	TWI::Push( U8* _data, U8 _length ) {
 // General TWI interrupt handler
 //
 void	TWI::InterruptHandler() {
-	U8	status = TWSR >> 3;
+	U8	status = TWSR & 0xF8U;	// Discard low 3 bits
 	if ( m_master ) {
 		// Master mode
 		if ( m_transmit )
@@ -184,18 +233,18 @@ void	TWI::HandleMT( U8 _status ) {
 		m_status = STATUS_ERROR;	// Bus error!
 		break;
 
-	case 0x01:	// Start received
-		m_status = STATUS_TRANSMITTING;
-		TWDR = (m_transmitAddress << 1) | 0;	// Transmit address + Write flag
+	case 0x08:	// Start received
+	case 0x10:	// Repeated start received
+		m_needsRestart = false;
+		TWDR = (m_address << 1) | 0;	// Transmit address + Write flag
 		TWCR = CTRL_ACK;
 		break;
 
-	case 0x03: // SLA+W received.
-		TWCR = CTRL_ACK;
+	case 0x18: // SLA+W received.
+		m_status = STATUS_TRANSMITTING;
 		// Fallthrough to transmitting data
 
-	case 0x02:	// Repeated start received
-	case 0x05:	// Data transmitted + ACK
+	case 0x28:	// Data transmitted + ACK
 		if ( m_dataLength == 0 ) {
 			// Signal stop...
 			TWCR = CTRL_ACK | _BV(TWSTO);
@@ -207,21 +256,72 @@ void	TWI::HandleMT( U8 _status ) {
 		TWDR = m_ringBuffer[m_bufferIndex++];
 		m_bufferIndex &= m_bufferIndexMask;
 		m_dataLength--;
-//		TWCR = CTRL_NACK | _BV(TWSTA);	// With the restart bit (even though that maybe our first and only byte)
 		TWCR = CTRL_NACK;
 		break;
 
-	case 0x04:	// SLA+W transmitted but NACK
-	case 0x06:	// Data transmitted but NACK
+	case 0x20:	// SLA+W transmitted but NACK
+	case 0x30:	// Data transmitted but NACK
 		TWCR = CTRL_NACK | _BV(TWSTO);	// With the stop bit
-	case 0x07:	// Master arbitration lost
+	case 0x38:	// Master arbitration lost
 		m_status = STATUS_ERROR;
+		break;
+
+	// Failed to enter Master Transmit
+	case 0x68:	// Arbitration lost in SLA+R/W as Master; own SLA+W has been received; ACK has been returned
+	case 0xB0:	// Arbitration lost in SLA+R/W as Master; own SLA+R has been received; ACK has been returned
+	case 0x78:	// Arbitration lost in SLA+R/W as Master; General call address has been received; ACK has been returned
+		m_master = false;	// Now a slave to another master
+		m_status = STATUS_WAITING;
 		break;
 	}
 }
 void	TWI::HandleMR( U8 _status ) {
+	switch ( _status ) {
+	case 0x00:
+		m_status = STATUS_ERROR;	// Bus error!
+		break;
+
+	case 0x08:	// Start received
+	case 0x10:	// Repeated start received
+		m_needsRestart = false;
+		TWDR = (m_address << 1) | 1;	// Transmit address + Read flag
+		TWCR = CTRL_ACK;
+		break;
+
+	case 0x40:	// SLA+R has been transmitted; ACK has been received
+		m_status = STATUS_RECEIVING;
+//		TWCR = CTRL_ACK;
+		break;
+
+	case 0x58:	// Data byte has been received; NOT ACK has been returned
+		m_status = STATUS_WAITING;
+		TWCR = CTRL_NACK | _BV(TWSTO);	// With the stop bit
+		// Fallthrough to receiving data
+
+	case 0x50:	// Data byte has been received; ACK has been returned
+		m_ringBuffer[m_bufferIndex++] = TWDR;
+		m_bufferIndex &= m_bufferIndexMask;
+		m_dataLength++;
+		break;
+
+	case 0x48:	// SLA+R has been transmitted; NOT ACK has been received
+		TWCR = CTRL_NACK | _BV(TWSTO);	// With the stop bit
+	case 0x38:	// Arbitration lost in SLA+R/W or NOT ACK bit
+		m_status = STATUS_ERROR;
+		break;
+
+	// Failed to enter Master Receive
+	case 0x68:	// Arbitration lost in SLA+R/W as Master; own SLA+W has been received; ACK has been returned
+	case 0xB0:	// Arbitration lost in SLA+R/W as Master; own SLA+R has been received; ACK has been returned
+	case 0x78:	// Arbitration lost in SLA+R/W as Master; General call address has been received; ACK has been returned
+		m_master = false;	// Now a slave to another master
+		m_status = STATUS_WAITING;
+		break;
+	}
 }
 void	TWI::HandleST( U8 _status ) {
+	// TODO
 }
 void	TWI::HandleSR( U8 _status ) {
+	// TODO
 }
