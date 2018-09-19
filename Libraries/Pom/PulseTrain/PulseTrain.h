@@ -9,4 +9,4 @@
 //	_endTrainTimeOut_us, the time after which a high pulse is esteemed to represent the end of the pulse train (e.g. twice the longest possible high pulse in the train)
 //	_timeout_us, (default = 1s) the time after which we should return with a timeout (use 0 for infinite wait; i.e. until a pulse)
 //
-uint32_t	pulseTrainInLOW( byte _pin, uint32_t* _pulseTimes_us, uint16_t _maxPulses, uint32_t _endTrainTimeOut_us, uint32_t _timeout_us=1000000 );
+U32	pulseTrainInLOW( U8 _pin, U32* _pulseTimes_us, U16 _maxPulses, U32 _endTrainTimeOut_us, U32 _timeout_us=1000000 );

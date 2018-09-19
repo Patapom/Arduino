@@ -75,6 +75,7 @@
     <ProjectCapability Include="VisualMicro" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BufferedRead.cpp" />
     <ClCompile Include="CC1101\CC1101.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="PulseTrain\PulseTrain.cpp" />

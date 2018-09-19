@@ -27,6 +27,7 @@
     <ClCompile Include="Timers\Timer1.cpp">
       <Filter>Timers</Filter>
     </ClCompile>
+    <ClCompile Include="BufferedRead.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PulseTrain\PulseTrain.h">

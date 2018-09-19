@@ -34,19 +34,21 @@
 //
 //	Code  |  Shifted>>3	|	Meaning
 //	0x00  |		0x00	|	Bus error
-//	--- From table 22.2 & 22.3
 //	0x08  |		0x01	|	A START condition has been transmitted
 //	0x10  |		0x02	|	A repeated START condition has been transmitted
-//	0x18  |		0x03	|	Arbitration lost in SLA+R or NOT ACK bit
-//	0x20  |		0x04	|	SLA+R/W has been transmitted; ACK has been received
-//	0x28  |		0x05	|	SLA+R/W has been transmitted; NOT ACK has been received
-//	0x30  |		0x06	|	Data byte has been transmitted/received; ACK has been returned
-//	0x38  |		0x07	|	Data byte has been transmitted/received; NOT ACK has been returned
-//	0x40  |		0x08	|
-//	0x48  |		0x09	|
-//	0x50  |		0x0A	|
-//	0x58  |		0x0B	|
-//	--- From table 22.4
+//	--- From table 22.2	(MATER TRANSMIT MODE)
+//	0x18  |		0x03	|	SLA+W has been transmitted; ACK has been received
+//	0x20  |		0x04	|	SLA+W has been transmitted; NOT ACK has been received	
+//	0x28  |		0x05	|	Data byte has been transmitted; ACK has been returned
+//	0x30  |		0x06	|	Data byte has been transmitted; NOT ACK has been returned
+//	0x38  |		0x07	|	Arbitration lost in SLA+R/W or NOT ACK bit
+//	--- From table 22.3	(MASTER RECEIVE MODE)
+//	0x40  |		0x08	|	SLA+R has been transmitted; ACK has been received
+//	0x48  |		0x09	|	SLA+R has been transmitted; NOT ACK has been received
+//	0x50  |		0x0A	|	Data byte has been received; ACK has been returned
+//	0x58  |		0x0B	|	Data byte has been received; NOT ACK has been returned
+
+//	--- From table 22.4 (SLAVE TRANSMIT MODE)
 //	0x60  |		0x0C	|	Own SLA+W has been received; ACK has been returned
 //	0x68  |		0x0D	|	Arbitration lost in SLA+R/W as Master; own SLA+W has been received; ACK has been returned
 //	0x70  |		0x0E	|	General call address has been received; ACK has been returned
@@ -56,7 +58,7 @@
 //	0x90  |		0x12	|	Previously addressed with general call; data has been received; ACK has been returned
 //	0x98  |		0x13	|	Previously addressed with general call; data has been received; NOT ACK has been returned
 //	0xA0  |		0x14	|	A STOP condition or repeated START condition has been received while still addressed as Slave
-//	--- From table 22.5
+//	--- From table 22.5 (SLAVE RECEIVE MODE)
 //	0xA8  |		0x15	|	SLA+R has been received; ACK has been returned
 //	0xB0  |		0x16	|	Arbitration lost in SLA+R/W as Master; own SLA+R has been received; ACK has been returned
 //	0xB8  |		0x17	|	Data byte in TWDR has been transmitted; ACK has been received
@@ -83,7 +85,9 @@ ISR( TWI_vect ) {
 
 TWI::TWI()
 	: m_bufferIndex( 0 )
-	, m_status( STATUS_STOPPED )
+	, m_status( STATUS_WAITING )
+	, m_master( true )
+	, m_transmit( true )
 {
 	#ifdef INSTALL_TWI_HANDLER
 		gs_TWI = this;	// Set us as the only TWI instance
@@ -125,7 +129,15 @@ void	TWI::SetFrequency( U32 _frequencyMHz, PRESCALER_VALUE _prescaler ) {
 
 void	TWI::BeginTransmit( U8 _address ) {
 	m_transmitAddress = _address;
+	m_master = true;
+	m_transmit = true;
 }
+void	TWI::BeginReply( U8 _address ) {
+	m_transmitAddress = _address;
+	m_master = false;
+	m_transmit = true;
+}
+
 void	TWI::Push( U8* _data, U8 _length ) {
 	cli();	// Prevent any interruption
 	m_dataLength += _length;	// We have stuff to transmit!
@@ -139,18 +151,37 @@ void	TWI::Push( U8* _data, U8 _length ) {
 
 	sei();	// Continue...
 }
-// void	TWI::EndTransmit() {
-// 
-// }
+
 
 //////////////////////////////////////////////////////////////////////////
 // General TWI interrupt handler
 //
 void	TWI::InterruptHandler() {
-    
-	switch ( TWSR >> 3 ) {
+	U8	status = TWSR >> 3;
+	if ( m_master ) {
+		// Master mode
+		if ( m_transmit )
+			HandleMT( status );
+		else
+			HandleMR( status );
+	} else {
+		// Slave mode
+		if ( m_transmit )
+			HandleST( status );
+		else
+			HandleSR( status );
+	}
+
+	// TWINT flag in TWCR must be cleared at the end of the operation (data/address/status accesses must be complete before clearing the flag)
+	// Apparently, it's automatically cleared when the interrupt returns
+//	TWCR &= ~_BV(TWINT);
+}
+
+//////////////////////////////////////////////////////////////////////////
+void	TWI::HandleMT( U8 _status ) {    
+	switch ( _status ) {
 	case 0x00:
-		m_status = STATUS_ERROR;
+		m_status = STATUS_ERROR;	// Bus error!
 		break;
 
 	case 0x01:	// Start received
@@ -159,16 +190,16 @@ void	TWI::InterruptHandler() {
 		TWCR = CTRL_ACK;
 		break;
 
-	case 0x04: // SLA+W received.
+	case 0x03: // SLA+W received.
 		TWCR = CTRL_ACK;
 		// Fallthrough to transmitting data
 
 	case 0x02:	// Repeated start received
-	case 0x06:	// Data transmitted + ACK
+	case 0x05:	// Data transmitted + ACK
 		if ( m_dataLength == 0 ) {
 			// Signal stop...
 			TWCR = CTRL_ACK | _BV(TWSTO);
-			m_status = STATUS_STOPPED;
+			m_status = STATUS_WAITING;
 			break;
 		}
 
@@ -176,16 +207,21 @@ void	TWI::InterruptHandler() {
 		TWDR = m_ringBuffer[m_bufferIndex++];
 		m_bufferIndex &= m_bufferIndexMask;
 		m_dataLength--;
-		TWCR = CTRL_ACK | _BV(TWSTA);	// With the restart bit (even though that maybe our first and only byte)
+//		TWCR = CTRL_NACK | _BV(TWSTA);	// With the restart bit (even though that maybe our first and only byte)
+		TWCR = CTRL_NACK;
 		break;
 
-	case 0x05:	// SLA+W transmitted but NACK
-	case 0x07:	// Data transmitted but NACK
-		m_status = STATUS_ERROR;	// Didn't acknowledge!
+	case 0x04:	// SLA+W transmitted but NACK
+	case 0x06:	// Data transmitted but NACK
+		TWCR = CTRL_NACK | _BV(TWSTO);	// With the stop bit
+	case 0x07:	// Master arbitration lost
+		m_status = STATUS_ERROR;
 		break;
 	}
-
-	// TWINT flag in TWCR must be cleared at the end of the operation (data/address/status accesses must be complete before clearing the flag)
-	// Apparently, it's automatically cleared when the interrupt returns
-//	TWCR &= ~_BV(TWINT);
+}
+void	TWI::HandleMR( U8 _status ) {
+}
+void	TWI::HandleST( U8 _status ) {
+}
+void	TWI::HandleSR( U8 _status ) {
 }
