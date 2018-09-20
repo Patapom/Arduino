@@ -59,7 +59,7 @@
 //	0x98  |		0x13	|	Previously addressed with general call; data has been received; NOT ACK has been returned
 //	0xA0  |		0x14	|	A STOP condition or repeated START condition has been received while still addressed as Slave
 //	--- From table 22.5 (SLAVE RECEIVE MODE)
-//	0xA8  |		0x15	|	SLA+R has been received; ACK has been returned
+//	0xA8  |		0x15	|	Own SLA+R has been received; ACK has been returned
 //	0xB0  |		0x16	|	Arbitration lost in SLA+R/W as Master; own SLA+R has been received; ACK has been returned
 //	0xB8  |		0x17	|	Data byte in TWDR has been transmitted; ACK has been received
 //	0xC0  |		0x18	|	Data byte in TWDR has been transmitted; NOT ACK has been received
@@ -83,8 +83,8 @@ ISR( TWI_vect ) {
 
 #endif
 
-TWI::TWI()
-	: m_bufferIndex( 0 )
+TWI::TWI( U8 _slaveAddress, bool _enableGeneralCall )
+	: m_address( 0xFFU )
 	, m_status( STATUS_WAITING )
 	, m_master( true )
 	, m_transmit( true )
@@ -92,13 +92,17 @@ TWI::TWI()
 	#ifdef INSTALL_TWI_HANDLER
 		gs_TWI = this;	// Set us as the only TWI instance
 	#endif
+	m_bufferIndex = 0;
 	m_bufferIndexMask = 0xFF >> (8-MAX_LENGTH_POT);
 
 	// Enable pull-up on data and clock lines
 	analogWrite( SDA, HIGH );
 	analogWrite( SCL, HIGH );
 
-	// Enable twi module, acknowled bits emission, and twi interrupt
+	// Setup our slave address
+	TWAR = (_slaveAddress << 1) | (_enableGeneralCall ? 1 : 0);
+
+	// Enable twi module, acknowleged bits emission, and twi interrupt
 	TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA);
 }
 
@@ -127,6 +131,13 @@ void	TWI::SetFrequency( U32 _frequencyMHz, PRESCALER_VALUE _prescaler ) {
 	TWSR = (TWSR & 0x7C) | U8(_prescaler);
 }
 
+TWI::STATUS	TWI::GetStatus() const {
+	cli();
+	STATUS	temp = m_status;
+	sei();
+	return temp;
+}
+
 void	TWI::BeginTransmit( U8 _address ) {
 	if ( _address == m_address && m_master && m_transmit )
 		return;	// No change...
@@ -137,6 +148,10 @@ void	TWI::BeginTransmit( U8 _address ) {
 	m_transmit = true;
 	m_needsRestart = m_status != STATUS_WAITING;	// If already busy and the address or mode changed, we need to restart
 	sei();
+
+//SerialPrintf( "Pipo test int = %d - float = %f\nSecond line...\n", 1234, 3.1415926f );
+//SerialPrintf( "Address = 0x%x - Need Restart = %s\n", m_address, m_needsRestart ? "true" : "false" );
+
 }
 // void	TWI::BeginReply( U8 _address ) {
 // 	if ( _address == m_address && m_master && m_transmit )
@@ -150,19 +165,26 @@ void	TWI::BeginTransmit( U8 _address ) {
 // 	sei();
 // }
 
-void	TWI::Push( U8* _data, U8 _length ) {
+void	TWI::Push( const U8* _data, U8 _length ) {
 	cli();	// Prevent any interruption
 
+//SerialPrintf( "Push %d => ", _length );
+
 	m_dataLength += _length;	// We have stuff to transmit!
+	int	tempIndex = m_bufferIndex;
 	for ( ; _length > 0; _length-- ) {
-		m_ringBuffer[m_bufferIndex++] = *_data++;
-		m_bufferIndex &= m_bufferIndexMask;
+		m_ringBuffer[tempIndex++] = *_data++;
+//SerialPrintf( " 0x%x", m_ringBuffer[tempIndex-1] );
+		tempIndex &= m_bufferIndexMask;
 	}
 
 	if ( m_status != STATUS_TRANSMITTING || m_needsRestart ) {
 		m_needsRestart = false;
 		TWCR = CTRL_ACK | _BV(TWSTA);	// Send a start bit, otherwise let the transmission continue...
+//SerialPrintf( " - Start! - TWCR = 0x%x", TWCR );
 	}
+
+//SerialPrintf( "\n" );
 
 	sei();	// Continue...
 }
@@ -207,6 +229,11 @@ U8	TWI::Pull( U8* _data, U8 _length ) {
 //
 void	TWI::InterruptHandler() {
 	U8	status = TWSR & 0xF8U;	// Discard low 3 bits
+
+// cli();
+// SerialPrintf( "INT! S=0x%x - %s - %s\n", status, m_master ? "MASTER" : "SLAVE", m_transmit ? "TRANSMIT" : "RECEIVE" );
+// sei();
+
 	if ( m_master ) {
 		// Master mode
 		if ( m_transmit )
@@ -227,9 +254,17 @@ void	TWI::InterruptHandler() {
 }
 
 //////////////////////////////////////////////////////////////////////////
+//U32	gs_TWI_InterruptsCounter = 0;
 void	TWI::HandleMT( U8 _status ) {    
+
+cli();
+//SerialPrintf( "Master Transmit - S = 0x%x\n", _status );
+
+gs_TWI_InterruptsCounter++;	// DEBUG
+
 	switch ( _status ) {
 	case 0x00:
+SerialPrintf( "BUS ERROR!\n" );
 		m_status = STATUS_ERROR;	// Bus error!
 		break;
 
@@ -238,30 +273,36 @@ void	TWI::HandleMT( U8 _status ) {
 		m_needsRestart = false;
 		TWDR = (m_address << 1) | 0;	// Transmit address + Write flag
 		TWCR = CTRL_ACK;
+//SerialPrintf( "START - TWDR = 0x%x - TWCR = 0x%x\n", TWDR, TWCR );
 		break;
 
 	case 0x18: // SLA+W received.
+//SerialPrintf( "SLA+W + ACK - Starting transmission\n" );
 		m_status = STATUS_TRANSMITTING;
 		// Fallthrough to transmitting data
 
-	case 0x28:	// Data transmitted + ACK
+	case 0x28: {	// Data transmitted + ACK
 		if ( m_dataLength == 0 ) {
 			// Signal stop...
 			TWCR = CTRL_ACK | _BV(TWSTO);
 			m_status = STATUS_WAITING;
+//SerialPrintf( "EMITTING STOP!\n" );
 			break;
 		}
 
 		// Attempt transmitting another byte
+//U8	d = m_ringBuffer[m_bufferIndex];
 		TWDR = m_ringBuffer[m_bufferIndex++];
 		m_bufferIndex &= m_bufferIndexMask;
 		m_dataLength--;
 		TWCR = CTRL_NACK;
+ SerialPrintf( "Emitting Data 0x%x i=%d m=0x%x l=%d- TWDR = 0x%x - TWCR = 0x%x\n", 0, m_bufferIndex, m_bufferIndexMask, m_dataLength, TWDR, TWCR );
 		break;
-
+}
 	case 0x20:	// SLA+W transmitted but NACK
 	case 0x30:	// Data transmitted but NACK
 		TWCR = CTRL_NACK | _BV(TWSTO);	// With the stop bit
+SerialPrintf( "SLA+W / DATA NACK!\n" );
 	case 0x38:	// Master arbitration lost
 		m_status = STATUS_ERROR;
 		break;
@@ -270,10 +311,14 @@ void	TWI::HandleMT( U8 _status ) {
 	case 0x68:	// Arbitration lost in SLA+R/W as Master; own SLA+W has been received; ACK has been returned
 	case 0xB0:	// Arbitration lost in SLA+R/W as Master; own SLA+R has been received; ACK has been returned
 	case 0x78:	// Arbitration lost in SLA+R/W as Master; General call address has been received; ACK has been returned
+SerialPrintf( "ARBITRATION LOST!\n" );
 		m_master = false;	// Now a slave to another master
 		m_status = STATUS_WAITING;
 		break;
 	}
+
+sei();
+
 }
 void	TWI::HandleMR( U8 _status ) {
 	switch ( _status ) {

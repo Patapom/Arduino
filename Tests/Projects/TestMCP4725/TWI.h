@@ -2,7 +2,13 @@
 // Implements the Two-Wire Interface (TWI) protocol
 //////////////////////////////////////////////////////////////////////////
 //
-
+// Here you can find the SDA/SCL pins depending on the Arduino board you're using
+//	Board			I2C / TWI pins
+//	Uno, Ethernet	A4 (SDA),	A5 (SCL)
+//	Mega2560		20 (SDA),	21 (SCL)
+//	Leonardo		 2 (SDA),	 3 (SCL)
+//	Due				20 (SDA),	21 (SCL), SDA1, SCL1
+//
 class TWI {
 public:
 
@@ -43,20 +49,23 @@ private:
 
 public:
 
-	TWI();
+	TWI( U8 _slaveAddress=0, bool _enableGeneralCall=false );
 	~TWI();
 
-	void	SetFrequency( U32 _frequencyMHz, PRESCALER_VALUE _prescaler );
+	void	SetFrequency( U32 _frequencyMHz=400000U, PRESCALER_VALUE _prescaler=PRESCALE_1 );	// Default to 400KHz
+
+	// Gets the current status
+	STATUS	GetStatus() const;
 
 	// Master Transmitter
-	void	BeginTransmit( U8 _address );		// Begins master transmission to the target TWI slave af the provided address
+	void	BeginTransmit( U8 _address );			// Begins master transmission to the target TWI slave af the provided address
 //TODO	void	BeginReply( U8 _address );			// Begins slave transmission to the target TWI master af the provided address
-	void	Push( U8* _data, U8 _length );		// Feeds data bytes to the TWI (warning: this is a ring buffer so if _length exceeds the buffer length, existing data will get overwritten!)
+	void	Push( const U8* _data, U8 _length );	// Feeds data bytes to the TWI (warning: this is a ring buffer so if _length exceeds the buffer length, existing data will get overwritten!)
 
 	// Master Receiver
-	void	BeginReceive( U8 _address );		// Begins master reception from the target TWI slave af the provided address
-	U8		GetAvailableDataLength() const;		// Returns the length of available data
-	U8		Pull( U8* _data, U8 _length=0xFF );	// Pulls the available data. Leave _length=0xFF to pull ALL available data. Returns the amount of actually pulled data
+	void	BeginReceive( U8 _address );			// Begins master reception from the target TWI slave af the provided address
+	U8		GetAvailableDataLength() const;			// Returns the length of available data
+	U8		Pull( U8* _data, U8 _length=0xFF );		// Pulls the available data. Leave _length=0xFF to pull ALL available data. Returns the amount of actually pulled data
 
 public:
 	// Don't call this yourself! Let the interrupt vector call it...
@@ -67,3 +76,5 @@ private:
 	void	HandleST( U8 _status );	// Handles slave transmit mode
 	void	HandleSR( U8 _status );	// Handles slave receive mode
 };
+
+static volatile U32	gs_TWI_InterruptsCounter = 0;

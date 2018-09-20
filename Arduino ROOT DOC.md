@@ -15,6 +15,7 @@
 * **AVR**, the central micro-controller on the Arduino boards, made by Atmel. List of chips: http://www.atmel.com/products/microcontrollers/avr/megaAVR.aspx
 * **CDC**, Communication Device Class (https://en.wikipedia.org/wiki/USB_communications_device_class)
 * **SFR**, Special Function Registers. Allow access to special I/O registers. Check the "Memory Map" chapter below.
+* **ICSP**, In-Circuit Serial Programming. Apparently it's the fact of using an Arduino to program another micro-controller.
 * **ISP**, In-System Programmer. Apparently it's the fact of using an Arduino to program another micro-controller.
 * **I2C** (or I²C), "Inter-Integrated Circuit" is typically used for attaching lower-speed peripheral ICs to processors and microcontrollers in short-distance, intra-board communication (https://en.wikipedia.org/wiki/I%C2%B2C)
 * **MISO**, Master In Slave Out

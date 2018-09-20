@@ -45,6 +45,7 @@
     <ClInclude Include="Timers\Timer1.h">
       <Filter>Timers</Filter>
     </ClInclude>
+    <ClInclude Include="Helpers.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PulseTrain\PulseTrainASM.S">
