@@ -8,7 +8,7 @@ void setup2() {
 	MCP4725_Begin( twi, 0x60 );	// Device Code = 0x60 | {A2, A1,A0} as LSB.
 								// By default, A2 = 0, A1 = 0, A0 = 0.
 								// A0 can be dynamically chosen by the user to be GND(0) or VCC(1)
- 	MCP4725_SetValueEEPROM( twi, 2048 );	// Default is FULL!
+//	MCP4725_SetValueEEPROM( twi, 0 );	// Default is 0!
 }
 
 void loop() {
@@ -24,7 +24,7 @@ void loop() {
 // 
 // 	twi.Push( (const U8*) &value, 2 );
 
-//	MCP4725_SetValue( twi, value );
+	MCP4725_SetValue( twi, value );
 
 //SerialPrintf( "Pushed value %d\n", value );
 

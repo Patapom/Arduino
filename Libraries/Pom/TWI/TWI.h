@@ -9,6 +9,9 @@
 //	Leonardo		 2 (SDA),	 3 (SCL)
 //	Due				20 (SDA),	21 (SCL), SDA1, SCL1
 //
+// If you want to handle TWI interrupts on your own then you need to define this before including TWI.h:
+//	#define TWI_HANDLER_INSTALLED
+//
 class TWI {
 public:
 

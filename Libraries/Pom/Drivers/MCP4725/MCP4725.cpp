@@ -18,8 +18,8 @@ void	MCP4725_SetValueEEPROM( TWI& _twi, U16 _value ) {
 	_value &= 0x0FFF;
 	U8	bytes[3];
 	bytes[0] = 0x60;	// Write DAC + EEPROM
-//	bytes[0] = 0x60 | (BIT_PD0 << 4) | (BIT_PD1 << 5);	// Use this if PD0/PD1 are not 0
-	bytes[1] = _value >> 8;
-	bytes[2] = U8(_value);
+//	bytes[0] = 0x60 | (BIT_PD0 << 1) | (BIT_PD1 << 2);	// Use this if PD0/PD1 are not 0
+	bytes[1] = _value >> 4;
+	bytes[2] = U8( _value << 4);
 	_twi.Push( bytes, 3 );
 }

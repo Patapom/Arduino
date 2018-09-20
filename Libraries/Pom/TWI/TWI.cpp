@@ -1,9 +1,5 @@
 #include "../Pom.h"
 
-#ifndef INSTALL_TWI_HANDLER
-#define INSTALL_TWI_HANDLER	// Define this to install our own TWI interrupt handler
-#endif
-
 //////////////////////////////////////////////////////////////////////////
 // The Two-Wire Interface (TWI) is described in section 22 of the Atmel documentation.
 //
@@ -73,13 +69,11 @@
 //////////////////////////////////////////////////////////////////////////
 //
 // Install the TWI interrupt handler
-#ifdef INSTALL_TWI_HANDLER
-
-static TWI*	gs_TWI = NULL;
-ISR( TWI_vect ) {
-	gs_TWI->InterruptHandler();
-}
-
+#ifndef TWI_HANDLER_INSTALLED
+	static TWI*	gs_TWI = NULL;
+	ISR( TWI_vect ) {
+		gs_TWI->InterruptHandler();
+	}
 #endif
 
 TWI::TWI( U8 _slaveAddress, bool _enableGeneralCall )
@@ -88,7 +82,7 @@ TWI::TWI( U8 _slaveAddress, bool _enableGeneralCall )
 	, m_master( true )
 	, m_transmit( true )
 {
-	#ifdef INSTALL_TWI_HANDLER
+	#ifndef TWI_HANDLER_INSTALLED
 		gs_TWI = this;	// Set us as the only TWI instance
 	#endif
 	m_bufferIndex = 0;
@@ -148,7 +142,6 @@ void	TWI::BeginTransmit( U8 _address ) {
 	m_needsRestart = m_status != STATUS_WAITING;	// If already busy and the address or mode changed, we need to restart
 	sei();
 
-//SerialPrintf( "Pipo test int = %d - float = %f\nSecond line...\n", 1234, 3.1415926f );
 //SerialPrintf( "Address = 0x%x - Need Restart = %s\n", m_address, m_needsRestart ? "true" : "false" );
 
 }
@@ -253,15 +246,14 @@ void	TWI::InterruptHandler() {
 }
 
 //////////////////////////////////////////////////////////////////////////
-//U32	gs_TWI_InterruptsCounter = 0;
 void	TWI::HandleMT( U8 _status ) {    
 
-cli();
+// cli();
 //SerialPrintf( "Master Transmit - S = 0x%x\n", _status );
 
 	switch ( _status ) {
 	case 0x00:
-SerialPrintf( "BUS ERROR!\n" );
+// SerialPrintf( "BUS ERROR!\n" );
 		m_status = STATUS_ERROR;	// Bus error!
 		break;
 
@@ -270,11 +262,11 @@ SerialPrintf( "BUS ERROR!\n" );
 		m_needsRestart = false;
 		TWDR = (m_address << 1) | 0;	// Transmit address + Write flag
 		TWCR = CTRL_ACK;
-//SerialPrintf( "START - TWDR = 0x%x - TWCR = 0x%x\n", TWDR, TWCR );
+// SerialPrintf( "START - TWDR = 0x%x - TWCR = 0x%x\n", TWDR, TWCR );
 		break;
 
 	case 0x18: // SLA+W received.
-//SerialPrintf( "SLA+W + ACK - Starting transmission\n" );
+// SerialPrintf( "SLA+W + ACK - Starting transmission\n" );
 		m_status = STATUS_TRANSMITTING;
 		// Fallthrough to transmitting data
 
@@ -283,23 +275,22 @@ SerialPrintf( "BUS ERROR!\n" );
 			// Signal stop...
 			TWCR = CTRL_ACK | _BV(TWSTO);
 			m_status = STATUS_WAITING;
-//SerialPrintf( "EMITTING STOP!\n" );
+// SerialPrintf( "EMITTING STOP!\n" );
 			break;
 		}
 
 		// Attempt transmitting another byte
-//U8	d = m_ringBuffer[m_bufferIndex];
 		TWDR = m_ringBuffer[m_bufferIndex++];
 		m_bufferIndex &= m_bufferIndexMask;
 		m_dataLength--;
 		TWCR = CTRL_NACK;
- //SerialPrintf( "Emitting Data 0x%x i=%d m=0x%x l=%d- TWDR = 0x%x - TWCR = 0x%x\n", 0, m_bufferIndex, m_bufferIndexMask, m_dataLength, TWDR, TWCR );
+// SerialPrintf( "Emitting Data i=%d m=0x%x l=%d- TWDR = 0x%x - TWCR = 0x%x\n", m_bufferIndex, m_bufferIndexMask, m_dataLength, TWDR, TWCR );
 		break;
 }
 	case 0x20:	// SLA+W transmitted but NACK
 	case 0x30:	// Data transmitted but NACK
 		TWCR = CTRL_NACK | _BV(TWSTO);	// With the stop bit
-SerialPrintf( "SLA+W / DATA NACK!\n" );
+// SerialPrintf( "SLA+W / DATA NACK!\n" );
 	case 0x38:	// Master arbitration lost
 		m_status = STATUS_ERROR;
 		break;
@@ -308,13 +299,13 @@ SerialPrintf( "SLA+W / DATA NACK!\n" );
 	case 0x68:	// Arbitration lost in SLA+R/W as Master; own SLA+W has been received; ACK has been returned
 	case 0xB0:	// Arbitration lost in SLA+R/W as Master; own SLA+R has been received; ACK has been returned
 	case 0x78:	// Arbitration lost in SLA+R/W as Master; General call address has been received; ACK has been returned
-SerialPrintf( "ARBITRATION LOST!\n" );
+// SerialPrintf( "ARBITRATION LOST!\n" );
 		m_master = false;	// Now a slave to another master
 		m_status = STATUS_WAITING;
 		break;
 	}
 
-sei();
+// sei();
 
 }
 void	TWI::HandleMR( U8 _status ) {
