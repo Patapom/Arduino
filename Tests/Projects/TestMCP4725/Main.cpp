@@ -3,7 +3,7 @@
 TWI	twi;
 
 void setup2() {
-	twi.SetFrequency( 100000 );
+	twi.SetFrequency( 400000 );
 
 	MCP4725_Begin( twi, 0x60 );	// Device Code = 0x60 | {A2, A1,A0} as LSB.
 								// By default, A2 = 0, A1 = 0, A0 = 0.
@@ -12,9 +12,10 @@ void setup2() {
 }
 
 void loop() {
+
 	// Write a sine-wave in fast mode (i.e. only 2 bytes required)
 	static U32	counter = 0;
-	U16			value = (U16) (2047 * (1.0f + cos( (2*PI * counter++) / 512 )));
+	U16			value = (U16) (2047 * (1.0f + cos( (2*PI * counter++) / 16 )));
 
 //value = 4095;
 
@@ -28,5 +29,5 @@ void loop() {
 
 //SerialPrintf( "Pushed value %d\n", value );
 
-	delay( 10 );
+//	delay( 10 );
 }

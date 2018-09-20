@@ -2,6 +2,7 @@
 *.log
 *.suo
 Debug
+Release
 /ArduinoTutorials/Projects/Temperature/__vm
 /ArduinoTutorials/Projects/Speaker/__vm
 /ArduinoTutorials/Projects/IR Module/__vm
