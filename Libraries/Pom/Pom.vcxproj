@@ -75,20 +75,23 @@
     <ProjectCapability Include="VisualMicro" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BufferedRead.cpp" />
-    <ClCompile Include="CC1101\CC1101.cpp" />
+    <ClCompile Include="Drivers\CC1101\CC1101.cpp" />
+    <ClCompile Include="Drivers\MCP4725\MCP4725.cpp" />
+    <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="Math\Math.cpp" />
     <ClCompile Include="PulseTrain\PulseTrain.cpp" />
     <ClCompile Include="Timers\Timer1.cpp" />
+    <ClCompile Include="TWI\TWI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BufferedRead.h" />
-    <ClInclude Include="CC1101\CC1101.h" />
+    <ClInclude Include="Drivers\CC1101\CC1101.h" />
+    <ClInclude Include="Drivers\MCP4725\MCP4725.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="Math\Math.h" />
     <ClInclude Include="Pom.h" />
     <ClInclude Include="PulseTrain\PulseTrain.h" />
     <ClInclude Include="Timers\Timer1.h" />
+    <ClInclude Include="TWI\TWI.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>

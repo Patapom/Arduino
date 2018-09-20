@@ -1,5 +1,7 @@
 #include "Pom.h"
 
+//////////////////////////////////////////////////////////////////////////
+//
 U32	SerialPrintf( char *str, ... ) {
 	U32		count=0, j=0;
 	char	temp[ARDBUFFER+1];
@@ -49,4 +51,16 @@ U32	SerialPrintf( char *str, ... ) {
 	}
 
 	return count + 1;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+bool	BufferedRead( U8 _pin, int _expectedValue, U8 _duration, U8& _counter ) {
+	int	value = digitalRead( _pin );
+	if ( value == _expectedValue ) {
+		_counter++;		// Increment counter of expected values
+	} else {
+		_counter = 0;	// Reset as soon as we have a different value than what we want
+	}
+	return _counter >= _duration;	// We only return true if we have got the expected values for at least the specified duration
 }

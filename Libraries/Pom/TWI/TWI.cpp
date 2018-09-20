@@ -1,5 +1,4 @@
-#include "Pom/Pom.h"
-#include "TWI.h"
+#include "../Pom.h"
 
 #ifndef INSTALL_TWI_HANDLER
 #define INSTALL_TWI_HANDLER	// Define this to install our own TWI interrupt handler
@@ -260,8 +259,6 @@ void	TWI::HandleMT( U8 _status ) {
 cli();
 //SerialPrintf( "Master Transmit - S = 0x%x\n", _status );
 
-gs_TWI_InterruptsCounter++;	// DEBUG
-
 	switch ( _status ) {
 	case 0x00:
 SerialPrintf( "BUS ERROR!\n" );
@@ -296,7 +293,7 @@ SerialPrintf( "BUS ERROR!\n" );
 		m_bufferIndex &= m_bufferIndexMask;
 		m_dataLength--;
 		TWCR = CTRL_NACK;
- SerialPrintf( "Emitting Data 0x%x i=%d m=0x%x l=%d- TWDR = 0x%x - TWCR = 0x%x\n", 0, m_bufferIndex, m_bufferIndexMask, m_dataLength, TWDR, TWCR );
+ //SerialPrintf( "Emitting Data 0x%x i=%d m=0x%x l=%d- TWDR = 0x%x - TWCR = 0x%x\n", 0, m_bufferIndex, m_bufferIndexMask, m_dataLength, TWDR, TWCR );
 		break;
 }
 	case 0x20:	// SLA+W transmitted but NACK

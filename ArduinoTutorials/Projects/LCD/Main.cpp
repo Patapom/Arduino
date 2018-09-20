@@ -117,7 +117,7 @@ void loop() {
 //  	Serial.println( switchCounter );
 
 	// I made a "buffered read" function that only returns true if the state equals the expected value for a given amount of time
- 	bool	sw = bufferedRead( ROT_PIN_SWITCH, lastSwitch ? LOW : HIGH, 8, switchCounter );	// Expect inverse state
+ 	bool	sw = BufferedRead( ROT_PIN_SWITCH, lastSwitch ? LOW : HIGH, 8, switchCounter );	// Expect inverse state
  	if ( sw ) {
 		if ( lastSwitch ) {
 			// Going from HIGH to LOW => Clicked!

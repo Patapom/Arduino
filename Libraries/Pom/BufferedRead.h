@@ -1,1 +1,0 @@
-bool	bufferedRead( U8 _pin, int _expectedValue, U8 _duration, U8& _counter );

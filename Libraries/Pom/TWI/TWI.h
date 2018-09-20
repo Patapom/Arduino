@@ -76,5 +76,3 @@ private:
 	void	HandleST( U8 _status );	// Handles slave transmit mode
 	void	HandleSR( U8 _status );	// Handles slave receive mode
 };
-
-static volatile U32	gs_TWI_InterruptsCounter = 0;

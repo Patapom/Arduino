@@ -4,22 +4,28 @@
     <Filter Include="Pulse Train">
       <UniqueIdentifier>{b1cb99d3-95a0-41f0-b9e5-2f84ef2fb814}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CC1101">
-      <UniqueIdentifier>{fb85a111-7b5c-4edb-add4-7f57d694a14f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Math">
       <UniqueIdentifier>{f2a46562-351f-4686-807b-16f1d06f371d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Timers">
       <UniqueIdentifier>{b1603d50-605b-4763-abde-4ea223d9e109}</UniqueIdentifier>
     </Filter>
+    <Filter Include="TWI">
+      <UniqueIdentifier>{6c145e51-04eb-4929-9d11-b3f9b09a249f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Drivers">
+      <UniqueIdentifier>{24edf572-92e0-4f98-92e4-202e2db3e741}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Drivers\CC1101">
+      <UniqueIdentifier>{fb85a111-7b5c-4edb-add4-7f57d694a14f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Drivers\MCP4725">
+      <UniqueIdentifier>{c40a1786-c236-459a-b949-0e450273e35a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PulseTrain\PulseTrain.cpp">
       <Filter>Pulse Train</Filter>
-    </ClCompile>
-    <ClCompile Include="CC1101\CC1101.cpp">
-      <Filter>CC1101</Filter>
     </ClCompile>
     <ClCompile Include="Math\Math.cpp">
       <Filter>Math</Filter>
@@ -27,25 +33,39 @@
     <ClCompile Include="Timers\Timer1.cpp">
       <Filter>Timers</Filter>
     </ClCompile>
-    <ClCompile Include="BufferedRead.cpp" />
+    <ClCompile Include="Helpers.cpp" />
+    <ClCompile Include="Drivers\MCP4725\MCP4725.cpp">
+      <Filter>Drivers\MCP4725</Filter>
+    </ClCompile>
+    <ClCompile Include="Drivers\CC1101\CC1101.cpp">
+      <Filter>Drivers\CC1101</Filter>
+    </ClCompile>
+    <ClCompile Include="TWI\TWI.cpp">
+      <Filter>TWI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PulseTrain\PulseTrain.h">
       <Filter>Pulse Train</Filter>
-    </ClInclude>
-    <ClInclude Include="CC1101\CC1101.h">
-      <Filter>CC1101</Filter>
     </ClInclude>
     <ClInclude Include="Pom.h" />
     <ClInclude Include="Math\Math.h">
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Types.h" />
-    <ClInclude Include="BufferedRead.h" />
     <ClInclude Include="Timers\Timer1.h">
       <Filter>Timers</Filter>
     </ClInclude>
     <ClInclude Include="Helpers.h" />
+    <ClInclude Include="Drivers\MCP4725\MCP4725.h">
+      <Filter>Drivers\MCP4725</Filter>
+    </ClInclude>
+    <ClInclude Include="Drivers\CC1101\CC1101.h">
+      <Filter>Drivers\CC1101</Filter>
+    </ClInclude>
+    <ClInclude Include="TWI\TWI.h">
+      <Filter>TWI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="PulseTrain\PulseTrainASM.S">
