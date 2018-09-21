@@ -14,7 +14,13 @@ void setup2() {
 
 void loop() {
 	static U8	counter = 0;
-	PORTD = counter+=16;
+//	PORTD = counter++;
+
+//	PORTD = U8( 127 + 127 * sinf( counter+=8 ) );
+
+	PORTD = 0;
+
+//	counter++;
 //	delay( 10 );
-	delayMicroseconds( 10 );
+//	delayMicroseconds( 10 );
 }
