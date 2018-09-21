@@ -1,5 +1,20 @@
 // Timer1 helper class
 // Description of timer 1 functionalities can be found in Section 16 of the ATMEL datasheet
+// The Timer clock runs at F_CPU = 16MHz
+//
+// Example of use:
+//	{
+//		cli();	// Clear interrupt flag
+//		Timer1::Init( Timer1::Clk1, Timer1::CTC_OCR1A );	// Clear Timer and Compare Match => Will interrupt when counter == OCR1A
+//		Timer1::SetOutputCompareA( 180 );					// The value corresponds to ~44.1KHz
+//		Timer1::SetOutputCompareA_CTCFrequency( 44.1f );	// Alternatively, you can use this helper to set the interrupt frequency directly
+//		Timer1::EnableInterrupts( true );					// Enable interrupts
+//		sei();	// Set interrupt flag
+//	}
+//
+//	ISR( TIMER1_COMPA_vect ) {
+//		(...) code for handling the interrupt
+//	}
 //
 class Timer1 {
 
@@ -55,18 +70,6 @@ public:
 		, bool _forceOutputCompareChannelB=false
 	);
 
-	// Call this to enable interrupts
-	// Example:
-	//	{
-	//		cli();	// Clear interrupt flag
-	//		Timer1::EnableInterrupts( true );	// Enable interrupts when timer reaches value set in OCR1A
-	//		sei();	// Set interrupt flag
-	//	}
-	//
-	//	ISR( TIMER1_COMPA_vect ) {
-	//		(...) code for handling the interrupt
-	//	}
-	//
 	static void	EnableInterrupts(
 		  bool _enableOutputCompareA = false
 		, bool _enableOutputCompareB = false
@@ -78,6 +81,7 @@ public:
 	static void	SetCounter( U16 _value )		{ TCNT1 = _value; }
 	static U16	GetOutputCompareA()				{ return OCR1A; }
 	static void	SetOutputCompareA( U16 _value )	{ OCR1A = _value; }
+	static void	SetOutputCompareA_CTCFrequency( float _frequency_KHz, ClockSelect _prescalerValue=Clk1 );
 	static U16	GetOutputCompareB()				{ return OCR1B; }
 	static void	SetOutputCompareB( U16 _value )	{ OCR1B = _value; }
 	static U16	GetInputCapture()				{ return ICR1; }
