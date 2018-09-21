@@ -10,6 +10,7 @@
 U8	sineWave[256];
 
 #if 1
+
 //////////////////////////////////////////////////////////////////////////
 // User timer1 for generation
 //
@@ -32,9 +33,12 @@ void setup2() {
 ISR( TIMER1_COMPA_vect ) {
 	static U8	counter = 0;
 	PORTD = sineWave[counter++];
+//	PORTD = counter++;
 }
 
 void loop() {
+#if 0
+	// Update the frequency
 	static int	c = 0;
 	static int	inc = 1;
 
@@ -47,8 +51,8 @@ void loop() {
 		inc = 1;
 	else if ( c == 40 )
 		inc =-1;
+#endif
 }
-
 
 #else
 //////////////////////////////////////////////////////////////////////////

@@ -46,11 +46,17 @@ void	Timer1::EnableInterrupts(
 }
 
 // Section 16.9.2 Clear Timer on Compare Match (CTC) Mode
-// Gives the equation for the timer frequency as a function of the value set in OCR1A:
+// Gives the *WRONG* equation for the timer frequency as a function of the value set in OCR1A:
 //
-//		f = F_CPU / (2*N*(1+OCR1A))
+//		f = F_CPU / (2*N*(1+OCR1A))		where N is the pre-scaler divisor value
 //
-// Where N is the pre-scaler divisor value
+// After some tests, it turns out the equation is wrong:
+//	• Either there is no factor 2 involved?
+//	• Or the clock is twice the CPU frequency?
+//
+// Either way, the actual equation is:
+//
+//		f = F_CPU / (N*(1+OCR1A))		where N is the pre-scaler divisor value
 //
 void	Timer1::SetOutputCompareA_CTCFrequency( float _frequency_KHz, ClockSelect _prescalerValue ) {
 	float	N = 1.0f;
@@ -61,7 +67,7 @@ void	Timer1::SetOutputCompareA_CTCFrequency( float _frequency_KHz, ClockSelect _
 		case Clk1024: N = 1024.0f; break;
 	}
 
-	float	fValue = (F_CPU/2000.0f) / _frequency_KHz / N - 1;
+	float	fValue = (F_CPU/1000.0f) / _frequency_KHz / N - 1;
 	U16		value = U16( floorf( fValue ) );	// Round up
 	SetOutputCompareA( value );
 
