@@ -20,7 +20,7 @@ void setup2() {
 	for ( int i=0; i < 8; i++ )
 		pinMode( i, OUTPUT );
 	for ( int i=0; i < 256; i++ )
-		sineWave[i] = U8( 127 + 127 * sinf( 2.0f * PI * i / 255 ) );
+		sineWave[i] = U8( 127 + 127 * sinf( 2.0f * PI * 8*i / 255 ) );
 
 
 	Timer1::Init( Timer1::Clk1, Timer1::CTC_OCR1A );	// Clear Timer and Compare Match => Will interrupt when counter == OCR1A
@@ -30,14 +30,21 @@ void setup2() {
 	sei();
 }
 
+static U8	counter = 0;
 ISR( TIMER1_COMPA_vect ) {
-	static U8	counter = 0;
 	PORTD = sineWave[counter++];
 //	PORTD = counter++;
 }
 
 void loop() {
-#if 0
+#if 1
+	// Update sinewave from serial port data
+// 	static U8	serialCount = 0;
+// 	Serial.readBytes( &sineWave[serialCount++], 1 );
+
+	Serial.readBytes( &sineWave[counter], 1 );
+
+#elif 1
 	// Update the frequency
 	static int	c = 0;
 	static int	inc = 1;
