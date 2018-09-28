@@ -6,14 +6,19 @@ using System.Threading.Tasks;
 
 using System.Windows.Forms;
 
+using System.IO;
 using System.IO.Ports;
 
 namespace TestCOM {
 	class Program {
 
+		static WAVReader	WAV = null;
+
 		const double	F = 32.0;	// Channel restitution frequency (KHz)
 
 		static void Main( string[] args ) {
+
+			WAV = new WAVReader( new FileInfo( "../../Test.wav" ) );
 
 			SerialPort	port = null;
 			try {
