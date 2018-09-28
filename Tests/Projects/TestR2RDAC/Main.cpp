@@ -84,7 +84,7 @@ ISR( TIMER1_COMPA_vect ) {
 }
 
 void loop() {
-#if 0
+#if 1
 	// Update sinewave from serial port data
 // 	static U8	serialCount = 0;
 // 	Serial.readBytes( &sineWave[serialCount++], 1 );
@@ -93,6 +93,7 @@ void loop() {
 //		return;
 
 	Serial.readBytes( sineWaveL, 256 );
+	Serial.readBytes( sineWaveR, 256 );
 //	SerialPrintf( "Read %d bytes - 0x%x\n", readBytes, sineWave[0] );
 
 #elif 0
