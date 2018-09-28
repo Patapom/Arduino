@@ -8,8 +8,10 @@
 #include "Pom/Pom.h"
 
 // Pins to control the TLC7528 DAC
-#define PIN_DACB	8		// !DACA/DACB
-#define PIN_WR		9		// !WR
+#define PIN_DACB	8			// !DACA/DACB
+#define PIN_WR		9			// !WR
+
+static const float	F = 32.0f;	// Channel restitution frequency (KHz)
 
 U8	sineWaveL[256];
 U8	sineWaveR[256];
@@ -29,8 +31,8 @@ void setup2() {
 	pinMode( PIN_DACB, OUTPUT );
 	pinMode( PIN_WR, OUTPUT );
 
+//	float	f = 4*0.440f;		// Frequency (in KHz)
 	float	f = 1.0f;		// Frequency (in KHz)
-	float	F = 32.0f;		// Channel restitution frequency (KHz)
 
 	#if 1
 		float	t = 1.0f / f;				// Signal period (in ms)
@@ -98,14 +100,22 @@ void loop() {
 	static int	c = 0;
 	static int	inc = 1;
 
-	float	f = 2.0f * PI * c / 255;
-	for ( int i=0; i < 256; i++ )
-		sineWaveL[i] = U8( 127 + 127 * sinf( f * i ) );
+	float	f = lerp( 0.1f, 2.0f, c / 127.0f );	// Interpolate between 100Hz and 2KHz
+	float	v = 2.0f * PI * f / F;
+ 	for ( int i=0; i < 256; i++ ) {
+ 		sineWaveL[i] = U8( 127 + 127 * cosf( v * i ) );
+ 		sineWaveR[i] = U8( 127 + 127 * cosf( v * i ) );
+ 	}
+// 	counter = 0;
+// 	sineWaveL[counter] = U8( 127 + 127 * cosf( v * counter ) );
+// 	sineWaveR[counter] = U8( 127 + 127 * cosf( v * counter ) );
+// 	sineWaveL[counter+1] = U8( 127 + 127 * cosf( v * counter + v ) );
+// 	sineWaveR[counter+1] = U8( 127 + 127 * cosf( v * counter + v ) );
 
 	c += inc;
 	if ( c == 0 )
 		inc = 1;
-	else if ( c == 40 )
+	else if ( c > 127 )
 		inc =-1;
 #endif
 }

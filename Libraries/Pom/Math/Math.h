@@ -1,6 +1,9 @@
 //
 float	log2( float v );	// = ln(x)/ln(2)
 
+float	lerp( float a, float b, float t );
+float	smoothstep( float a, float b, float t );
+
 S32		clamp( S32 v, S32 _min, S32 _max );
 float	clamp( float v, float _min, float _max );
 

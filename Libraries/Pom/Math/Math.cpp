@@ -2,6 +2,14 @@
 
 float	log2( float v ) { return 1.4426950408889634073599246810019f * log( v ); }	// = ln(x)/ln(2)
 
+float	lerp( float a, float b, float t ) {
+	return a + (b-a) * t;
+}
+float	smoothstep( float a, float b, float t ) {
+	b -= a;
+	return a + t * t * (3.0f - 2.0f * t) * b;
+}
+
 S32		clamp( S32 v, S32 _min, S32 _max )			{ return max( _min, min( _max, v ) ); }
 float	clamp( float v, float _min, float _max )	{ return max( _min, min( _max, v ) ); }
 
