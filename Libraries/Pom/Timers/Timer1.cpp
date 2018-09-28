@@ -26,6 +26,8 @@ void	Timer1::Init(
 	TCCR1C  = (_forceOutputCompareChannelA ? _BV(FOC1A) : 0)
 			| (_forceOutputCompareChannelB ? _BV(FOC1B) : 0);
 
+	TCNT1 = 0;
+
 // SerialPrintf( "TCCR1A = 0x%x\n", TCCR1A );
 // SerialPrintf( "TCCR1B = 0x%x\n", TCCR1B );
 // SerialPrintf( "TCCR1C = 0x%x\n", TCCR1C );
