@@ -31,26 +31,117 @@ namespace TestCOM {
 				port = new SerialPort( portName, 115200 );
 				port.Open();
 
-				// Pre-read the entire WAV file
-				WAV.PreReadAll_Stereo8Bits();
-
-// 				byte	b = (byte)myserialPort.ReadByte(); ///read a byte 
-// 				char	c = (char)myserialPort.ReadChar(); // read a char 
-// 				string	line = (string)myserialPort.ReadLine(); //read a whole line 
-// 				string	all = (string)myserialPort.ReadExisting(); //read everythin in the buffer 
-
-				byte[]	sineWaveL = new byte[256];
-				byte[]	sineWaveR = new byte[256];
-
-				double	f = 1.0;	// 1KHz
-				double	v = 2.0f * Math.PI * f / F;
-				for ( int i=0; i < 256; i++ ) {
-					sineWaveL[i] = (byte) (127 + 127 * Math.Sin( v * i ));
-					sineWaveR[i] = (byte) (127 + 127 * Math.Sin( v * i ));
-//					sineWave[i] = 64;
-				}
-
 				#if true
+					//////////////////////////////////////////////////////////////////////////
+					// Mono 8-Bits @ 8KHz
+					//
+					// We need to send regular audio packets.
+					// We decided an audio packet is:
+					//	1 byte ID = 0xAB
+					//	3 bytes timestamp (time unit is a sample)
+					//	32 bytes audio payload
+					//	-------------------------
+					//	36 bytes total
+					//
+					// We target a frequency of 8KHz, we need to send 32 samples of 8-bits mono audio data
+					//	so the actual frequency is 8000 / 32 = 250 packets per second or 250 * 36 = 9000 Bps or 72000 bps
+					//
+					// In any case, we need to get ready to transfer packets 250 times per second
+					//
+
+					// Pre-read the entire WAV file
+					WAV.PreReadAll_Mono8Bits( 8000 );
+
+					Stopwatch	watch = new Stopwatch();
+					double		frequency = 1.0 / Stopwatch.Frequency;
+					long		nextUpload_ticks = 0;
+					double		seconds = 0;
+					long		ticks = 0;
+
+					uint		sampleIndex = 0;
+					uint		timeStamp = 0;
+					byte[]		audioPacket = new byte[36];
+								audioPacket[0] = 0xAB;	// Packet ID
+
+uint[]		DEBUG_samplesIndices = new uint[256];
+uint[]		DEBUG_timeStamps = new uint[256];
+byte		DEBUG_counter = 0;
+
+					byte[]		responseBuffer = new byte[256];
+					uint		nextDebugSecond = 0;
+
+					watch.Start();
+					while ( true ) {
+// 						if ( Control.ModifierKeys != Keys.None )
+// 							break;
+
+						ticks = watch.ElapsedTicks;
+						if ( ticks < nextUpload_ticks )
+							continue;	// Wait for next upload
+
+						// Use the current time to estimate sample index
+						seconds = ticks * frequency;
+						sampleIndex = (uint) (seconds * 8000);
+DEBUG_samplesIndices[DEBUG_counter] = sampleIndex;
+
+						// Update timestamp
+						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets
+DEBUG_timeStamps[DEBUG_counter] = timeStamp;
+
+						audioPacket[3] = (byte) timeStamp;	timeStamp >>= 8;
+						audioPacket[2] = (byte) timeStamp;	timeStamp >>= 8;
+						audioPacket[1] = (byte) timeStamp;
+
+DEBUG_counter++;
+
+						// Fetch payload
+						WAV.FetchData( sampleIndex, audioPacket, 3, 32 );
+
+						// Write packet
+						port.Write( audioPacket, 0, 36 );
+
+						// Compute time for next upload
+						nextUpload_ticks = (long) Math.Floor( (seconds + 1.0 / 250.0) / frequency );	// We need a 250 packets/second frequency to reach 8KHz
+
+
+
+//////////////////////////////////////////////////////////////////////////
+int		count = port.BytesToRead;
+if ( count > 0 ) {
+	// Read debug values sent from Arduino
+	count = Math.Min( 256, count );
+	port.Read( responseBuffer, 0, count );
+	if ( seconds > nextDebugSecond ) {
+		// Allow one debug a second to avoid losing time formatting and outputtig strings
+		string	A = "0x";
+		for ( int i=count-1; i >= 0; i-- )
+			A += responseBuffer[i].ToString( "X2" );
+
+		Console.WriteLine( A );
+		nextDebugSecond++;
+	}
+}
+					}
+
+
+				#elif true
+					//////////////////////////////////////////////////////////////////////////
+					// Stereo 8-Bits at ??
+					//
+					// Pre-read the entire WAV file
+//					WAV.PreReadAll_Stereo8Bits();
+TODO! Laissé en plan!
+					byte[]	sineWaveL = new byte[256];
+					byte[]	sineWaveR = new byte[256];
+
+					double	f = 1.0;	// 1KHz
+					double	v = 2.0f * Math.PI * f / F;
+					for ( int i=0; i < 256; i++ ) {
+						sineWaveL[i] = (byte) (127 + 127 * Math.Sin( v * i ));
+						sineWaveR[i] = (byte) (127 + 127 * Math.Sin( v * i ));
+	//					sineWave[i] = 64;
+					}
+
 					Stopwatch	watch = new Stopwatch();
 					double		frequency = 1.0 / Stopwatch.Frequency;
 // 					long		lastUpload = 0;

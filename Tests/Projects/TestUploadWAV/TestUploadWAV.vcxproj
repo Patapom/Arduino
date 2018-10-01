@@ -116,7 +116,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainMono8KHz.cpp" />
+    <ClCompile Include="MainStereo8KHz.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.TestUploadWAV.vsarduino.h" />
@@ -126,7 +127,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties arduino.upload.port="COM3" />
+      <UserProperties arduino.upload.port="COM3" VM_ADDITIONAL_PREPROC="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

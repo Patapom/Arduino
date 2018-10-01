@@ -1,12 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <None Include="TestR2RDAC.ino" />
+    <None Include="TestUploadWAV.ino" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp" />
+    <ClInclude Include="__vm\.TestUploadWAV.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="__vm\.TestR2RDAC.vsarduino.h" />
+    <ClCompile Include="MainMono8KHz.cpp" />
+    <ClCompile Include="MainStereo8KHz.cpp" />
   </ItemGroup>
 </Project>

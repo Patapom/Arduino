@@ -1,3 +1,5 @@
+#if 0
+
 //////////////////////////////////////////////////////////////////////////
 // Follow-up from the DAC test: upload a WAV sample to the Arduino via the serial port
 // From Amanda Ghassaei's project (https://www.instructables.com/id/Stereo-Audio-with-Arduino/)
@@ -53,7 +55,7 @@ void setup2() {
 	sei();
 }
 
-static U8	counter = 0;
+static U8	readIndex = 0;
 static bool	channelSelect = false;
 ISR( TIMER1_COMPA_vect ) {
 //	digitalWrite( PIN_WR, HIGH );	// Hold write
@@ -64,12 +66,12 @@ ISR( TIMER1_COMPA_vect ) {
 		// Output left channel
 //		digitalWrite( PIN_DACB, LOW );
 		PORTB &= ~1;
-		PORTD = sineWaveL[counter];
+		PORTD = sineWaveL[readIndex];
 	} else {
 		// Output right channel
 //		digitalWrite( PIN_DACB, HIGH );
 		PORTB |= 1;
-		PORTD = sineWaveR[counter++];
+		PORTD = sineWaveR[readIndex++];
 	}
 
 // channelSelect = !channelSelect;
@@ -141,3 +143,5 @@ void loop() {
 }
 
 #endif
+
+#endif	// MAIN_STEREO_8BITS

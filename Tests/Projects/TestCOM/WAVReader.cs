@@ -51,6 +51,27 @@ namespace TestCOM {
 			m_dataStartOffset = (ulong) m_stream.Position;
 		}
 
+		/// <summary>
+		/// Fetch data from a mono buffer
+		/// </summary>
+		/// <param name="_sampleIndex"></param>
+		/// <param name="_buffer"></param>
+		/// <param name="_count"></param>
+		public void		FetchData( uint _sampleIndex, byte[] _buffer, uint _index, uint _count ) {
+			for ( uint i=_index; _count > 0; _count--, i++ ) {
+				_sampleIndex %= m_samplesCount;
+				_buffer[i] = m_data[_sampleIndex];
+				_sampleIndex++;
+			}
+		}
+
+		/// <summary>
+		/// Fetch data from a stereo buffer
+		/// </summary>
+		/// <param name="_seconds"></param>
+		/// <param name="_left"></param>
+		/// <param name="_right"></param>
+		/// <param name="_count"></param>
 		public void		FetchData( double _seconds, byte[] _left, byte[] _right, uint _count ) {
 			long	sampleIndex = (long) (_seconds * m_frequencyHz);
 			sampleIndex %= m_samplesCount;
@@ -59,6 +80,47 @@ namespace TestCOM {
 				_right[i] = m_data[2*sampleIndex+1];
 				sampleIndex++;
 				sampleIndex %= m_samplesCount;
+			}
+		}
+
+		/// <summary>
+		/// Pre-reads the entire WAV file into a stereo 8-bits format
+		/// </summary>
+		/// <param name="_frequencyKHz">Frequency of target buffer, in KHz</param>
+		public void	PreReadAll_Mono8Bits( float _frequencyKHz ) {
+			uint	bytesPerSample = (uint) m_bitsPerSample >> 3;
+
+			uint	sourceSamplesCount = m_dataSize / m_bytesPerBlock;
+
+			m_samplesCount = (uint) Math.Ceiling( sourceSamplesCount * _frequencyKHz / m_frequencyHz );
+			m_data = new byte[m_samplesCount];	// We expect 8-bits mono
+
+			byte[]	sourceData = new byte[m_dataSize];
+			m_reader.Read( sourceData, 0, (int) m_dataSize );
+
+			if ( bytesPerSample == 1 ) {
+				// 8-bits
+				for ( uint targetSampleIndex=0; targetSampleIndex < m_samplesCount; targetSampleIndex++ ) {
+					uint	sourceSampleIndex = sourceSamplesCount * targetSampleIndex / m_samplesCount;
+					uint	sourceSampleOffset = m_bytesPerBlock * sourceSampleIndex;
+					m_data[targetSampleIndex] = sourceData[sourceSampleOffset];		// Grab left channel
+				}
+			} else {
+				// 16-bits
+				long	V;
+				byte	v;
+				for ( uint targetSampleIndex=0; targetSampleIndex < m_samplesCount; targetSampleIndex++ ) {
+					uint	sourceSampleIndex = sourceSamplesCount * targetSampleIndex / m_samplesCount;
+					uint	sourceSampleOffset = m_bytesPerBlock * sourceSampleIndex;
+
+					// 16-bit WAVs are signed
+					V = (short) ((sourceData[sourceSampleOffset+1] << 8) | sourceData[sourceSampleOffset+0]);	// Grab left channel
+					V += 32768;
+					V >>= 8;
+					v = (byte) V;
+
+					m_data[targetSampleIndex] = v;
+				}
 			}
 		}
 
