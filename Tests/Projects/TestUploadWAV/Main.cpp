@@ -1,10 +1,8 @@
 //////////////////////////////////////////////////////////////////////////
-// R-2R Resistor Ladder DAC Test, also a test for the TLC7528 DAC
-// From Amanda Ghassaei's project (https://www.instructables.com/id/Arduino-Audio-Output/)
+// Follow-up from the DAC test: upload a WAV sample to the Arduino via the serial port
+// From Amanda Ghassaei's project (https://www.instructables.com/id/Stereo-Audio-with-Arduino/)
 //////////////////////////////////////////////////////////////////////////
 //
-// Check noise reduction LC circuit from section 24.6.1 when plugging something into an analog input
-
 #include "Pom/Pom.h"
 
 // Pins to control the TLC7528 DAC
@@ -84,28 +82,44 @@ ISR( TIMER1_COMPA_vect ) {
 }
 
 void loop() {
-	#if 0
-		// Update the frequency
-		static int	c = 0;
-		static int	inc = 1;
+#if 1
+	// Update sinewave from serial port data
+// 	static U8	serialCount = 0;
+// 	Serial.readBytes( &sineWave[serialCount++], 1 );
 
-		float	f = lerp( 0.1f, 2.0f, c / 127.0f );	// Interpolate between 100Hz and 2KHz
-		float	v = 2.0f * PI * f / F;
- 		for ( int i=0; i < 256; i++ ) {
- 			sineWaveL[i] = U8( 127 + 127 * cosf( v * i ) );
- 			sineWaveR[i] = U8( 127 + 127 * cosf( v * i ) );
- 		}
+//	if ( !Serial.available() )
+//		return;
 
-		c += inc;
-		if ( c == 0 )
-			inc = 1;
-		else if ( c > 127 )
-			inc =-1;
-	#endif
+	Serial.readBytes( sineWaveL, 256 );
+	Serial.readBytes( sineWaveR, 256 );
+//	SerialPrintf( "Read %d bytes - 0x%x\n", readBytes, sineWave[0] );
+
+#elif 0
+	// Update the frequency
+	static int	c = 0;
+	static int	inc = 1;
+
+	float	f = lerp( 0.1f, 2.0f, c / 127.0f );	// Interpolate between 100Hz and 2KHz
+	float	v = 2.0f * PI * f / F;
+ 	for ( int i=0; i < 256; i++ ) {
+ 		sineWaveL[i] = U8( 127 + 127 * cosf( v * i ) );
+ 		sineWaveR[i] = U8( 127 + 127 * cosf( v * i ) );
+ 	}
+// 	counter = 0;
+// 	sineWaveL[counter] = U8( 127 + 127 * cosf( v * counter ) );
+// 	sineWaveR[counter] = U8( 127 + 127 * cosf( v * counter ) );
+// 	sineWaveL[counter+1] = U8( 127 + 127 * cosf( v * counter + v ) );
+// 	sineWaveR[counter+1] = U8( 127 + 127 * cosf( v * counter + v ) );
+
+	c += inc;
+	if ( c == 0 )
+		inc = 1;
+	else if ( c > 127 )
+		inc =-1;
+#endif
 }
 
 #else
-
 //////////////////////////////////////////////////////////////////////////
 // Use main loop for generation
 void setup2() {

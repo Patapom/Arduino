@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 using System.Windows.Forms;
 
@@ -14,7 +15,7 @@ namespace TestCOM {
 
 		static WAVReader	WAV = null;
 
-		const double	F = 32.0;	// Channel restitution frequency (KHz)
+		const double		F = 32.0;	// Channel restitution frequency (KHz)
 
 		static void Main( string[] args ) {
 
@@ -29,6 +30,9 @@ namespace TestCOM {
 
 				port = new SerialPort( portName, 115200 );
 				port.Open();
+
+				// Pre-read the entire WAV file
+				WAV.PreReadAll_Stereo8Bits();
 
 // 				byte	b = (byte)myserialPort.ReadByte(); ///read a byte 
 // 				char	c = (char)myserialPort.ReadChar(); // read a char 
@@ -46,33 +50,61 @@ namespace TestCOM {
 //					sineWave[i] = 64;
 				}
 
+				#if true
+					Stopwatch	watch = new Stopwatch();
+					double		frequency = 1.0 / Stopwatch.Frequency;
+// 					long		lastUpload = 0;
+					long		nextUpload_ticks = 0;
+					double		seconds = 0;
+					long		ticks = 0;
+
+					watch.Start();
+					while ( true ) {
+						if ( Control.ModifierKeys != Keys.None )
+							break;
+
+						ticks = watch.ElapsedTicks;
+						if ( ticks < nextUpload_ticks )
+							continue;	// Wait for next upload
+
+						nextUpload_ticks += 10;
+						seconds = ticks * frequency;
+
+						WAV.FetchData( seconds, sineWaveL, sineWaveR, 256 );
+
+						port.Write( sineWaveL, 0, 256 );
+						port.Write( sineWaveR, 0, 256 );
+					}
+				#else
+
 				byte		counter = 0;
 				DateTime	startTime = DateTime.Now;
+
 				while ( true ) {
+//						port.Write( sineWave, counter, 1 );
+// 						counter++;
 
-//					port.Write( sineWave, counter, 1 );
-// 					counter++;
+						double	seconds = (DateTime.Now - startTime).TotalSeconds;
+						double	t = 0.5 * (1.0 + Math.Sin( 2 * Math.PI * seconds / 10.0 ));
 
-					double	seconds = (DateTime.Now - startTime).TotalSeconds;
-					double	t = 0.5 * (1.0 + Math.Sin( 2 * Math.PI * seconds / 10.0 ));
+						double	fl = 0.1f + 1.9f * t;		// Interpolate between 100Hz and 2KHz
+						double	fr = 0.1f + 1.9f * (1.0-t);	// Interpolate between 100Hz and 2KHz
+						double	vl = 2.0f * Math.PI * fl / F;
+						double	vr = 2.0f * Math.PI * fr / F;
 
-					double	fl = 0.1f + 1.9f * t;		// Interpolate between 100Hz and 2KHz
-					double	fr = 0.1f + 1.9f * (1.0-t);	// Interpolate between 100Hz and 2KHz
-					double	vl = 2.0f * Math.PI * fl / F;
-					double	vr = 2.0f * Math.PI * fr / F;
+						for ( int i=0; i < 256; i++ ) {
+							sineWaveL[i] = (byte) (127 + 127 * Math.Sin( vl * i ));
+							sineWaveR[i] = (byte) (127 + 127 * Math.Sin( vr * i ));
+						}
+						port.Write( sineWaveL, counter, 256 );
+						port.Write( sineWaveR, counter, 256 );
 
-					for ( int i=0; i < 256; i++ ) {
-						sineWaveL[i] = (byte) (127 + 127 * Math.Sin( vl * i ));
-						sineWaveR[i] = (byte) (127 + 127 * Math.Sin( vr * i ));
+//						System.Threading.Thread.Sleep( 1 );
+
+						if ( Control.ModifierKeys != Keys.None )
+							break;
 					}
-					port.Write( sineWaveL, counter, 256 );
-					port.Write( sineWaveR, counter, 256 );
-
-//					System.Threading.Thread.Sleep( 1 );
-
-					if ( Control.ModifierKeys != Keys.None )
-						break;
-				}
+				#endif
 
 			} catch ( Exception _e ) {
 				MessageBox.Show( "An error occurred:\r\n" + _e.Message, "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error );

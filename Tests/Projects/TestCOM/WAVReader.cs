@@ -8,11 +8,7 @@ namespace TestCOM {
 		FileStream		m_stream;
 		BinaryReader	m_reader;
 
-		public enum		CHANNELS {
-			MONO,
-			STEREO
-		}
-		public CHANNELS		m_channels;
+		public ushort		m_channelsCount;
 		public uint			m_frequencyHz;
 		public uint			m_bytesPerSecond;	// Frequency * Channels count * bits per sample / 8
 		public ushort		m_bytesPerBlock;	// Channels count * bits per sample / 8
@@ -22,6 +18,10 @@ namespace TestCOM {
 		public uint			m_dataSize;			// Data size
 
 		public uint			m_position;			// Position within WAV data
+
+		// Pre-read data
+		public uint			m_samplesCount;
+		public byte[]		m_data;
 
 		public	WAVReader( FileInfo _fileName ) {
 			m_stream = _fileName.OpenRead();
@@ -51,6 +51,70 @@ namespace TestCOM {
 			m_dataStartOffset = (ulong) m_stream.Position;
 		}
 
+		public void		FetchData( double _seconds, byte[] _left, byte[] _right, uint _count ) {
+			long	sampleIndex = (long) (_seconds * m_frequencyHz);
+			sampleIndex %= m_samplesCount;
+			for ( uint i=0; _count > 0; _count--, i++ ) {
+				_left[i] = m_data[2*sampleIndex];
+				_right[i] = m_data[2*sampleIndex+1];
+				sampleIndex++;
+				sampleIndex %= m_samplesCount;
+			}
+		}
+
+		/// <summary>
+		/// Pre-reads the entire WAV file into a stereo 8-bits format
+		/// </summary>
+		public void	PreReadAll_Stereo8Bits() {
+			uint	bytesPerSample = (uint) m_bitsPerSample >> 3;
+
+			m_samplesCount = m_dataSize / m_bytesPerBlock;
+
+//m_samplesCount = 4096;
+
+			m_data = new byte[2*m_samplesCount];	// We expected 8-bits stereo
+
+			uint	dataIndex = 0;
+			if ( bytesPerSample == 1 ) {
+				// 8-bits
+				switch ( m_channelsCount ) {
+					case 1:	// MONO
+						for ( uint sampleIndex=0; sampleIndex < m_samplesCount; sampleIndex++ ) {
+							m_data[dataIndex++] = m_reader.ReadByte();
+							m_data[dataIndex++] = m_data[dataIndex-1];	// Duplicate to right channel
+						}
+						break;
+
+					case 2:	// STEREO (data are already the target size & format)
+						if ( m_dataSize != m_data.Length )
+							throw new Exception( "Data size is not the expected length!" );
+						m_reader.Read( m_data, 0, (int) m_dataSize );
+						break;
+				}
+			} else {
+				// 16-bits
+				byte	temp;
+				switch ( m_channelsCount ) {
+					case 1:	// MONO
+						for ( uint sampleIndex=0; sampleIndex < m_samplesCount; sampleIndex++ ) {
+							temp = (byte) (m_reader.ReadUInt16() >> 8);
+							m_data[dataIndex++] = temp;
+							m_data[dataIndex++] = temp;
+						}
+						break;
+
+					case 2:	// STEREO
+						for ( uint sampleIndex=0; sampleIndex < m_samplesCount; sampleIndex++ ) {
+							temp = (byte) (m_reader.ReadUInt16() >> 8);
+							m_data[dataIndex++] = temp;
+							temp = (byte) (m_reader.ReadUInt16() >> 8);
+							m_data[dataIndex++] = temp;
+						}
+						break;
+				}
+			}
+		}
+
 		void	ReadChunk_Format( BinaryReader R ) {
 			uint	chunkID = R.ReadUInt32();
 			if ( chunkID != 0x20746D66 )
@@ -61,7 +125,10 @@ namespace TestCOM {
 			if ( format != 1 )
 				throw new Exception( "Expected PCM format!" );
 
-			m_channels = (CHANNELS) R.ReadUInt16();
+			m_channelsCount = R.ReadUInt16();
+			if ( m_channelsCount > 2 )
+				throw new Exception( "Unsupported channels count!" );
+
 			m_frequencyHz = R.ReadUInt32();
 			m_bytesPerSecond = R.ReadUInt32();
 			m_bytesPerBlock = R.ReadUInt16();
