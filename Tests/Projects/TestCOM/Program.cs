@@ -15,7 +15,7 @@ namespace TestCOM {
 
 		static WAVReader	WAV = null;
 
-		const double		F = 32.0;	// Channel restitution frequency (KHz)
+//		const double		F = 32.0;	// Channel restitution frequency (KHz)
 
 		static void Main( string[] args ) {
 
@@ -28,7 +28,7 @@ namespace TestCOM {
 //				string		portName = portNames[0];
 				string		portName = "COM3";
 
-				port = new SerialPort( portName, 115200 );
+				port = new SerialPort( portName, 115200, Parity.None, 8, StopBits.One );
 				port.Open();
 
 				#if true
@@ -48,6 +48,8 @@ namespace TestCOM {
 					//
 					// In any case, we need to get ready to transfer packets 250 times per second
 					//
+//const double	PACKETS_PER_SECOND = 250.0;
+const double	PACKETS_PER_SECOND = 1.0;
 
 					// Pre-read the entire WAV file
 					WAV.PreReadAll_Mono8Bits( 8000 );
@@ -75,17 +77,46 @@ byte		DEBUG_counter = 0;
 // 						if ( Control.ModifierKeys != Keys.None )
 // 							break;
 
+
 						ticks = watch.ElapsedTicks;
+						seconds = ticks * frequency;
+
+
+//////////////////////////////////////////////////////////////////////////
+// Always check for packets to read
+int		count = port.BytesToRead;
+if ( count > 36 ) {
+	// ???
+	Console.WriteLine( "Long packet! {0} instead of expected 36 bytes!", count );
+	port.DiscardInBuffer();
+} else if ( count == 36 ) {
+	// Read debug values sent from Arduino
+	port.Read( responseBuffer, 0, count );
+//	if ( seconds > nextDebugSecond ) {
+	{
+		// Allow one debug a second to avoid losing time formatting and outputting strings
+		string	A = "0x";
+		for ( int i=0; i < count; i++ )
+			A += responseBuffer[i].ToString( "X2" );
+
+		Console.WriteLine( A );
+		nextDebugSecond++;
+	}
+} else if ( count > 0 ) {
+	// Data to read but less than 36 bytes... Let's wait until the packet is complete!
+}
+//////////////////////////////////////////////////////////////////////////
+
+
 						if ( ticks < nextUpload_ticks )
 							continue;	// Wait for next upload
 
 						// Use the current time to estimate sample index
-						seconds = ticks * frequency;
 						sampleIndex = (uint) (seconds * 8000);
 DEBUG_samplesIndices[DEBUG_counter] = sampleIndex;
 
 						// Update timestamp
-						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets
+						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets, not the amount of samples
 DEBUG_timeStamps[DEBUG_counter] = timeStamp;
 
 						audioPacket[3] = (byte) timeStamp;	timeStamp >>= 8;
@@ -101,26 +132,7 @@ DEBUG_counter++;
 						port.Write( audioPacket, 0, 36 );
 
 						// Compute time for next upload
-						nextUpload_ticks = (long) Math.Floor( (seconds + 1.0 / 250.0) / frequency );	// We need a 250 packets/second frequency to reach 8KHz
-
-
-
-//////////////////////////////////////////////////////////////////////////
-int		count = port.BytesToRead;
-if ( count > 0 ) {
-	// Read debug values sent from Arduino
-	count = Math.Min( 256, count );
-	port.Read( responseBuffer, 0, count );
-	if ( seconds > nextDebugSecond ) {
-		// Allow one debug a second to avoid losing time formatting and outputtig strings
-		string	A = "0x";
-		for ( int i=count-1; i >= 0; i-- )
-			A += responseBuffer[i].ToString( "X2" );
-
-		Console.WriteLine( A );
-		nextDebugSecond++;
-	}
-}
+						nextUpload_ticks = (long) Math.Floor( (seconds + 1.0 / PACKETS_PER_SECOND) / frequency );	// We need a specific packets/second frequency to reach our target frquency
 					}
 
 
