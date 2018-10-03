@@ -82,6 +82,22 @@ void setup2() {
  		   | _BV(RXEN0)		// Enable receiver
  		   | _BV(TXEN0);	// Enable transmitter
 
+
+	// Flush remaining data
+#if 0
+	delay( 1000 );
+ 	UCSR0B &= ~_BV(RXEN0);
+	delay( 1000 );
+ 	UCSR0B |= _BV(RXEN0);
+#elif 0
+	U8	c;
+ 	for ( U32 i=0; i < 1000; i++ ) {
+		if ( bit_is_set( UCSR0A, RXC0 ) )
+			c = UDR0;
+		delayMicroseconds( 1 );
+ 	}
+#endif
+
 	// Start main loop
 	sei();
 }
@@ -122,15 +138,16 @@ if ( DEBUG_TransmitDataCount == 0 ) {
 	U8	DEBUG_LENGTH = AUDIO_PACKET_SIZE;
 //	U8	DEBUG_LENGTH = 8;
 	for ( int i=0; i < DEBUG_LENGTH; i++ ) {
-		DEBUG_result[i] = audioPacket[i];
-//		DEBUG_result[i] = i;
+		DEBUG_result[i] = audioPacket[i];	// Return received packet
+//		DEBUG_result[i] = i;				// Return debug sequence
 	}
 
 //DEBUG_result[0] = 0xAB;
 //DEBUG_result[1] = 0x12;
 //DEBUG_result[2] = 0x34;
 // 
-//DEBUG_result[0] = audioPacketHadError ? 0xAA : 0x55;
+if ( audioPacketHadError )
+	DEBUG_result[0] = 0xEE;	// Signal parity error in packet!
 
 	DEBUG_TransmitIndex = 0;
 	DEBUG_TransmitDataCount = DEBUG_LENGTH;

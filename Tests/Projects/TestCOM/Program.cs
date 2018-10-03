@@ -31,6 +31,12 @@ namespace TestCOM {
 				port = new SerialPort( portName, 115200, Parity.None, 8, StopBits.One );
 				port.Open();
 
+if ( port.BytesToRead > 0 ) {
+	Console.WriteLine( "Existing data in port at startup:" );
+	Console.WriteLine( port.ReadExisting() );
+	port.DiscardInBuffer();
+}
+
 				#if true
 					//////////////////////////////////////////////////////////////////////////
 					// Mono 8-Bits @ 8KHz
@@ -72,6 +78,12 @@ byte		DEBUG_counter = 0;
 					byte[]		responseBuffer = new byte[256];
 					uint		nextDebugSecond = 0;
 
+
+
+//port.Write( responseBuffer, 0, 4 );
+
+
+
 					watch.Start();
 					while ( true ) {
 // 						if ( Control.ModifierKeys != Keys.None )
@@ -85,11 +97,14 @@ byte		DEBUG_counter = 0;
 //////////////////////////////////////////////////////////////////////////
 // Always check for packets to read
 int		count = port.BytesToRead;
-if ( count > 36 ) {
-	// ???
-	Console.WriteLine( "Long packet! {0} instead of expected 36 bytes!", count );
-	port.DiscardInBuffer();
-} else if ( count == 36 ) {
+//if ( count >= 36 ) {
+if ( count > 0 && (count % 36) == 0 ) {
+	if ( count > 36 ) {
+		// ???
+		Console.WriteLine( "Long packet! {0} instead of expected 36 bytes!", count );
+//	port.DiscardInBuffer();
+	}
+
 	// Read debug values sent from Arduino
 	port.Read( responseBuffer, 0, count );
 //	if ( seconds > nextDebugSecond ) {
@@ -111,22 +126,26 @@ if ( count > 36 ) {
 						if ( ticks < nextUpload_ticks )
 							continue;	// Wait for next upload
 
-						// Use the current time to estimate sample index
-						sampleIndex = (uint) (seconds * 8000);
-DEBUG_samplesIndices[DEBUG_counter] = sampleIndex;
+// 						// Use the current time to estimate sample index
+// 						sampleIndex = (uint) (seconds * 8000);
+// DEBUG_samplesIndices[DEBUG_counter] = sampleIndex;
+// 
+// 						// Update timestamp
+// 						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets, not the amount of samples
+// DEBUG_timeStamps[DEBUG_counter] = timeStamp;
+// 
+// 						audioPacket[3] = (byte) timeStamp;	timeStamp >>= 8;
+// 						audioPacket[2] = (byte) timeStamp;	timeStamp >>= 8;
+// 						audioPacket[1] = (byte) timeStamp;
+// 
+// DEBUG_counter++;
+// 
+// 						// Fetch payload
+// 						WAV.FetchData( sampleIndex, audioPacket, 3, 32 );
 
-						// Update timestamp
-						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets, not the amount of samples
-DEBUG_timeStamps[DEBUG_counter] = timeStamp;
 
-						audioPacket[3] = (byte) timeStamp;	timeStamp >>= 8;
-						audioPacket[2] = (byte) timeStamp;	timeStamp >>= 8;
-						audioPacket[1] = (byte) timeStamp;
-
-DEBUG_counter++;
-
-						// Fetch payload
-						WAV.FetchData( sampleIndex, audioPacket, 3, 32 );
+for ( int i=0; i < 36; i++ )
+	audioPacket[i] = (byte) i;
 
 						// Write packet
 						port.Write( audioPacket, 0, 36 );
