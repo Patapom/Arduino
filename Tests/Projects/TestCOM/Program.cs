@@ -30,7 +30,7 @@ namespace TestCOM {
 
 				port = new SerialPort( portName, 115200, Parity.None, 8, StopBits.One );
 				port.RtsEnable = true;
-				port.DtrEnable = true;
+//				port.DtrEnable = true;
 				port.Open();
 
 				while ( !port.IsOpen ) {
@@ -75,8 +75,13 @@ const double	PACKETS_PER_SECOND = 1.0;
 
 					uint		sampleIndex = 0;
 					uint		timeStamp = 0;
-					byte[]		audioPacket = new byte[36];
-								audioPacket[0] = 0xAB;	// Packet ID
+					byte[]		audioPacket = new byte[40];
+								// Packet signature
+								audioPacket[0] = 0xCA;
+								audioPacket[1] = 0xCA;
+								audioPacket[2] = 0xB0;
+								audioPacket[3] = 0x0D;
+
 
 uint[]		DEBUG_samplesIndices = new uint[256];
 uint[]		DEBUG_timeStamps = new uint[256];
@@ -104,11 +109,11 @@ byte		DEBUG_counter = 0;
 //////////////////////////////////////////////////////////////////////////
 // Always check for packets to read
 int		count = port.BytesToRead;
-if ( count >= 36 ) {
+if ( count >= audioPacket.Length ) {
 //if ( count > 0 && (count % 36) == 0 ) {
-	if ( count > 36 ) {
+	if ( count > audioPacket.Length ) {
 		// ???
-		Console.WriteLine( "Long packet! {0} instead of expected 36 bytes!", count );
+		Console.WriteLine( "Long packet! {0} instead of expected {1} bytes!", count, audioPacket.Length );
 //	port.DiscardInBuffer();
 	}
 
@@ -147,21 +152,24 @@ if ( count >= 36 ) {
 // 						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets, not the amount of samples
 // DEBUG_timeStamps[DEBUG_counter] = timeStamp;
 // 
-// 						audioPacket[3] = (byte) timeStamp;	timeStamp >>= 8;
-// 						audioPacket[2] = (byte) timeStamp;	timeStamp >>= 8;
-// 						audioPacket[1] = (byte) timeStamp;
+// 						audioPacket[7] = (byte) timeStamp;	timeStamp >>= 8;
+// 						audioPacket[6] = (byte) timeStamp;	timeStamp >>= 8;
+// 						audioPacket[5] = (byte) timeStamp;
 // 
+//						// Set some data
+// 						audioPacket[4] = 0;
+//
 // DEBUG_counter++;
 // 
 // 						// Fetch payload
-// 						WAV.FetchData( sampleIndex, audioPacket, 3, 32 );
+// 						WAV.FetchData( sampleIndex, audioPacket, 8, 32 );
 
 
 for ( int i=0; i < 36; i++ )
-	audioPacket[i] = (byte) (0+i);
+	audioPacket[4+i] = (byte) (0+i);
 
 						// Write packet
-						port.Write( audioPacket, 0, 36 );
+						port.Write( audioPacket, 0, audioPacket.Length );
 
 						// Compute time for next upload
 						nextUpload_ticks = (long) Math.Floor( (seconds + 1.0 / PACKETS_PER_SECOND) / frequency );	// We need a specific packets/second frequency to reach our target frquency

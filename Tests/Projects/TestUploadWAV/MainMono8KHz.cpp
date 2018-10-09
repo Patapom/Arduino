@@ -105,11 +105,16 @@ void setup2() {
 //////////////////////////////////////////////////////////////////////////
 // Audio packet reception
 // ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
-#define AUDIO_PACKET_SIZE	(1 + 3 + 32)	// 1 byte = Packet ID
+#define AUDIO_PACKET_SIZE	(4 + 4 + 32)	// 4 byte = Packet ID
+											// 1 byte = flags
 											// 3 bytes = timestamp
 											// 32 bytes = audio content
+											// TOTAL: 40 bytes
+
+const U8	AUDIO_PACKET_SIGNATURE[4] = { 0xCA, 0xCA, 0xB0, 0x0D };
+
 U8	audioPacketIndex = 0;
-U8	audioPacketHadError = 0;
+U8	audioPacketParityError = 0;
 U8	audioPacket[AUDIO_PACKET_SIZE];
 
 U32	DEBUG_result[AUDIO_PACKET_SIZE+1];
@@ -119,16 +124,24 @@ U32	DEBUG_TransmitIndex = 0;
 ISR( USART_RX_vect ) {
 
 	// Read packet bytes
-	audioPacket[audioPacketIndex++] = UDR0;
+	audioPacket[audioPacketIndex] = UDR0;
+
+	// Reset packet index to the start as long as we don't have the required signature
+ 	if ( audioPacketIndex < 4 && audioPacket[audioPacketIndex] != AUDIO_PACKET_SIGNATURE[audioPacketIndex] )
+ 		audioPacketIndex = 0;
+	else
+ 		audioPacketIndex++;
+
+	// Check for parity error
 	if ( bit_is_set( UCSR0A, UPE0 ) )
-		audioPacketHadError = true;	// PARITY ERROR!
+		audioPacketParityError = true;
+
 	if ( audioPacketIndex < AUDIO_PACKET_SIZE )
 		return;	// Packet is not done yet...
 
 	// Packet is complete!
 	// Let's try and copy it to the proper place
 	//
-	audioPacketIndex = 0;	// Reset packet
 
  
 //if ( DEBUG_TransmitDataCount == 0 && bit_is_clear( UCSR0A, TXC0 ) ) {
@@ -141,9 +154,9 @@ if ( DEBUG_TransmitDataCount == 0 ) {
 //		DEBUG_result[i] = i;				// Return debug sequence
 	}
 
-// 	if ( audioPacketHadError )
+// 	if ( audioPacketParityError )
 // 		DEBUG_result[0] = 0xEE;	// Signal parity error in packet!
-//	DEBUG_result[DEBUG_LENGTH] = audioPacketHadError ? 'r' : 'k';
+	DEBUG_result[DEBUG_LENGTH] = audioPacketParityError ? 'r' : 'k';
 
 //DEBUG_result[0] = 0xAB;
 //DEBUG_result[1] = 0x12;
@@ -155,22 +168,26 @@ if ( DEBUG_TransmitDataCount == 0 ) {
 	UCSR0B |= _BV(UDRIE0);	// Raise the interrupt to start transfer
 }
 
-	audioPacketHadError = false;
 
-/*	// Check packet ID
-	if ( audioPacket[0] != 0xAB )
-		return;	// Invalid ID, ignore packet
+	// Reset packet data
+	audioPacketIndex = 0;
+	audioPacketParityError = false;
 
-	U32	timeStamp = (((audioPacket[1] << 8) | audioPacket[2]) << 8) | audioPacket[3];
+//*	// Check packet ID
+	U8	packetFlags = audioPacket[4];	// Not used at the moment
+
+	U32	timeStamp = (((audioPacket[5] << 8) | audioPacket[6]) << 8) | audioPacket[7];
 	U32	sampleIndex = timeStamp << 5;	// A single packet contains 32 samples
 
 	// Copy packet to wave out
 	U8	writeIndex = 128 + sampleIndex;	// Always half a buffer ahead of read (hopefully)
-	for ( U8 i=4; i < AUDIO_PACKET_SIZE; i++ ) {
-//		waveOut[writeIndex++] = audioPacket[i];
+	for ( U8 i=8; i < AUDIO_PACKET_SIZE; i++ ) {
+		waveOut[writeIndex++] = audioPacket[i];
 //waveOut[writeIndex++] = i;
-waveOut[writeIndex++] = sampleIndex + i;
-*/
+//waveOut[writeIndex++] = sampleIndex + i;
+	}
+
+//*/
 
 // 	// Send debug value
 // 	if ( DEBUG_TransmitDataCount == 0 ) {
@@ -180,6 +197,7 @@ waveOut[writeIndex++] = sampleIndex + i;
 // 		UCSR0B |= _BV(UDRIE0);	// Raise the interrupt to start transfer
 // 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Data transmission
