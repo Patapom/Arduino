@@ -82,6 +82,7 @@ const double	PACKETS_PER_SECOND = 1.0;
 								audioPacket[2] = 0xB0;
 								audioPacket[3] = 0x0D;
 
+					uint		sentPacketsCount = 0;
 
 uint[]		DEBUG_samplesIndices = new uint[256];
 uint[]		DEBUG_timeStamps = new uint[256];
@@ -144,32 +145,41 @@ if ( count >= audioPacket.Length ) {
 						if ( ticks < nextUpload_ticks )
 							continue;	// Wait for next upload
 
-// 						// Use the current time to estimate sample index
-// 						sampleIndex = (uint) (seconds * 8000);
-// DEBUG_samplesIndices[DEBUG_counter] = sampleIndex;
-// 
-// 						// Update timestamp
-// 						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets, not the amount of samples
-// DEBUG_timeStamps[DEBUG_counter] = timeStamp;
-// 
-// 						audioPacket[7] = (byte) timeStamp;	timeStamp >>= 8;
-// 						audioPacket[6] = (byte) timeStamp;	timeStamp >>= 8;
-// 						audioPacket[5] = (byte) timeStamp;
-// 
-//						// Set some data
-// 						audioPacket[4] = 0;
-//
-// DEBUG_counter++;
-// 
-// 						// Fetch payload
-// 						WAV.FetchData( sampleIndex, audioPacket, 8, 32 );
+ 						// Use the current time to estimate sample index
+ 						sampleIndex = (uint) (seconds * 8000);
+ DEBUG_samplesIndices[DEBUG_counter] = sampleIndex;
+ 
+ 						// Update timestamp
+ 						timeStamp = sampleIndex >> 5;	// Time stamp is the amount of packets, not the amount of samples
 
 
-for ( int i=0; i < 36; i++ )
-	audioPacket[4+i] = (byte) (0+i);
+//////////////////////////////////////////////////////////////////////////
+// DEBUG!!
+timeStamp = sentPacketsCount;
+//////////////////////////////////////////////////////////////////////////
+
+
+
+ DEBUG_timeStamps[DEBUG_counter] = timeStamp;
+ 
+ 						audioPacket[7] = (byte) timeStamp;	timeStamp >>= 8;
+ 						audioPacket[6] = (byte) timeStamp;	timeStamp >>= 8;
+ 						audioPacket[5] = (byte) timeStamp;
+ 
+						// Set some data
+ 						audioPacket[4] = 0;
+
+ DEBUG_counter++;
+ 
+ 						// Fetch payload
+ 						WAV.FetchData( sampleIndex, audioPacket, 8, 32 );
+
+ for ( int i=0; i < 32; i++ )
+ 	audioPacket[8+i] = (byte) ((sentPacketsCount << 5)+i);
 
 						// Write packet
 						port.Write( audioPacket, 0, audioPacket.Length );
+						sentPacketsCount++;
 
 						// Compute time for next upload
 						nextUpload_ticks = (long) Math.Floor( (seconds + 1.0 / PACKETS_PER_SECOND) / frequency );	// We need a specific packets/second frequency to reach our target frquency

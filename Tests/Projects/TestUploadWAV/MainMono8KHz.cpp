@@ -144,6 +144,7 @@ ISR( USART_RX_vect ) {
 	//
 
  
+//*
 //if ( DEBUG_TransmitDataCount == 0 && bit_is_clear( UCSR0A, TXC0 ) ) {
 if ( DEBUG_TransmitDataCount == 0 ) {
 	// Debug received packet
@@ -158,16 +159,12 @@ if ( DEBUG_TransmitDataCount == 0 ) {
 // 		DEBUG_result[0] = 0xEE;	// Signal parity error in packet!
 	DEBUG_result[DEBUG_LENGTH] = audioPacketParityError ? 'r' : 'k';
 
-//DEBUG_result[0] = 0xAB;
-//DEBUG_result[1] = 0x12;
-//DEBUG_result[2] = 0x34;
-
 	DEBUG_TransmitIndex = 0;
 	DEBUG_TransmitDataCount = DEBUG_LENGTH;
 //	DEBUG_TransmitDataCount = DEBUG_LENGTH + 1;
 	UCSR0B |= _BV(UDRIE0);	// Raise the interrupt to start transfer
 }
-
+//*/
 
 	// Reset packet data
 	audioPacketIndex = 0;
