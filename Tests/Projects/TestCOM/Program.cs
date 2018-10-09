@@ -29,7 +29,14 @@ namespace TestCOM {
 				string		portName = "COM3";
 
 				port = new SerialPort( portName, 115200, Parity.None, 8, StopBits.One );
+				port.RtsEnable = true;
+				port.DtrEnable = true;
 				port.Open();
+
+				while ( !port.IsOpen ) {
+					System.Threading.Thread.Sleep( 10 );
+				}
+// 				System.Threading.Thread.Sleep( 1000 );
 
 if ( port.BytesToRead > 0 ) {
 	Console.WriteLine( "Existing data in port at startup:" );
@@ -151,7 +158,7 @@ if ( count >= 36 ) {
 
 
 for ( int i=0; i < 36; i++ )
-	audioPacket[i] = (byte) i;
+	audioPacket[i] = (byte) (0+i);
 
 						// Write packet
 						port.Write( audioPacket, 0, 36 );
