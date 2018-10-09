@@ -97,8 +97,8 @@ byte		DEBUG_counter = 0;
 //////////////////////////////////////////////////////////////////////////
 // Always check for packets to read
 int		count = port.BytesToRead;
-//if ( count >= 36 ) {
-if ( count > 0 && (count % 36) == 0 ) {
+if ( count >= 36 ) {
+//if ( count > 0 && (count % 36) == 0 ) {
 	if ( count > 36 ) {
 		// ???
 		Console.WriteLine( "Long packet! {0} instead of expected 36 bytes!", count );
@@ -110,9 +110,15 @@ if ( count > 0 && (count % 36) == 0 ) {
 //	if ( seconds > nextDebugSecond ) {
 	{
 		// Allow one debug a second to avoid losing time formatting and outputting strings
+#if true
 		string	A = "0x";
 		for ( int i=0; i < count; i++ )
 			A += responseBuffer[i].ToString( "X2" );
+#else
+		string	A = "";
+		for ( int i=0; i < count; i++ )
+			A += (char) responseBuffer[i];
+#endif
 
 		Console.WriteLine( A );
 		nextDebugSecond++;
