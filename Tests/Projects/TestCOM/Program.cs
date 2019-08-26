@@ -62,7 +62,8 @@ if ( port.BytesToRead > 0 ) {
 					// In any case, we need to get ready to transfer packets 250 times per second
 					//
 //const double	PACKETS_PER_SECOND = 250.0;
-const double	PACKETS_PER_SECOND = 1.0;
+const double	PACKETS_PER_SECOND = 8.0;
+//const double	PACKETS_PER_SECOND = 100.0;
 
 					// Pre-read the entire WAV file
 					WAV.PreReadAll_Mono8Bits( 8000 );
@@ -109,6 +110,7 @@ byte		DEBUG_counter = 0;
 
 //////////////////////////////////////////////////////////////////////////
 // Always check for packets to read
+#if false
 int		count = port.BytesToRead;
 if ( count >= audioPacket.Length ) {
 //if ( count > 0 && (count % 36) == 0 ) {
@@ -139,6 +141,17 @@ if ( count >= audioPacket.Length ) {
 } else if ( count > 0 ) {
 	// Data to read but less than 36 bytes... Let's wait until the packet is complete!
 }
+#elif true
+// Output any response
+int		count = port.BytesToRead;
+if ( count > 0 ) {
+	port.Read( responseBuffer, 0, count );
+	string	A = "";
+	for ( int i=0; i < count; i++ )
+		A += (char) responseBuffer[i];
+	Console.WriteLine( A );
+}
+#endif
 //////////////////////////////////////////////////////////////////////////
 
 

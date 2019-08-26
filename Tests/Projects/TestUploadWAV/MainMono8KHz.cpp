@@ -142,9 +142,9 @@ ISR( USART_RX_vect ) {
 	// Packet is complete!
 	// Let's try and copy it to the proper place
 	//
+amarche pu bordel !!!!
 
- 
-//*
+/*
 //if ( DEBUG_TransmitDataCount == 0 && bit_is_clear( UCSR0A, TXC0 ) ) {
 if ( DEBUG_TransmitDataCount == 0 ) {
 	// Debug received packet
@@ -166,6 +166,14 @@ if ( DEBUG_TransmitDataCount == 0 ) {
 }
 //*/
 
+if ( audioPacketParityError ) {
+	DEBUG_TransmitIndex = 0;
+	DEBUG_TransmitDataCount = 1;
+	DEBUG_result[0] = 'r';
+//	DEBUG_TransmitDataCount = DEBUG_LENGTH + 1;
+	UCSR0B |= _BV(UDRIE0);	// Raise the interrupt to start transfer
+}
+
 	// Reset packet data
 	audioPacketIndex = 0;
 	audioPacketParityError = false;
@@ -183,7 +191,6 @@ if ( DEBUG_TransmitDataCount == 0 ) {
 //waveOut[writeIndex++] = i;
 //waveOut[writeIndex++] = sampleIndex + i;
 	}
-
 //*/
 
 // 	// Send debug value
