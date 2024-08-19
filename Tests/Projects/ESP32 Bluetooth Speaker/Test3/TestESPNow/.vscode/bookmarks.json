@@ -1,0 +1,54 @@
+{
+	"files": [
+		{
+			"path": "src/Common/AudioBuffer.cpp",
+			"bookmarks": [
+				{
+					"line": 138,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 165,
+					"column": 8,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "src/Common/ESPNow/TransportESPNow.cpp",
+			"bookmarks": [
+				{
+					"line": 184,
+					"column": 12,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "src/Peripheral.cpp",
+			"bookmarks": [
+				{
+					"line": 125,
+					"column": 11,
+					"label": ""
+				},
+				{
+					"line": 217,
+					"column": 7,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "src/Common/I2S/I2SInput.cpp",
+			"bookmarks": [
+				{
+					"line": 158,
+					"column": 4,
+					"label": ""
+				}
+			]
+		}
+	]
+}

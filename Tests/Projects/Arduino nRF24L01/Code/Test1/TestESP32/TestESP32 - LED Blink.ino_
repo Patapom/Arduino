@@ -1,0 +1,13 @@
+
+#define PIN_LED 2
+
+void  setup() {
+  pinMode( PIN_LED, OUTPUT );
+}
+
+bool  pouik = true;
+void  loop() {
+  digitalWrite( PIN_LED, pouik );
+  pouik = !pouik;
+  delay( 1000 );
+}

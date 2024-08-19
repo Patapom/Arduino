@@ -1,0 +1,39 @@
+{
+	"files": [
+		{
+			"path": "src/Common/AudioBuffer.cpp",
+			"bookmarks": [
+				{
+					"line": 147,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 173,
+					"column": 8,
+					"label": ""
+				},
+				{
+					"line": 215,
+					"column": 0,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "src/Common/ESPNow/TransportESPNow.cpp",
+			"bookmarks": [
+				{
+					"line": 204,
+					"column": 7,
+					"label": ""
+				},
+				{
+					"line": 283,
+					"column": 17,
+					"label": ""
+				}
+			]
+		}
+	]
+}

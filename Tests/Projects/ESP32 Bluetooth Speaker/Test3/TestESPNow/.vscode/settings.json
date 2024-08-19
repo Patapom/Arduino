@@ -1,0 +1,19 @@
+{
+	"files.associations": {
+		"functional": "cpp",
+		"new": "cpp",
+		"*.tcc": "cpp",
+		"algorithm": "cpp",
+		"optional": "cpp",
+		"istream": "cpp",
+		"ostream": "cpp",
+		"ratio": "cpp",
+		"system_error": "cpp",
+		"array": "cpp",
+		"tuple": "cpp",
+		"type_traits": "cpp",
+		"utility": "cpp",
+		"variant": "cpp",
+		"cmath": "cpp"
+	}
+}

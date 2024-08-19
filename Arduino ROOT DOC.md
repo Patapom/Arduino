@@ -1,6 +1,6 @@
 ﻿
  This documentation is a summary of how I understand the Arduino software architecture is working as I go along in my investigations.
-  
+
     Date Format Is:	YYYY-MM-DD
     Creation Date:	2017-08-04
     Last Update:	2018-08-13
@@ -24,9 +24,8 @@
 * **PICC**, Proximity Integrated Circuit Card: a card or tag using the ISO 14443A interface, e.g. Mifare or NTAG203.
 * **RSSI**, Received Signal Strength Indication is a measurement of the power present in a received radio signal.
 * **SCK**, Serial Clock
-* **SPI**, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for
-			communicating with one or more peripheral devices quickly over short distances.
-			It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
+* **SPI**, Serial Peripheral Interface. is a synchronous serial data protocol used by microcontrollers for communicating with one or more peripheral devices quickly over short distances.
+   It can also be used for communication between two microcontrollers. (https://www.arduino.cc/en/Reference/SPI)
 * **SS**, Slave Select
 * **TWI**, Two Wires Interface. Apparently, exactly the same thing as I2C except it has a different name for copyright reasons.
 * **UART**, Universal Asynchronous Receiver Transmitter (e.g. Motorola 6850)
@@ -107,7 +106,7 @@ From section "8.3 SRAM Data Memory" of the Arduino UNO ["ATMega328P" datasheet](
 
 
 		* Range [0x20,0x5F] = I/O Memory
-
+	
 			0x23 => PINB	(The Port B Input Pins Address, section 14.4.4)\
 			0x24 => DDRB	(The Port B Data Direction Register, section 14.4.3)\
 			0x25 => PORTB	(The Port B Data Register, section 14.4.2)\
@@ -163,9 +162,10 @@ From section "8.3 SRAM Data Memory" of the Arduino UNO ["ATMega328P" datasheet](
 									Z = Zero flag\
 									C = Carry flag\
 
-				
-		* Range [0x60,0xFF] = Extended I/O memory
 
+​				
+		* Range [0x60,0xFF] = Extended I/O memory
+	
 			0x60 => WDTCSR	(Watchdog Timer Control Register, section 11.9.2)\
 			0x61 => CLKPR	(Clock Prescale Register, section 9.12.2)\
 			   (...)\
@@ -303,7 +303,7 @@ You can then find the following subdirectories from there:
 
 			* Contains the main "arduino.h" file defining the core functions like pinMode, analogRead, pulseIn, etc.
 			* Contains the "main.cpp" with the void main() {} loop that calls the user setup() and indefinitely calls the user loop() functions
-				
+			
 		* arduino\avr\firmwares
 
 			Contains firmwares for the various onboard chips like:
@@ -359,7 +359,7 @@ VMicro is the Visual Studio plug-in that allows us to build and run (and "debug"
 * We notice that ALL files are compiled, including the "core library" files since we find files like "main.cpp.o" and "Stream.cpp.o" that are the compiled versions of the files found in the arduino\avr\cores directory!
 
 * I'm still wondering how it knows where to find the "core files"?
-	* What if I want to add my own root library? Do I have to adde my files to the "<INSTALL DIR>\arduino\avr\" directory?
+	* What if I want to add my own root library? Do I have to add my files to the "<INSTALL DIR>\arduino\avr\" directory?
 	* I think I found the solution!!!
 		1) Install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html
 		2) Pick the folder of your custom library as "link source"
