@@ -6,6 +6,8 @@
 #include <Arduino.h>
 #include <math.h>
 
+#include "xtensa/core-macros.h"	// XTHAL_GET_CCOUNT()
+
 // Define this to output to the serial
 #define DEBUG
 
@@ -39,20 +41,32 @@ static T	saturate( T x ) { return x < 0 ? 0 : x > 1 ? 1 : x; }
 #define PIN_SCK   SCK   // Signal clock
 #define PIN_CSN   SS    // Chip Select
 
+extern S16	gs_sine[16384];
+static void	InitSine() {
+	for ( U32 i=0; i < 16384; i++ )
+		gs_sine[i] = 32767 * sin( 2 * PI * i / 16384.0f );
+}
+static S16	FastSine( U32 i ) { return gs_sine[i & 0x3FFF]; }
+
 #if 1
     static void  __ERROR( bool _setError, const char* _functionName, const char* _message ) {
       if ( !_setError ) return;
-// @TODO: Error handling
-digitalWrite( PIN_LED_RED, 1 );
-//while ( true ); // Hang... :/
-while ( true ) {
-  Serial.print( "ERROR " );
-  Serial.print( _functionName );
-  Serial.print( "() => " );
-  Serial.println( _message );
-  delay( 1000 );
-}
-    }
+// @TODO: Proper error handling
+		digitalWrite( PIN_LED_RED, 1 );
+		//while ( true ); // Hang... :/
+		while ( true ) {
+			#ifndef NO_GLOBAL_SERIAL
+				Serial.print( "ERROR " );
+				Serial.print( _functionName );
+				Serial.print( "() => " );
+				Serial.println( _message );
+				delay( 1000 );
+			#else	// Flash instead
+				digitalWrite( PIN_LED_RED, _setError ); _setError = !_setError;
+				delay( 50 );
+			#endif
+		}
+	}
 #else
     static void  __ERROR( bool _setError, const char* _functionName, const char* _message ) {}
 #endif

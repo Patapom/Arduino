@@ -77,7 +77,8 @@ void	I2SOutput::GetSamplesFromSource( Sample* _samples, U32 _requestedSamplesCou
 #if 0	// Perfect sine wave when requested from I2S task!
 static U32	s_sampleIndex = 0;
 for ( U32 i=0; i < _requestedSamplesCount; i++ ) {
-	S16	value = S16( 64 * sin( 2*PI * (1000.0 / m_samplingRate) * s_sampleIndex++ ) );
+//	S16	value = S16( 64 * sin( 2*PI * (1000.0 / m_samplingRate) * s_sampleIndex++ ) );
+	S16	value = FastSine( s_sampleIndex++ * (16384 * 1000 / m_samplingRate) ) / 64;
 	_samples[i].left = value;
 	_samples[i].right = value;
 }
@@ -87,6 +88,17 @@ return;
 
 	// Get some samples from the audio buffer
 	m_sampleSource->GetSamples( m_samplingRate, _samples, _requestedSamplesCount );
+
+	// Should we convert mono source to stereo? (only useful when feeding back microphone into speakers really...)
+	if ( m_sampleSource->GetChannelsCount() == ISampleSource::MONO ) {
+		S16*	monoSample = (S16*) _samples + _requestedSamplesCount;
+		Sample*	stereoSample = _samples + _requestedSamplesCount;
+		for ( U32 sampleIndex=0; sampleIndex < _requestedSamplesCount; sampleIndex++ ) {
+			monoSample--;
+			stereoSample--;
+			stereoSample->left = stereoSample->right = *monoSample;
+		}
+	}
 
 	if ( m_volumeInt != 0xFFFF ) {
 		// Apply volume

@@ -44,6 +44,14 @@ I read somewhere that one should fiddle with different WiFi channel settings to 
 
 **NOTE: ** it also suddenly occurred to me that I could use 2 channels: 1 for the Central:arrow_right:Peripheral and another one for the Peripheral:arrow_right:Central but the WiFi channel setup seems to be global to the board...
 
+## Using Free Channels
+
+I didn't know the importance of using a free WiFi channel (i.e. not used by your home network or something else) until I started having lots of packets lost and ESP_NOW_ERR_NO_MEMORY issues due to packets piling up in the sending queue without having a chance to be broadcast (probably due to other packets from the house network taking their place instead).
+
+So I finally opted to perform a "quick" scan of all the channels before starting the device and issuing an error if the channel I selected is already in use!
+
+I lost too much time with annoying "out of my hands" issues already and I need something reliable!
+
 
 
 # Full Duplex
@@ -56,6 +64,11 @@ I noticed that sending hi-fi packets at 44.1KHz suffered from heavy packets lost
 
 So the goal seems to be hitting 44KHz sampling rate while sending compressed data "as if" we were sampling at 22KHz.
 We'll have to investigate some CODECs (FLAC seemed to be a promising solution).
+
+**NOTE:** After an upgrade of the receiver/transmitters using tasks instead of timers, the packets loss fell down dramatically, even at 44KHz! It went from 7% (~50 of the 720 received packets) down to a max of 0.5% (~4 packets)!
+Also, it falls even lower if I disable the full-duplex. So it'd seem broadcasting packets in both ways introduces interferences... Maybe there's a way to prevent that?
+
+
 
 ## Fixing the Lost Packets
 
@@ -101,9 +114,9 @@ So the general problem should be formulated like this:
 * We have a target replay frequency $F_t$ that will require samples that should **always** be available
   * Whatever we do, we always want to accommodate this "master time line" and this frequency
 * We have a **theoretical** source frequency *Fs* that will provide some samples at a given rate
-  * This is the frequency that we expect our source to be providing its samples at, ideally
+  * This is the **ideal frequency** that we expect our source to be providing its samples at
 * We have a third frequency, the actual source channel frequency $\tilde{F_s}$ that should (ideally) provide some samples at frequency $F_s$ but is slightly off:
-  * If the source is local, it could be driven by a (imperfect) timer that is not quite the required theoretical frequency
+  * If the source is local, it could be driven by an (imperfect) timer that is not quite the required theoretical frequency
   * If the source is remote (and no packets are lost), it will dictate the frequency by counting how many packets we received per second
 
 
@@ -120,7 +133,7 @@ So the idea is not to think in terms of samples anymore, but in terms of seconds
 
 ## Determining $\tilde{F_s}$
 
-It should be easy to determine the source frequency $\tilde{F}s$ by determining how many samples  we received every second:
+It's easy to determine the source frequency $\tilde{F}s$ by determining how many samples  we received every second:
 $$
 \tilde{F_s} \approx \frac{N_s}{\Delta_t}
 $$
@@ -149,6 +162,8 @@ Where $N_s$ is the amount of samples received during the time interval $\Delta_t
 ## Sampling at $F_t$
 
 Using $\tilde{F_s}$ we can then easily sample the source signal at the requested target frequency $F_t$ using a linear interpolation of the incomplete signal.
+
+
 
 
 

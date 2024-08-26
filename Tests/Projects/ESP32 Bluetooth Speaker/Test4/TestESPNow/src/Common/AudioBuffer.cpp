@@ -39,10 +39,15 @@ bool	AudioBuffer::Init( U32 _bufferSize, U64 _sampleIndexWrite, U64 _preloadDela
 		free( m_buffer );	// Clear any existing buffer...
 	}
 
-//	m_buffer = new Sample[m_bufferSize];
-	m_buffer = (Sample*) malloc( m_bufferSize * sizeof(Sample) );
-	ERROR( m_buffer == NULL, "Failed to allocate pre-load buffer! (out of memory)" );
-	memset( m_buffer, 0, m_bufferSize * sizeof(Sample) );
+	if ( GetChannelsCount() == STEREO ) {
+		m_buffer = (Sample*) malloc( m_bufferSize * sizeof(Sample) );
+		ERROR( m_buffer == NULL, "Failed to allocate pre-load buffer! (out of memory)" );
+		memset( m_buffer, 0, m_bufferSize * sizeof(Sample) );
+	} else {
+		m_buffer = (Sample*) malloc( m_bufferSize * sizeof(S16) );
+		ERROR( m_buffer == NULL, "Failed to allocate pre-load buffer! (out of memory)" );
+		memset( m_buffer, 0, m_bufferSize * sizeof(S16) );
+	}
 
 	m_sampleIndexRead = 0;
 	m_timeRead = 0;
@@ -67,6 +72,14 @@ bool	AudioBuffer::Init( U32 _bufferSize, U64 _sampleIndexWrite, U64 _preloadDela
 
 void	AudioBuffer::GetSamples( float _samplingRate, Sample* _samples, U32 _samplesCount ) {
 
+//on connait notre sampling rate théorique
+//bufferDeltaTime toujours au moins égal à 1
+//bufferSamplesCount peut être égal à 0
+//
+//U32	sourceSamplingRate = GetSamplingRate();
+//Techniquement il suffit laisser le write prendre preLoadTime secondes pour remplir son buffer et repartir à sourceSamplingRate comme en 40!
+//En fait on incrémente le timeRead comme si on lisait bien delta time secondes alors que non, on a avancé de quedalle dans le buffer puisqu'on était bloqués!
+
 	// We know:
 	//	• The time Tr of the current sample we're reading
 	//	• The time Tw when the last sample was written to the buffer
@@ -79,7 +92,16 @@ void	AudioBuffer::GetSamples( float _samplingRate, Sample* _samples, U32 _sample
 	// 
 	// Finally, using Fs and Dt, we can easily compute how many samples we need to span:
 	// 
-	float	bufferDeltaTime = (m_timeWrite - m_timeRead) / 1000000.0f;
+
+
+
+//	float	bufferDeltaTime = (m_timeWrite - m_timeRead) / 1000000.0f;
+	float	bufferDeltaTime = (max( m_timeRead+1, m_timeWrite ) - m_timeRead) / 1000000.0f;	// Always keep delta time positive, even if write time isn't increasing due to a loss of the transmitter feed
+
+
+bufferDeltaTime = m_preloadDelay_Micros / 1000000.0f;
+
+
 	float	bufferSamplesCount = m_sampleIndexWrite - m_sampleIndexRead;			// Integer part, should always be quite small (ideally, always equal to pre-load delay)
 			bufferSamplesCount -= m_sampleIndexReadDecimal;							// Also account for decimal part from last read
 
@@ -92,22 +114,44 @@ void	AudioBuffer::GetSamples( float _samplingRate, Sample* _samples, U32 _sample
 			sampleIndexRead += m_sampleIndexReadDecimal;	// Add back decimal part that we were at last time
 
 	// Perform sampling at required frequency
-	for ( U32 sampleIndex=0; sampleIndex < _samplesCount; sampleIndex++, _samples++ ) {
-		// Locate the 2 samples interval we must interpolate
-		U32		intSampleIndexRead = U32( floor( sampleIndexRead ) );
-		float	t = sampleIndexRead - intSampleIndexRead;	// In [0,1]
+	if ( GetChannelsCount() == STEREO ) {
+		for ( U32 sampleIndex=0; sampleIndex < _samplesCount; sampleIndex++, _samples++ ) {
+			// Locate the 2 samples interval we must interpolate
+			U32		intSampleIndexRead = U32( floor( sampleIndexRead ) );
+			float	t = sampleIndexRead - intSampleIndexRead;	// In [0,1]
 
-		U32		bufferSampleIndex = intSampleIndexRead % m_bufferSize;
-		Sample*	sourceSample0 = m_buffer + bufferSampleIndex;
-				bufferSampleIndex++;
-		Sample*	sourceSample1 = bufferSampleIndex < m_bufferSize ? sourceSample0 + 1 : m_buffer;	// Wrap around if necessary
+			U32		bufferSampleIndex = intSampleIndexRead % m_bufferSize;
+			Sample*	sourceSample0 = m_buffer + bufferSampleIndex;
+					bufferSampleIndex++;
+			Sample*	sourceSample1 = bufferSampleIndex < m_bufferSize ? sourceSample0 + 1 : m_buffer;	// Wrap around if necessary
 
-		// Interpolate values
-		_samples->left = sourceSample0->left + t * (sourceSample1->left - sourceSample0->left);
-		_samples->right = sourceSample0->right + t * (sourceSample1->right - sourceSample0->right);
+			// Interpolate values
+			_samples->left = sourceSample0->left + t * (sourceSample1->left - sourceSample0->left);
+			_samples->right = sourceSample0->right + t * (sourceSample1->right - sourceSample0->right);
 
-		// Jump to next sample position
-		sampleIndexRead += sampleInc;
+			// Jump to next sample position
+			sampleIndexRead += sampleInc;
+		}
+	} else {
+		S16*	samples = (S16*) _samples;
+		for ( U32 sampleIndex=0; sampleIndex < _samplesCount; sampleIndex++, samples++ ) {
+			// Locate the 2 samples interval we must interpolate
+			U32		intSampleIndexRead = U32( floor( sampleIndexRead ) );
+			float	t = sampleIndexRead - intSampleIndexRead;	// In [0,1]
+
+			U32		bufferSampleIndex = intSampleIndexRead % m_bufferSize;
+			S16*	sourceSample0 = (S16*) m_buffer + bufferSampleIndex;
+					bufferSampleIndex++;
+			S16*	sourceSample1 = bufferSampleIndex < m_bufferSize ? sourceSample0 + 1 : (S16*) m_buffer;	// Wrap around if necessary
+
+			// Interpolate values
+			S16	value0 = *sourceSample0;
+			S16	value1 = *sourceSample1;
+			*samples = value0 + t * (value1 - value0);
+
+			// Jump to next sample position
+			sampleIndexRead += sampleInc;
+		}
 	}
 
 	// Update new read index & time
@@ -121,15 +165,17 @@ void	AudioBuffer::GetSamples( float _samplingRate, Sample* _samples, U32 _sample
 	}
 
 //	m_timeRead = m_time->GetTimeMicros();
-	m_timeRead += U64( 1000000.0f * deltaTime );
+//	m_timeRead += U64( 1000000.0f * deltaTime );
 
 	// Make sure the read index/time never goes beyond write index/time. When this happens, we just want to block the player.
-	// This happens if we lost the source and can't receive samples anymore...
+	// This can happen if we lost the source and can't receive samples anymore, for example...
 	if ( m_sampleIndexRead >= m_sampleIndexWrite ) {
 		m_sampleIndexRead = m_sampleIndexWrite;
 		m_sampleIndexReadDecimal = 0;
 	}
-	m_timeRead = min( m_timeWrite-1, m_timeRead );
+//	m_timeRead = min( m_timeWrite-1, m_timeRead );
+
+m_timeRead = m_time->GetTimeMicros();
 
 //float	sourceSamplingRate = bufferSamplesCount / bufferDeltaTime;
 //Serial.printf( "Read Index = %.3f / %d / %d - Read time = %.4f - Sampling Rate = %.3f - Samples Count = %.2f / %d (=%.4fs)\n", m_sampleIndexRead + m_sampleIndexReadDecimal, U32(m_sampleIndexWrite), m_bufferSize, m_timeRead / 1000000.0f, sourceSamplingRate, sourceSamplesCount, _samplesCount, deltaTime );
@@ -142,12 +188,25 @@ void	AudioBuffer::WriteSamples( const Sample* _samples, U32 _samplesCount ) {
 	// Copy the new samples to the buffer
 	U32	bufferSampleIndex = m_sampleIndexWrite % m_bufferSize;
 	U32	samplesCountToEnd = m_bufferSize - bufferSampleIndex;
-	if ( _samplesCount <= samplesCountToEnd ) {
-		memcpy( m_buffer + bufferSampleIndex, _samples, _samplesCount * sizeof(Sample) );
-	} else {	// Copy with wrap around
-		memcpy( m_buffer + bufferSampleIndex, _samples, samplesCountToEnd * sizeof(Sample) );
-		memcpy( m_buffer, _samples + samplesCountToEnd, (_samplesCount - samplesCountToEnd) * sizeof(Sample) );
+
+	if ( GetChannelsCount() == STEREO ) {
+		if ( _samplesCount <= samplesCountToEnd ) {
+			memcpy( m_buffer + bufferSampleIndex, _samples, _samplesCount * sizeof(Sample) );
+		} else {	// Copy with wrap around
+			memcpy( m_buffer + bufferSampleIndex, _samples, samplesCountToEnd * sizeof(Sample) );
+			memcpy( m_buffer, _samples + samplesCountToEnd, (_samplesCount - samplesCountToEnd) * sizeof(Sample) );
+		}
+	} else {
+		S16*	samples = (S16*) _samples;
+		S16*	buffer = (S16*) m_buffer;
+		if ( _samplesCount <= samplesCountToEnd ) {
+			memcpy( buffer + bufferSampleIndex, samples, _samplesCount * sizeof(S16) );
+		} else {	// Copy with wrap around
+			memcpy( buffer + bufferSampleIndex, samples, samplesCountToEnd * sizeof(S16) );
+			memcpy( buffer, samples + samplesCountToEnd, (_samplesCount - samplesCountToEnd) * sizeof(S16) );
+		}
 	}
+
 	m_sampleIndexWrite += _samplesCount;
 
 	// The time stamp must be written exactly at the end of the function
@@ -163,6 +222,7 @@ for ( U32 i=0; i < _samplesCount; i++ ) {
 Serial.printf( "Min = %d | Max = %d\n", minValue, maxValue );
 //*/
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Default ITimeReference implementation

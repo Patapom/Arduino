@@ -8,7 +8,7 @@
 class I2SOutput {
 public:
 
-	static const U32	DMA_SIZE = 256;
+	static const U32	DMA_SIZE = 256;	// Size of the DMA buffer (and consequently, the amount of samples requested by the I2S TX events)
 
 private:
 

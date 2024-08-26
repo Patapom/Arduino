@@ -21,6 +21,16 @@ public:
 	// Set the packet header that is sent by the sender/expected by the receiver
 	void	SetHeader( U16 _header ) { m_header = _header; }
 
+	// Scans for WiFi networks using the specified channel, return NULL if unused or SSID of the network using the channel
+	static const char*	CheckWiFiChannelUnused( U8 _channel );
+
+	// Scans for all available WiFi networks
+	static U32	DumpWiFiScan( bool _deleteScanOnExit=true );	// Returns how many networks were found
+
+	// Scans all available WiFi networks and marks the channels they're using
+	// We should always try and operate on free channels otherwise a lot of interference can occur!
+	static U32	ScanWifiChannels( U8 _channels[11], bool _dump=false );	// Returns how many networks were found
+
 protected:
 	void	Init( U8 _WiFiChannel, U32 _samplingRate );
 };
@@ -48,6 +58,8 @@ public:
 
 	OnPacketsReceivedCallback*	m_onPacketsReceivedCallback = NULL;
 
+	bool		m_blockPackets = false;
+
 public:	// Status
 	RECEIVED_PACKET_STATUS	m_lastReceivedPacketStatus = BUFFER_EMPTY;
 	U32						m_receivedPacketsCount = 0;
@@ -66,6 +78,9 @@ public:
 	virtual U32			GetSamplingRate() const override { return m_samplingRate; }
 	virtual CHANNELS	GetChannelsCount() const override { return m_channelsCount; }
 
+	// Blocks packet to simulate packets loss (for debugging purpose)
+	void	BlockPackets( bool _blockPackets ) { m_blockPackets = _blockPackets; }
+
 private:
 	void	Receive( const U8* _senderMACAddress, const U8* _payload, U32 _payloadSize );
 
@@ -74,20 +89,39 @@ private:
 
 // The ESP-Now Transmitter class is only a helper to send audio packets whenever enough samples are available from the source
 class TransportESPNow_Transmitter : public TransportESPNow_Base {
-public:
+private:
+	const ITimeReference*	m_time = NULL;
+	ISampleSource*			m_sampleSource = NULL;
+
+	// Temporary buffer to store the packet payload
 	U8	m_buffer[ESP_NOW_MAX_DATA_LEN];
+
+	U8	m_receiverMaskID = 0xFF;	// Target all devices
+
+public:
+
 	U32	m_sentPacketsCount = 0;
 
 public:
 
+	TransportESPNow_Transmitter( const ITimeReference& _time ) : m_time( &_time ) {}
+
 	void	Init( U8 _WiFiChannel, U32 _samplingRate );
+
+	// Starts an auto-send task to send packets at the required sampling rate
+	void	StartAutoSendTask( U8 _taskPriority, ISampleSource& _sampleSource, U8 _receiverMaskID );
 
 	// Sends a 250 bytes packet containing 61 samples
 	//	_samplesSource, the source to sample from. NOTE: The source *MUST* have at least 61 samples available to fill the entire packet, otherwise an exception is thrown!
 	//	_packetID, the ID of the packet. NOTE: The ID is 24-bits only, MSB will be ignored *BUT* if your packet IDs are contiguous then looping 24-bits IDs can be detected and a 32-bits ID can be reconstructed.
 	//	_receiverMaskID, the ID of the targeted receivers, as a mask (i.e. receivers have an ID in [1,8], each bit targets a specific receiver, e.g. 0xFF targets all receivers). NOTE: The central has the special ID 0
-	void	SendPacket( ISampleSource& _sampleSource, U32 _packetID, U8 _receiverMaskID=0xFF );
+	void	SendPacket( ISampleSource& _sampleSource, U32 _packetID, U8 _receiverMaskID );
+
+	// Sends a raw packet of 250 bytes
+	void	SendRawPacket( const U8 _packet[ESP_NOW_MAX_DATA_LEN] );
 
 private:
 	void	Send();
+
+	friend void	SendPacketsTask( void* _param );
 };

@@ -4,8 +4,13 @@
 			"path": "src/Common/AudioBuffer.cpp",
 			"bookmarks": [
 				{
-					"line": 81,
-					"column": 1,
+					"line": 101,
+					"column": 10,
+					"label": ""
+				},
+				{
+					"line": 187,
+					"column": 16,
 					"label": ""
 				}
 			]
@@ -14,13 +19,8 @@
 			"path": "src/Common/ESPNow/TransportESPNow.cpp",
 			"bookmarks": [
 				{
-					"line": 95,
-					"column": 0,
-					"label": ""
-				},
-				{
-					"line": 254,
-					"column": 12,
+					"line": 615,
+					"column": 7,
 					"label": ""
 				}
 			]
@@ -29,23 +29,33 @@
 			"path": "src/Peripheral.cpp",
 			"bookmarks": [
 				{
-					"line": 155,
-					"column": 5,
+					"line": 76,
+					"column": 17,
 					"label": ""
 				},
 				{
-					"line": 168,
-					"column": 4,
+					"line": 361,
+					"column": 11,
 					"label": ""
 				}
 			]
 		},
 		{
-			"path": "src/Common/I2S/I2SInput.cpp",
+			"path": "src/Common/Serial/CentralSerial.cpp",
 			"bookmarks": [
 				{
-					"line": 167,
-					"column": 4,
+					"line": 105,
+					"column": 3,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "../../../../../../c:/Users/Patapom/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal-uart.c",
+			"bookmarks": [
+				{
+					"line": 421,
+					"column": 5,
 					"label": ""
 				}
 			]

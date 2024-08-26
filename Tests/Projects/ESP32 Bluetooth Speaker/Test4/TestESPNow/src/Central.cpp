@@ -5,79 +5,79 @@
 //
 #if defined(BUILD_CENTRAL)
 
+//#define USE_SERIAL_FOR_DEBUG	// Define this to use serial for debugging, undefine to use it for actual high-speed data transfer with the PC
+#define	USE_CENTRAL_SERIAL	// Define this for actual high-speed data transfer with the PC, undefine to use it to use serial for debugging
+#ifdef USE_CENTRAL_SERIAL
+//#define NO_GLOBAL_SERIAL	// Use our Serial instead
+#endif
+
 #include "./Common/Global.h"
 
 #include "./Common/AudioBuffer.h"
-#include "./Common/WAVFileSampler.h"
 #include "./Common/ESPNow/TransportESPNow.h"
-
-#include "./Common/WaveGenerator.h"
-#include "./Common/AudioTransformers.h"
+#include "./Common/AudioTools/WAVFileSampler.h"
+#include "./Common/AudioTools/AudioTransformers.h"
+#include "./Common/AudioTools/WaveGenerator.h"
+#include "./Common/Serial/CentralSerial.h"
 
 #include "Local.h"
-
-#include "xtensa/core-macros.h"	// XTHAL_GET_CCOUNT()
 
 char  str::ms_globalBuffer[256];
 char* str::ms_globalPointer = str::ms_globalBuffer;
 
-#define SEND_WAV_SAMPLE	// Define this to send the WAV sample, undefine to send back the received packets
-
-DefaultTime	mainTime;
-
-#ifdef SEND_WAV_SAMPLE
-WAVFileSampler	WAV( mainTime );
-#else
-AudioBuffer		microphone2HiFi;
-WaveGenerator	microphoneDummy;
-//TransformMono2Stereo	transformerMono2Stereo;
-TransformInterpolateMono2Stereo	transformerMono2Stereo;
+#ifndef USE_CENTRAL_SERIAL
+	#define SEND_WAV_SAMPLE			// Define this to send the WAV sample, undefine to send back the received packets (i.e. microphone feedback with a twist!)
+//	#define USE_DUMMY_MICROPHONE	// Define this to use a dummy microphone in place of the received signal
 #endif
 
-TransportESPNow_Transmitter	transportToPeripherals;
+DefaultTime		mainTime;
+
+CentralSerial	centralSerial( mainTime );
+//HardwareSerial  Serial2( 2 );
+
+TransportESPNow_Transmitter	transportToPeripherals( mainTime );
 TransportESPNow_Receiver	transportFromPeripherals( mainTime );
 
-bool	sendPacket = false;
-U32		timerCounter = 0;
-void IRAM_ATTR	Timer0_ISR() {
-	sendPacket = true;
-	timerCounter++;
-}
-
-void	SendPacketsTask( void* _param ) {
-	while ( !mainTime.HasStarted() ) {
-		delay( 1 );
-	}
-
-	while ( true ) {
-		delay( 1 );
-		
-		// Should we send a packet?
-		if ( !sendPacket )
-			continue;
-		sendPacket = false;
-
-//		U32	packetID = timerCounter;	// Use the timer counter as packet ID
-		U32	packetID = transportToPeripherals.m_sentPacketsCount;	// Use the transport's packet counter as packet ID, because the timer counter may have changed since it asked us to send the packet
-
-		#ifdef SEND_WAV_SAMPLE	// Send WAV samples to the Peripherals
-			transportToPeripherals.SendPacket( WAV, packetID );
-		#else
-//			transportToPeripherals.SendPacket( transportFromPeripherals, packetID );
-//			transportToPeripherals.SendPacket( microphone2HiFi, packetID );
-			transportToPeripherals.SendPacket( transformerMono2Stereo, packetID );
+#ifndef USE_CENTRAL_SERIAL
+	#ifdef SEND_WAV_SAMPLE
+		WAVFileSampler	WAV( mainTime );
+	#else
+		#ifndef USE_DUMMY_MICROPHONE	// Send back the received microphone input, after conversion from mono to stereo
+			TransformMono2Stereo	mono2Stereo( transportFromPeripherals );
+		#else							// Generate a waveform instead of microphone
+			WaveGenerator			microphoneDummy;
+			TransformMono2Stereo	mono2Stereo( microphoneDummy );
 		#endif
-	}
-}
+	#endif
+#endif
+
+//void	OnPacketsReceivedCallback( U32 _formerPacketID );
+
+//S16	gs_sine[16384];
 
 void setup() {
 	pinMode( PIN_LED_RED, OUTPUT );
+
+//	InitSine();
 
 	Serial.begin( 115200 );
 	Serial.println();
 	Serial.println( str( "Clock Frequency = %d.%03d MHz", U16( F_CPU / 1000000L ), U16( (F_CPU / 1000L) % 1000UL ) ) );
 
 	ERROR( !SPIFFS.begin( false ), "An Error has occurred while mounting SPIFFS!" );
+
+	#ifdef USE_CENTRAL_SERIAL
+		// We need at least a 1,411,200 bps full-duplex rate to transfer 44.1KHz stereo 16-bits samples
+//		centralSerial.Init( CentralSerial::UART2, 2000000UL, GPIO_NUM_17, GPIO_NUM_16 );	// Doesn't work!
+//		centralSerial.Init( CentralSerial::UART2, 1000000UL, GPIO_NUM_17, GPIO_NUM_16 );	// Lots of bytes lost! => Has to be a multiple of 115200, like shown below...
+		centralSerial.Init( CentralSerial::UART2, 1152000UL, GPIO_NUM_17, GPIO_NUM_16 );	// 10 x 115200 => Works nicely!
+//		centralSerial.Init( CentralSerial::UART2, 2187500UL, GPIO_NUM_17, GPIO_NUM_16 );	// Maximum allowed on Windows... But doesn't work.
+//		centralSerial.Init( CentralSerial::UART2, 1728000UL, GPIO_NUM_17, GPIO_NUM_16 );	// 15 x 115200 => Doesn't work...
+//		centralSerial.Init( CentralSerial::UART2, 1382400UL, GPIO_NUM_17, GPIO_NUM_16 );	// 12 x 115200 => Doesn't work...
+
+//		Serial2.begin( 115200 );
+//		ERROR( true, "Serial configuré!! Error depuis le setup()!" );
+	#endif
 
 	#ifdef SEND_WAV_SAMPLE
 		// Open the WAV file audio buffer
@@ -88,58 +88,60 @@ void setup() {
 		WAV.StartAutoUpdateTask( 3 );
 	#endif
 
+	// ========================================================================================
 	// Initialize WiFi
   	WiFi.mode( WIFI_STA );
   	WiFi.disconnect();	// We're using ESP-Now
 	Serial.println( str( "MAC Address is: %s", WiFi.macAddress().c_str() ) );
 
-	// Initialize the ESP-Now transports
-//	transportToPeripherals.Init( ESP_NOW_WIFI_CHANNEL_CENTRAL_TO_PERIPHERAL, 44100 );
-	transportToPeripherals.Init( ESP_NOW_WIFI_CHANNEL_CENTRAL_TO_PERIPHERAL, 22050 );
+	// Ensure the channel is free (otherwise a lot of interference and ESP_NOW queue errors can occur!)
+	const char*	SSID = TransportESPNow_Base::CheckWiFiChannelUnused( ESP_NOW_WIFI_CHANNEL );
+	ERROR( SSID, str( "The WiFi network \"%s\" is operating on our WiFi channel!", SSID ? SSID : "" ) );
+//U8	channels[11];
+//TransportESPNow_Base::DumpWiFiScan();
+//TransportESPNow_Base::ScanWifiChannels( channels, true );
+//ERROR( channels[ESP_NOW_WIFI_CHANNEL-1], "A WiFi network is operating on our WiFi channel!" );
+
+	// ========================================================================================
+	// Central -> Peripheral
+	//
+	transportToPeripherals.Init( ESP_NOW_WIFI_CHANNEL, CENTRAL_TO_PERIPHERAL_RATE );
+
+	#ifdef SEND_WAV_SAMPLE	// Send WAV samples to the Peripherals
+		transportToPeripherals.StartAutoSendTask( 4, WAV, receiverMaskID );
+	#else	// Directly plug back what we received
+		#ifdef USE_DUMMY_MICROPHONE
+			microphoneDummy.SetChannelsCount( ISampleSource::MONO );
+			microphoneDummy.SetWaveLeft( 1000.0f, 0.1f );
+			microphoneDummy.SetWaveRight( 1000.0f, 0.1f );
+//microphoneDummy.SetChannelsCount( ISampleSource::STEREO );
+		#endif
+
+		#ifdef USE_CENTRAL_SERIAL
+//			transportToPeripherals.StartAutoSendTask( 4, centralSerial, receiverMaskID );
+			centralSerial.StartAutoReceiveTask( 4, transportToPeripherals );
+		#else
+			U8	receiverMaskID = 0xFF;	// Broadcast to every Peripheral by default...
+
+			transportToPeripherals.StartAutoSendTask( 4, mono2Stereo, receiverMaskID );
+//			transportToPeripherals.StartAutoSendTask( 4, microphoneDummy, receiverMaskID );
+		#endif
+
+	#endif
 
 	Serial.println( str( "Transport to Peripherals Initialized..." ) );
 
-	transportFromPeripherals.Init( ESP_NOW_WIFI_CHANNEL_PERIPHERAL_TO_CENTRAL, 0x00, 16000, ISampleSource::MONO, 0.5f );	// We're the Central with special ID 0, we receive all the packets with bit mask 0!
+	// ========================================================================================
+	// Peripheral -> Central
+	//
+	transportFromPeripherals.Init( ESP_NOW_WIFI_CHANNEL, 0x00, PERIPHERAL_TO_CENTRAL_RATE, ISampleSource::MONO, 0.5f );	// We're the Central with special ID 0, we receive all the packets with bit mask 0!
+
+	#ifdef USE_CENTRAL_SERIAL
+//		transportFromPeripherals.SetOnPacketReceivedCallback( OnPacketsReceivedCallback );
+		centralSerial.StartAutoSendTask( 4, transportFromPeripherals );
+	#endif
 
 	Serial.println( str( "Transport from Peripherals Initialized..." ) );
-
-	// Initialize the timer that sends high-fidelity audio packets at 44.1KHz to the Peripherals
-	// We're targeting a 44100 Hz frequency but we can send 61 samples per packet, so we need a timer working a frequency of 722.9508 Hz
-	// We achieve this using a base frequency of 224089 Hz (40MHz / 357) and counting up to 310, giving us a frequency of 722.869 Hz
-	hw_timer_t*	timer0Config = timerBegin( 0, 357, true );	// 80MHz / 357 = 224089 Hz base frequency
-//	timerAlarmWrite( timer0Config, 310, true );				// Count up to 310 => 722.869 Hz * 61 samples = 44095 Hz
-
-// Half the packets sent => packets loss goes down to 1%! We need to compress our audio!
-timerAlarmWrite( timer0Config, 620, true );				// Count up to 620 => 361.42 Hz * 61 samples = 22047 Hz
-
-	timerAttachInterrupt( timer0Config, &Timer0_ISR, true );
-	timerAlarmEnable( timer0Config );
-
-	Serial.println( str( "Timer enabled..." ) );
-
-	// Build temporary audio buffer + transformer to convert a 16KHz mono sound into 22050Hz stereo
-//	ERROR( !microphone2HiFi.Init( transportFromPeripherals, 2048 ), "Failed to initialize Microphone->HiFi Audio Buffer!" );
-
-#ifndef SEND_WAV_SAMPLE
-// Simulate a microphone input
-microphoneDummy.SetChannelsCount( ISampleSource::MONO );
-microphoneDummy.SetSamplingRate( 16000 );
-microphoneDummy.SetWaveLeft( 1000 );
-ERROR( !microphone2HiFi.Init( microphoneDummy, 2048 ), "Failed to initialize Microphone->HiFi Audio Buffer!" );
-
-transformerMono2Stereo.Init( microphone2HiFi );	// Apply 16 KHz mono -> 22 KHz stereo transformer
-transformerMono2Stereo.SetTargetSamplingRate( 22050 );
-#endif
-
-// Works!
-//microphoneDummy.SetChannelsCount( ISampleSource::STEREO );
-//microphoneDummy.SetSamplingRate( 22050 );
-//microphoneDummy.SetWaveLeft( 1000 );
-//microphoneDummy.SetWaveRight( 1000 );
-
-	// Start a high-priority task that will send our packets
-	TaskHandle_t sendPacketsTaskHandle;
-	xTaskCreate( SendPacketsTask, "SendPacketsTask", 2048, NULL, 4, &sendPacketsTaskHandle );
 
 	// Start the show!
 	mainTime.Start();
@@ -153,6 +155,7 @@ void loop() {
 // DON'T UPDATE IN MAIN LOOP! It's too heavy and will prevent sending as many packets as we need!
 //		// Update buffer with samples from the WAV file as soon as there's enough room for them...
 //		WAV.Update();
+
 
 
 //* Show some packet stats
@@ -170,10 +173,14 @@ if ( elapsedTime_ms > 1000 ) {
 	U32	lostPackets = transportFromPeripherals.m_lostPacketsCount - lastLostPacketsCount;
 	U32	sentPackets = transportToPeripherals.m_sentPacketsCount - lastSentPacketsCount;
 //	U32	receivedSamplesCount = input.m_sampleIndexWrite - lastReceivedSamplesCount;
-	U32	updatesCount = WAV.m_updatesCount - lastUpdatesCount;
+	#ifdef SEND_WAV_SAMPLE
+		U32	updatesCount = WAV.m_updatesCount - lastUpdatesCount;
+	#else
+		U32	updatesCount = 0;
+	#endif
 
 	// Debug ESP-Now packets status
-	Serial.printf( "Received %d, ID=0x%06X = %.1f Hz - Lost = %2d pcks (%.1f%%) | Sent %d, ID=0x%06X packets = %.1f Hz - Update count = %d\n", receivedPackets, transportFromPeripherals.m_lastReceivedPacketID, 2*TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * receivedPackets) / elapsedTime_ms, lostPackets, 100.0f * lostPackets / receivedPackets, sentPackets, transportToPeripherals.m_sentPacketsCount-1, TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * sentPackets) / elapsedTime_ms, updatesCount );
+	Serial.printf( "Rcv. %d, ID=0x%06X = %.1fHz - Lost = %2d (%.1f%%) | Sent %d, ID=0x%06X = %.1fHz - Upd# = %d\n", receivedPackets, transportFromPeripherals.m_lastReceivedPacketID, 2*TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * receivedPackets) / elapsedTime_ms, lostPackets, 100.0f * lostPackets / receivedPackets, sentPackets, transportToPeripherals.m_sentPacketsCount-1, TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * sentPackets) / elapsedTime_ms, updatesCount );
 
 	// Debug microphone input levels and sampling frequency
 	//Serial.printf( "Received %d samples from microphone (Max = %d) - Frequency = %.1f Hz\n", input.m_sampleIndexWrite, input.m_sampleMax, (1000.0f * receivedSamplesCount) / (now - lastTime) );
@@ -183,9 +190,17 @@ if ( elapsedTime_ms > 1000 ) {
 	lastReceivedPacketsCount = transportFromPeripherals.m_receivedPacketsCount;
 	lastLostPacketsCount = transportFromPeripherals.m_lostPacketsCount;
 	lastSentPacketsCount = transportToPeripherals.m_sentPacketsCount;
-	lastUpdatesCount = WAV.m_updatesCount;
+	#ifdef SEND_WAV_SAMPLE
+		lastUpdatesCount = WAV.m_updatesCount;
+	#endif
 //	lastReceivedSamplesCount = input.m_sampleIndexWrite;
 	lastTime = now;
+
+// Just a simple test
+//	#ifdef USE_CENTRAL_SERIAL
+//		centralSerial.Write();
+////		Serial2.println( "Coucou!" );
+//	#endif
 }
 //*/
 
@@ -199,5 +214,11 @@ if ( elapsedTime_ms > 1000 ) {
 	}
 //*/
 }
+
+//void	OnPacketsReceivedCallback( U32 _formerPacketID ) {
+//	#ifdef USE_CENTRAL_SERIAL
+//		centralSerial.PushPacket( transportFromPeripherals. )
+//	#endif
+//}
 
 #endif

@@ -6,11 +6,14 @@
 
 const U8	broadcastAddress[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
-//#define SIMULATE_WAVE_FORM_RECEIVER	1024	// Should sound like a clear 1KHz sound if all packets were received correctly...
-//#define SIMULATE_WAVE_FORM_TRANSMITTER	1024	// Should sound like a clear 1KHz sound if all packets were received correctly...
+//#define SIMULATE_WAVE_FORM_RECEIVER		1024	// Should sound like a clear 1KHz sound if all packets were received correctly...
+//#define SIMULATE_WAVE_FORM_TRANSMITTER	1024	// Should sound like a clear 1KHz sound if all packets were transmitted correctly...
 
-#if defined(SIMULATE_WAVE_FORM_RECEIVER) || defined(SIMULATE_WAVE_FORM_TRANSMITTER)
-static U32	s_sampleIndex = 0;
+#if defined(SIMULATE_WAVE_FORM_RECEIVER)
+static U32	s_sampleIndexReceive = 0;
+#endif
+#if defined(SIMULATE_WAVE_FORM_TRANSMITTER)
+static U32	s_sampleIndexTransmit = 0;
 #endif
 
 
@@ -66,7 +69,117 @@ void	TransportESPNow_Base::Init( U8 _WiFiChannel, U32 _samplingRate ) {
 	ERROR( result != ESP_OK, str( "Failed to setup WiFi broadcast rate: %s", esp_err_to_name(result) ) );
 	Serial.println( "Successfully set WiFi rate to 5.5 Mbps" );
 
-	Serial.printf( "TransportESPNow Initialized for %d Hz!", m_samplingRate );
+	Serial.printf( "TransportESPNow Initialized for %d Hz!\n", m_samplingRate );
+}
+
+// Source code from https://deepbluembedded.com/esp32-wifi-scanner-example-arduino/
+U32	WiFiScan() {
+	return WiFi.scanNetworks( false, true, true, 90 );
+}
+
+const char*	TransportESPNow_Base::CheckWiFiChannelUnused( U8 _channel ) {
+	static char	SSID[33];
+
+	U32	networksCount = WiFiScan();
+
+	for ( U32 networkIndex=0; networkIndex < networksCount; networkIndex++ ) {
+	    wifi_ap_record_t*	record = (wifi_ap_record_t*) WiFiScanClass::getScanInfoByIndex( networkIndex );
+		if ( record->primary == _channel ) {
+			// Found a network on this channel!
+			memcpy( SSID, record->ssid, 33 );
+			WiFi.scanDelete();
+			return SSID;
+		}
+	}
+
+	WiFi.scanDelete();
+
+	return NULL;
+}
+
+U32	TransportESPNow_Base::DumpWiFiScan( bool _deleteScanOnExit ) {
+	U32	networksCount = WiFiScan();
+	Serial.print( "Scan done => " );
+	if ( networksCount == 0 ) {
+		Serial.println( "no networks found" );
+	} else {
+		Serial.print( networksCount );
+		Serial.println( " networks found" );
+		Serial.println("Nr | SSID                             | RSSI | CH | Encryption");
+		for (int i = 0; i < networksCount; ++i) {
+			// Print SSID and RSSI for each network found
+			Serial.printf("%2d",i + 1);
+			Serial.print(" | ");
+			Serial.printf("%-32.32s", WiFi.SSID(i).c_str());
+			Serial.print(" | ");
+			Serial.printf("%4d", WiFi.RSSI(i));
+			Serial.print(" | ");
+			Serial.printf("%2d", WiFi.channel(i));
+			Serial.print(" | ");
+			switch (WiFi.encryptionType(i))
+			{
+			case WIFI_AUTH_OPEN:
+				Serial.print("open");
+				break;
+			case WIFI_AUTH_WEP:
+				Serial.print("WEP");
+				break;
+			case WIFI_AUTH_WPA_PSK:
+				Serial.print("WPA");
+				break;
+			case WIFI_AUTH_WPA2_PSK:
+				Serial.print("WPA2");
+				break;
+			case WIFI_AUTH_WPA_WPA2_PSK:
+				Serial.print("WPA+WPA2");
+				break;
+			case WIFI_AUTH_WPA2_ENTERPRISE:
+				Serial.print("WPA2-EAP");
+				break;
+			case WIFI_AUTH_WPA3_PSK:
+				Serial.print("WPA3");
+				break;
+			case WIFI_AUTH_WPA2_WPA3_PSK:
+				Serial.print("WPA2+WPA3");
+				break;
+			case WIFI_AUTH_WAPI_PSK:
+				Serial.print("WAPI");
+				break;
+			default:
+				Serial.print("unknown");
+			}
+			Serial.println();
+			delay(10);
+		}
+	}
+	Serial.println("");
+
+	if ( _deleteScanOnExit ) {
+		WiFi.scanDelete();	// Delete the scan result to free memory for code below.
+	}
+
+	return networksCount;
+}
+
+U32	TransportESPNow_Base::ScanWifiChannels( U8 _channels[11], bool _dump ) {
+	memset( _channels, 0, 11 );
+	U32	networksCount = 0;
+	if ( _dump ) {
+		networksCount = DumpWiFiScan( false );
+	} else {
+		networksCount = WiFiScan();
+	}
+
+	for ( U32 networkIndex=0; networkIndex < networksCount; networkIndex++ ) {
+		U8	channelID = WiFi.channel( networkIndex );
+		ERROR( channelID < 1 || channelID > 11, "WiFi channel ID out of range!" );
+		_channels[channelID-1] = 1;	// This channel is used!
+	}
+	WiFi.scanDelete();
+
+//esp_wifi_set_max_tx_power => boost?
+
+	return networksCount;
 }
 
 
@@ -106,7 +219,7 @@ bool	TransportESPNow_Receiver::Init( U8 _WiFiChannel, U8 _receiverMaskID, U32 _s
 }
 
 void	TransportESPNow_Receiver::Receive( const U8* _senderMACAddress, const U8* _payload, U32 _payloadSize ) {
-	if ( !m_time->HasStarted() )
+	if ( !m_time->HasStarted() || m_blockPackets )
 		return;	// Wait until the time reference starts!
 
 	// Check we received the expected header
@@ -149,11 +262,43 @@ Serial.println( "Not for us!" );
 
 	U32	lostPacketsCount = packetID - m_lastReceivedPacketID - 1;
 	if ( lostPacketsCount != 0 ) {
+		#if 0 // Creates many scratches... Don't know why.
 		if ( lostPacketsCount < 10 ) {
+			// Interpolate lost packets
+			if ( GetChannelsCount() == STEREO ) {
+				U32		lostSamplesCount = lostPacketsCount * SAMPLES_PER_PACKET;
 
-// @TODO: Restore lost packets??
+				Sample&	lastSample = m_buffer[(m_sampleIndexWrite + m_bufferSize-1) % m_bufferSize];	// Last sample we received
+				Sample&	newSample = *((Sample*) _payload);												// Next valid sample in our new payload
 
+				S32	left0 = lastSample.left;
+				S32	dLeft = (S32) newSample.left - left0;
+				S32	right0 = lastSample.right;
+				S32	dRight = (S32) newSample.right - right0;
+
+				for ( U32 lostSampleIndex=0; lostSampleIndex < lostSamplesCount; lostSampleIndex++ ) {
+					U32	bufferSampleIndex = (m_sampleIndexWrite + lostSampleIndex) % m_bufferSize;
+					m_buffer[bufferSampleIndex].left = S16( left0 + (lostSampleIndex * dLeft) / lostSamplesCount );
+					m_buffer[bufferSampleIndex].right = S16( right0 + (lostSampleIndex * dRight) / lostSamplesCount );
+				}
+				m_sampleIndexWrite += lostSamplesCount;
+			} else {
+				U32		lostSamplesCount = lostPacketsCount * 2*SAMPLES_PER_PACKET;
+				S16*	buffer = (S16*) m_buffer;
+
+				S16	lastSample = buffer[(m_sampleIndexWrite + m_bufferSize-1) % m_bufferSize];	// Last sample we received
+				S16	newSample = *((S16*) _payload);												// Next valid sample in our new payload
+				S32	delta = (S32) newSample - lastSample;
+
+				for ( U32 lostSampleIndex=0; lostSampleIndex < lostSamplesCount; lostSampleIndex++ ) {
+					U32	bufferSampleIndex = (m_sampleIndexWrite + lostSampleIndex) % m_bufferSize;
+					buffer[bufferSampleIndex] = S16( lastSample + (lostSampleIndex * delta) / lostSamplesCount );
+				}
+				m_sampleIndexWrite += lostSamplesCount;
+			}
 		}
+		#endif
+
 		m_lostPacketsCount += lostPacketsCount;
 		m_receivedPacketsCount += lostPacketsCount;
 //Serial.printf( "Lost packet %02X / %02X = %d\n", m_lastReceivedPacketID, packetID, lostPacketsCount );
@@ -162,16 +307,32 @@ Serial.println( "Not for us!" );
 
 
 #ifdef SIMULATE_WAVE_FORM_RECEIVER
-for ( U32 i=0; i < SAMPLES_PER_PACKET; i++ ) {
-//	S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 44100.0f) * s_sampleIndex++ ) );
-S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 22050.0f) * s_sampleIndex++ ) );
-	((Sample*) _payload)[i].left = temp;
-	((Sample*) _payload)[i].right = temp;
+if ( m_channelsCount == ISampleSource::STEREO ) {
+	Sample*	sample = (Sample*) _payload;
+	for ( U32 i=0; i < SAMPLES_PER_PACKET; i++, sample++ ) {
+		S16	temp = FastSine( s_sampleIndexReceive++ * (16384 * 1000 / m_samplingRate) ) / 8;
+		sample->left = temp;
+		sample->right = temp;
+	}
+} else {
+	S16*	sample = (S16*) _payload;
+	for ( U32 i=0; i < 2*SAMPLES_PER_PACKET; i++ ) {
+		*sample++ = FastSine( s_sampleIndexReceive++ * (16384 * 1000 / m_samplingRate) ) / 8;
+	}
 }
+// Too slow => on tombe à 40KHz quand on enable cette ligne?
+//Sample*	sample = (Sample*) _payload;
+//for ( U32 i=0; i < SAMPLES_PER_PACKET; i++, sample++ ) {
+//	S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / m_samplingRate) * s_sampleIndexReceive++ ) );
+//	sample->left = temp;
+//	sample->right = temp;
+//}
 #endif
 
+
 	// Write samples
-	WriteSamples( (Sample*) _payload, SAMPLES_PER_PACKET );
+	U32	receivedSamplesCount = m_channelsCount == ISampleSource::STEREO ? SAMPLES_PER_PACKET : 2*SAMPLES_PER_PACKET;
+	WriteSamples( (Sample*) _payload, receivedSamplesCount );
 
 	m_receivedPacketsCount++;
 	U32	oldLastReceivedPacketID = m_lastReceivedPacketID;
@@ -371,8 +532,18 @@ void	ReceiveCallback( const U8* _senderMACAddress, const U8* _data, int _dataLen
 // Transmitter
 ///////////////////////////////////////////////////////////////////////////
 //
+void	SendPacketsTask( void* _param );
+
 void	TransportESPNow_Transmitter::Init( U8 _WiFiChannel, U32 _samplingRate ) {
 	TransportESPNow_Base::Init( _WiFiChannel, _samplingRate );
+}
+
+void	TransportESPNow_Transmitter::StartAutoSendTask( U8 _taskPriority, ISampleSource& _sampleSource, U8 _receiverMaskID ) {
+	m_sampleSource = &_sampleSource;
+	m_receiverMaskID = _receiverMaskID;
+
+	TaskHandle_t sendPacketsTaskHandle;
+	xTaskCreate( SendPacketsTask, "SendPacketsTask", 2048, this, _taskPriority, &sendPacketsTaskHandle );
 }
 
 void	TransportESPNow_Transmitter::SendPacket( ISampleSource& _sampleSource, U32 _packetID, U8 _receiverMaskID ) {
@@ -390,19 +561,37 @@ void	TransportESPNow_Transmitter::SendPacket( ISampleSource& _sampleSource, U32 
 
 
 #ifdef SIMULATE_WAVE_FORM_TRANSMITTER
+if ( _sampleSource.GetChannelsCount() == ISampleSource::STEREO ) {
+	Sample*	sample = (Sample*) (m_buffer + 6);
+	for ( U32 i=0; i < requestedSamplesCount; i++, sample++ ) {
+	//	S16	temp = s_sampleIndexTransmit++ & 0x10 ? 2048 : -2048;
+		S16	temp = FastSine( s_sampleIndexTransmit++ * (16384 * 1000 / m_samplingRate) ) / 8;
+		sample->left = temp;
+		sample->right = temp;
+	}
+} else {
+	S16*	sample = (S16*) (m_buffer + 6);
+	for ( U32 i=0; i < requestedSamplesCount; i++ ) {
+		*sample++ = FastSine( s_sampleIndexTransmit++ * (16384 * 1000 / m_samplingRate) ) / 8;
+	}
+}
+#elif 0
 // Simulate a 1KHz sine wave
 Sample*		sample = (Sample*) (m_buffer + 6);
 for ( U32 i=0; i < SAMPLES_PER_PACKET; i++, sample++ ) {
-//	S32	temp = S16( SIMULATE_WAVE_FORM_TRANSMITTER * sin( 2*3.14159265358979f * (1000.0f / 44100.0f) * s_sampleIndex++ ) );
-S32	temp = S16( SIMULATE_WAVE_FORM_TRANSMITTER * sin( 2*3.14159265358979f * (1000.0f / 22050.0f) * s_sampleIndex++ ) );
+//	S32	temp = S16( SIMULATE_WAVE_FORM_TRANSMITTER * sin( 2*3.14159265358979f * (1000.0f / 44100.0f) * s_sampleIndexTransmit++ ) );
+S32	temp = S16( SIMULATE_WAVE_FORM_TRANSMITTER * sin( 2*3.14159265358979f * (1000.0f / 22050.0f) * s_sampleIndexTransmit++ ) );
 	sample->left = temp;
 	sample->right = temp;
 }
 #endif
 
-
 	// Send the packet
-	esp_err_t	result = esp_now_send( broadcastAddress, m_buffer, ESP_NOW_MAX_DATA_LEN );
+	SendRawPacket( m_buffer );
+}
+
+void	TransportESPNow_Transmitter::SendRawPacket( const U8 _packet[ESP_NOW_MAX_DATA_LEN] ) {
+	esp_err_t	result = esp_now_send( broadcastAddress, _packet, ESP_NOW_MAX_DATA_LEN );
 	if ( result != ESP_OK ) {
 		Serial.printf( "Failed to send: %s\n", esp_err_to_name(result) );
 //m_sampleIndex = 0;
@@ -415,4 +604,37 @@ S32	temp = S16( SIMULATE_WAVE_FORM_TRANSMITTER * sin( 2*3.14159265358979f * (100
 
 // Monitor packets by blinking the LED every 128 packets...
 digitalWrite( PIN_LED_RED, (m_sentPacketsCount & 0x80) != 0 );
+}
+
+void	SendPacketsTask( void* _param ) {
+	TransportESPNow_Transmitter*	that = (TransportESPNow_Transmitter*) _param;
+
+	const ITimeReference&	time = *that->m_time;
+	ISampleSource&			sampleSource = *that->m_sampleSource;
+
+	U8	receiverMaskID = that->m_receiverMaskID;
+	U64	sendDeltaTime = (1000000ULL * (sampleSource.GetChannelsCount() == ISampleSource::STEREO ? TransportESPNow_Base::SAMPLES_PER_PACKET : 2*TransportESPNow_Base::SAMPLES_PER_PACKET))
+					  / U64( that->m_samplingRate );	// How much time represents that many samples given our sampling rate?
+
+	// Wait until time actually starts
+	while ( !time.HasStarted() ) {
+		delay( 1 );
+	}
+
+	U64	timeNextSend = time.GetTimeMicros() + sendDeltaTime;
+	while ( true ) {
+		vTaskDelay( 1 );
+
+		// Should we send a packet?
+		U64	now = time.GetTimeMicros();
+		if ( now < timeNextSend )
+			continue;	// Too soon!
+
+//		U32	packetID = timerCounter;	// Use the timer counter as packet ID
+		U32	packetID = that->m_sentPacketsCount;	// Use the transport's packet counter as packet ID, because the timer counter may have changed since it asked us to send the packet
+
+		that->SendPacket( sampleSource, packetID, receiverMaskID );
+
+		timeNextSend += sendDeltaTime;
+	}
 }
