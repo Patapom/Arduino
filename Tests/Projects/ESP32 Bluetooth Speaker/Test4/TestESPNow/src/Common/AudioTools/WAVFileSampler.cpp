@@ -1,4 +1,4 @@
-#include "Global.h"
+#include "../Global.h"
 #include "WAVFileSampler.h"
 
 //#define SIMULATE_WAVE_FORM	1024	// Define this to substitute a perfect 1KHz waveform instead of the WAV content
@@ -56,6 +56,7 @@ Serial.println( str( "%02X%02X%02X%02X %02X%02X%02X%02X | %c%c%c%c%c%c%c%c", p[0
 	m_channelsCount = (CHANNELS) header.channelsCount;
 	m_samplingRate = header.sampleRate;
 	m_samplesCount = header.chunkSizeData >> 2;
+	m_sampleSize = m_channelsCount * sizeof(S16);
 
 	Serial.println( str( "WAV file is ready (%d bytes, current offset = %d)", header.fileSize+8, m_file.position() ) );
 	Serial.println( str( "Data length = %d (%d samples at %.1f kHz - Duration %.3f s)", header.chunkSizeData, m_samplesCount, 0.001f * m_samplingRate, float(m_samplesCount) / m_samplingRate ) );
@@ -69,6 +70,12 @@ Serial.println( str( "%02X%02X%02X%02X %02X%02X%02X%02X | %c%c%c%c%c%c%c%c", p[0
 
 void	WAVUpdaterTask( void* _param ) {
 	WAVFileSampler*	that = (WAVFileSampler*) _param;
+
+	// Wait until time starts
+	if ( !that->m_time->HasStarted() ) {
+		vTaskDelay( 1 );
+	}
+
 	while ( true ) {
 		that->Update();	// Update with some samples ASAP
 //		if ( !digitalRead( PIN_BUTTON ) || that->Update() )	// Update with some samples ASAP
@@ -94,10 +101,17 @@ bool	WAVFileSampler::Update() {
 
 #ifdef SIMULATE_WAVE_FORM	// Perfect sine wave when generated!
 static U32	s_sampleIndex = 0;
-for ( U32 i=0; i < UPDATE_SAMPLES_COUNT; i++ ) {
-	S16	value = S16( SIMULATE_WAVE_FORM * sin( 2*PI * (1000.0 / m_samplingRate) * s_sampleIndex++ ) );
-	m_temp[i].left = value;
-	m_temp[i].right = value;
+if ( GetChannelsCount() == STEREO ) {
+	for ( U32 i=0; i < UPDATE_SAMPLES_COUNT; i++ ) {
+		S16	value = S16( SIMULATE_WAVE_FORM * sin( 2*PI * (1000.0 / m_samplingRate) * s_sampleIndex++ ) );
+		m_temp[i].left = value;
+		m_temp[i].right = value;
+	}
+} else {
+	S16*	sample = (S16*) m_temp;
+	for ( U32 i=0; i < UPDATE_SAMPLES_COUNT; i++ ) {
+		*sample++ = S16( SIMULATE_WAVE_FORM * sin( 2*PI * (1000.0 / m_samplingRate) * s_sampleIndex++ ) );
+	}
 }
 #endif
 
@@ -105,8 +119,8 @@ for ( U32 i=0; i < UPDATE_SAMPLES_COUNT; i++ ) {
 	WriteSamples( m_temp, UPDATE_SAMPLES_COUNT );
 
 	// One more update!
-	U64		updateDeltaTime = (1000000ULL * UPDATE_SAMPLES_COUNT) / m_samplingRate;	// How much time represents that many samples given our sampling rate?
-	m_timeNextUpdate = now + updateDeltaTime;
+	U64	updateDeltaTime = (1000000ULL * UPDATE_SAMPLES_COUNT) / U64( m_samplingRate );	// How much time represents that many samples given our sampling rate?
+	m_timeNextUpdate += updateDeltaTime;
 	m_updatesCount++;
 
 	return true;
@@ -115,14 +129,12 @@ for ( U32 i=0; i < UPDATE_SAMPLES_COUNT; i++ ) {
 // Fill the buffer with data from the file, wrapping around if necessary
 U32    WAVFileSampler::GetSamples( U32 _sampleIndex, Sample* _samples, U32 _samplesCount ) {
 	// Read as many samples as we can in at most 2 read() calls
-	U32		sampleSize = m_channelsCount * sizeof(S16);
-
 	U8*		samplePtr = (U8*) _samples;
 	U32		samplesCountToEOF = m_samplesCount - _sampleIndex;
 	U32		remainingSamplesCount = _samplesCount;
 	while ( remainingSamplesCount > samplesCountToEOF ) {
 		// Read to EOF and loop
-		U32	readSize = samplesCountToEOF * sampleSize;
+		U32	readSize = samplesCountToEOF * m_sampleSize;
 		m_file.read( samplePtr, readSize );
 		m_file.seek( sizeof(WAVHeader) );
 
@@ -137,13 +149,23 @@ U32    WAVFileSampler::GetSamples( U32 _sampleIndex, Sample* _samples, U32 _samp
 	}
 
 	// Read the rest
-	U32	readSize = remainingSamplesCount * sampleSize;
+	U32	readSize = remainingSamplesCount * m_sampleSize;
 	m_file.read( samplePtr, readSize );
 	samplePtr += readSize;
 	_sampleIndex += remainingSamplesCount;
 
 	if ( m_channelsCount == CHANNELS::STEREO )
 		return _samplesCount;	// We've already read stereo samples...
+
+	if ( m_forceMono ) {
+		// Convert stereo samples into mono
+		Sample*	sampleSource = _samples;
+		S16*	sampleTarget = (S16*) _samples;
+		for ( U32 sampleIndex=0; sampleIndex < _samplesCount; sampleIndex++, sampleSource++ ) {
+			*sampleTarget++ = sampleSource->left;
+		}
+		return _samplesCount;
+	}
 
 	// We need to double the mono samples to make them stereo...
 	S16*	sourceSample = (S16*) samplePtr;
