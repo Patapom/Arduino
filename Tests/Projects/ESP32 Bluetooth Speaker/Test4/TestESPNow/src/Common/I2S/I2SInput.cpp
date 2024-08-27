@@ -91,6 +91,52 @@ bool	I2SInput::StartI2S( i2s_port_t _I2SPort, const i2s_pin_config_t& _pins, U32
 	return true;
 }
 
+void	I2SInput::AutoGain() {
+	if ( !m_autoGain )
+		return;
+
+	// We want to quickly attenuate any violent sound and slowly increase the gain to reach an average volume
+	const U32	TARGET_VOLUME = 1000000;
+	const U32	SILENCE_VOLUME = 80000;
+//	const U32	SATURATION_VOLUME = 10000000;	// Working
+//	const U32	SATURATION_VOLUME = 4000000;	// Better
+	const U32	SATURATION_VOLUME = 2000000;
+
+	// Determine a fast average volume to work with
+	m_autoGainSumVolume += m_volume;
+	m_autoGainPacketsCount++;
+	if ( m_autoGainPacketsCount >= 4 ) {	// 4 * 256 sample packets in the DMA = 1/10s average at 16KHz
+		// Compute average and reset sums
+		m_autoGainAverageVolume = m_autoGainSumVolume / m_autoGainPacketsCount;
+		m_autoGainSumVolume = 0;
+		m_autoGainPacketsCount = 0;
+	}
+
+//	if ( m_autoGainAverageVolume > SATURATION_VOLUME ) {
+	if ( m_volume > SATURATION_VOLUME ) {
+		// Decrease gain immediately
+		m_gainFactor = m_gainFactor > m_autoGainMin + 4UL ? m_gainFactor - 4UL : m_autoGainMin;
+		m_gainDivider = 65536 / m_gainFactor;
+		m_autoGainAverageVolume = TARGET_VOLUME;
+		m_silentSurroundCounter = 0;
+
+	} else if ( m_autoGainAverageVolume < SILENCE_VOLUME ) {
+		// Increase gain slowy using average volume
+		#if 1
+			m_gainFactor = min( m_autoGainMax, TARGET_VOLUME / max( 1UL, m_autoGainAverageVolume ) );
+		#else
+			m_gainFactor = min( m_autoGainMax, m_gainFactor + 1UL );
+		#endif
+		m_gainDivider = 65536 / m_gainFactor;
+		m_silentSurroundCounter = 0;
+		m_autoGainAverageVolume = TARGET_VOLUME;
+	}
+
+	if ( m_gainFactor == m_autoGainMax ) {
+		m_silentSurroundCounter++;
+	}
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // Sampling tasks
@@ -172,17 +218,28 @@ void I2SReaderTask_I2S( void* _param ) {
 //		U32	readSamplesCount = bytesRead >> 2;
 		U32	readSamplesCount = I2SInput::DMA_SIZE;
 
-		U32	shift = 16 - that->m_gainLog2;	// This can change any time so we can't precompute...
+		S32	gainDivider = that->m_gainDivider;	// This can change any time so we can't precompute...
 
 		// Compress 24-bits signed mono samples into 16-bits signed mono samples
 		S32*	sampleSource = tempBuffer;			// 24-bit signed values [-8388608, 8388607] in the top 3 MSB
 		S16*	sampleTarget = (S16*) tempBuffer;	// Write in-place
+		S32		temp;
+		U32		volume = 0;
 		for ( U32 i=0; i < readSamplesCount; i++ ) {
-			*sampleTarget++ = S16( *sampleSource++ >> shift );	// In [-32768,32767]
+			// Constrain into [-32768,32767]
+			temp = *sampleSource++ / gainDivider;
+			temp = temp < -32768 ? -32768 : (temp > 32767 ? 32767 : temp);
+			*sampleTarget++ = S16( temp );
 
+			volume += U32( temp * temp );
 //that->m_sampleMin = min( that->m_sampleMin, sampleTarget[-1] );
 //that->m_sampleMax = max( that->m_sampleMax, sampleTarget[-1] );
 		}
+		volume /= readSamplesCount;	// Average volume
+		that->m_volume = volume;
+		that->m_sumVolume += volume;
+		that->m_audioPacketsCount++;
+		that->AutoGain();
 
 #if 0
 static U32	s_sampleIndex = 0;

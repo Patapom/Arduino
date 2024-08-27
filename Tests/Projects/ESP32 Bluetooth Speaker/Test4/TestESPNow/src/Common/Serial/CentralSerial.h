@@ -34,6 +34,10 @@ public:
 	TransportESPNow_Transmitter*	m_transmitter = NULL;	// The transmitter we're forwarding to when auto-receiving from UART
 	U8				m_packet[ESP_NOW_MAX_DATA_LEN];
 
+	U32		m_invalidPacketsCount = 0;
+	U32		m_sentPacketsCount = 0;
+	U32		m_searchedBytesCount = 0;
+
 public:
 	CentralSerial( const ITimeReference& _time ) : m_time( _time ) {}
 	
@@ -47,27 +51,17 @@ public:
 	// Sends a single packet of samples through the serial
 	void	SendPacket( ISampleSource& _source );
 
-//	void	Read();
-//	void	Write();
-
 public:
 	void	begin( int ) {}
 	void	println( const char* a = NULL ) {}
 	void	printf( const char* a, ... ) {}
 
 private:
-//	enum PROCESS_STATE {
-//		PS_UNKNOWN = -1,
-//		PS_AWAITING_HEADER_BYTE0 = 0,
-//		PS_AWAITING_HEADER_BYTE1 = 1,
-//		PS_AWAITING_HEADER_RECEIVER_MASK = 2,
-//		PS_AWAITING_PACKET_LENGTH = 3,
-//		PS_COPYING = 4,
-//	};
-//	PROCESS_STATE	m_processState = PS_AWAITING_HEADER_BYTE0;
-	U32				m_packetOffset = 0;
-	U32				m_packetIDAudio = 0;
-	U32				m_packetIDCommand = 0;
+	U32		m_packetOffset = 0;
+	U32		m_packetIDAudio = 0;
+	U32		m_packetIDCommand = 0;
+	bool	m_searchMode = true;	// Tells if we're in search mode or burst mode. Search mode happens when received data are desynchronized with packet headers
+
 	void	ProcessBlock( const U8* _data, U32 _blockSize );
 	void	ProcessBlock2( const U8* _data, U32 _blockSize );
 	void	ResetPacket();
@@ -75,23 +69,7 @@ private:
 	friend void	SerialSendPacketsTask( void* _param );
 	friend void	SerialReceivePacketsTask( void* _param );
 };
-/*
-// The Serial Receiver class is used as a buffer for serial packets sent by the PC
-class Serial_Receiver : public Serial_Base {
-public:
 
-};
-
-// The Serial Transmitter class is used to send serial packets to the PC
-class Serial_Transmitter : public Serial_Base {
-public:
-
-
-	void	begin( int ) {}
-	void	println( const char* a = NULL ) {}
-	void	printf( const char* a, ... ) {}
-};
-*/
 #ifdef NO_GLOBAL_SERIAL
 extern CentralSerial	Serial;
 #endif

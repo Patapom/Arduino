@@ -5,6 +5,8 @@
 
 #include "../AudioBuffer.h"
 
+//#define ENABLE_PACKET_DOUBLING	// Enable this to send each packet twice, doubling the chance of receiving them on the other end...
+
 class TransportESPNow_Base {
 public:
 	static const U32	SAMPLES_PER_PACKET = 61;	// An ESP-Now packet is 250 bytes long, we use 6 bytes of header so we can only pack 244 / 4 bytes per sample = 61 samples in a single packet
@@ -18,8 +20,11 @@ public:
 
 	virtual ~TransportESPNow_Base() {}
 
+	// Must be called prior any usage of the TransportESPNow classes, to initialize the WiFi connection properly
+	static void	ConfigureWiFi( U8 _WiFiChannel );
+
 	// Set the packet header that is sent by the sender/expected by the receiver
-	void	SetHeader( U16 _header ) { m_header = _header; }
+	void		SetHeader( U16 _header ) { m_header = _header; }
 
 	// Scans for WiFi networks using the specified channel, return NULL if unused or SSID of the network using the channel
 	static const char*	CheckWiFiChannelUnused( U8 _channel );
@@ -32,7 +37,7 @@ public:
 	static U32	ScanWifiChannels( U8 _channels[11], bool _dump=false );	// Returns how many networks were found
 
 protected:
-	void	Init( U8 _WiFiChannel, U32 _samplingRate );
+	void	Init( U32 _samplingRate );
 };
 
 // The ESP-Now Receiver class is a sample source where samples are received by radio
@@ -71,7 +76,7 @@ public:
 	~TransportESPNow_Receiver();
 
 	//	_samplingRate, the sampling rate we're expecting this receiver to function at
-	bool	Init( U8 _WiFiChannel, U8 _receiverIDMask, U32 _samplingRate, CHANNELS _channelsCount, float _preLoadDelay );
+	bool	Init( U8 _receiverIDMask, U32 _samplingRate, CHANNELS _channelsCount, float _preLoadDelay );
 	void	SetOnPacketReceivedCallback( OnPacketsReceivedCallback* _callback ) { m_onPacketsReceivedCallback = _callback; }
 
 	// ISampleSource immplementation
@@ -94,19 +99,20 @@ private:
 	ISampleSource*			m_sampleSource = NULL;
 
 	// Temporary buffer to store the packet payload
-	U8	m_buffer[ESP_NOW_MAX_DATA_LEN];
+	U8		m_buffer[ESP_NOW_MAX_DATA_LEN];
 
-	U8	m_receiverMaskID = 0xFF;	// Target all devices
+	U8		m_receiverMaskID = 0xFF;	// Target all devices
 
 public:
 
-	U32	m_sentPacketsCount = 0;
+	bool	m_blockPackets = false;		// Use this to block the sending of packets (e.g. when no sound is present)
+	U32		m_sentPacketsCount = 0;
 
 public:
 
 	TransportESPNow_Transmitter( const ITimeReference& _time ) : m_time( &_time ) {}
 
-	void	Init( U8 _WiFiChannel, U32 _samplingRate );
+	void	Init( U32 _samplingRate );
 
 	// Starts an auto-send task to send packets at the required sampling rate
 	void	StartAutoSendTask( U8 _taskPriority, ISampleSource& _sampleSource, U8 _receiverMaskID );

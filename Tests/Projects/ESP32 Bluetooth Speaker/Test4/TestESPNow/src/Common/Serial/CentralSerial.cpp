@@ -33,13 +33,25 @@ void	ESP_ERROR( esp_err_t _error, const char* _message );
 void	CentralSerial::Init( PORT _port, U32 _baudRate, U8 _pinTX, U8 _pinRX ) {
 	m_port = _port;
 
-	// Setup UART buffered IO with event queue
-	const int 		uart_buffer_size = 2 * 1024;
-	QueueHandle_t 	uart_queue;
-	// Install UART driver using an event queue here
-	ESP_ERROR_CHECK( uart_driver_install( m_port, uart_buffer_size, uart_buffer_size, 20, &uart_queue, 0 ), "Failed to install UART driver!" );	
+//Serial.println( "CentralSerial::Init() uart_driver_install()" );
 
-//	const uart_port_t uart_num = UART_NUM_2;
+	// Setup UART buffered IO with event queue
+	//	* @param uart_num UART port number, the max port number is (UART_NUM_MAX -1).
+	//	* @param rx_buffer_size UART RX ring buffer size.
+	//	* 			NOTE: Rx_buffer_size should be greater than UART_FIFO_LEN. Tx_buffer_size should be either zero or greater than UART_FIFO_LEN.
+	//	* @param tx_buffer_size UART TX ring buffer size.
+	//	*        If set to zero, driver will not use TX buffer, TX function will block task until all data have been sent out.
+	//	* @param queue_size UART event queue size/depth.
+	//	* @param uart_queue UART event queue handle (out param). On success, a new queue handle is written here to provide
+	//	*        access to UART events. If set to NULL, driver will not use an event queue.
+	//	* @param intr_alloc_flags Flags used to allocate the interrupt. One or multiple (ORred)
+	//	*        ESP_INTR_FLAG_* values. See esp_intr_alloc.h for more info. Do not set ESP_INTR_FLAG_IRAM here
+	//	*        (the driver's ISR handler is not located in IRAM)
+	const int 		uart_buffer_size = 4 * 1024;	// 2* 1024
+	const int		queueSize = 64;	// 20;
+	QueueHandle_t 	uart_queue;
+	ESP_ERROR_CHECK( uart_driver_install( m_port, uart_buffer_size, uart_buffer_size, queueSize, &uart_queue, 0 ), "Failed to install UART driver!" );	
+
 	uart_config_t uart_config = {
 		.baud_rate = int( _baudRate ),
 		.data_bits = UART_DATA_8_BITS,	// 8
@@ -47,11 +59,14 @@ void	CentralSerial::Init( PORT _port, U32 _baudRate, U8 _pinTX, U8 _pinRX ) {
 		.stop_bits = UART_STOP_BITS_1,	// 1
 
 //		.flow_ctrl = UART_HW_FLOWCTRL_CTS_RTS,
-.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+		.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
 
 		.rx_flow_ctrl_thresh = 122,
-.source_clk = UART_SCLK_APB,  // ESP32, ESP32S2
+
+		.source_clk = UART_SCLK_APB,  // ESP32, ESP32S2
 	};
+
+//Serial.println( "CentralSerial::Init() uart_param_config()" );
 
 	// Configure UART parameters
 	ESP_ERROR_CHECK( uart_param_config( m_port, &uart_config ), "Failed to configure UART!" );
@@ -65,12 +80,12 @@ void	CentralSerial::Init( PORT _port, U32 _baudRate, U8 _pinTX, U8 _pinRX ) {
 //	uart_set_hw_flow_ctrl(); // selected out of uart_hw_flowcontrol_t Hardware flow control mode
 //	uart_set_mode(); // selected out of uart_mode_t Communication mode
 
+//Serial.println( "CentralSerial::Init() uart_set_pin()" );
+
 	// Set UART pins(TX: IO4, RX: IO5, RTS: IO18, CTS: IO19)
 //	ESP_ERROR_CHECK( uart_set_pin( m_port, SOC_RX0, SOC_TX0, -1, -1 ), "Failed to set UART pins!" );
 	ESP_ERROR_CHECK( uart_set_pin( m_port, _pinTX, _pinRX, -1, -1 ), "Failed to set UART pins!" );
 //    if(uart_nr == 0) uartSetPins(0, SOC_RX0, SOC_TX0, -1, -1);
-
-//ERROR( true, "Joe le Rigolo says Hello!" );
 }
 
 void	SerialSendPacketsTask( void* _param );
@@ -86,22 +101,11 @@ void	CentralSerial::StartAutoSendTask( U8 _taskPriority, ISampleSource& _sampleS
 void	CentralSerial::StartAutoReceiveTask( U8 _taskPriority, TransportESPNow_Transmitter& _transmitter ) {
 	m_transmitter = &_transmitter;
 
-// Start an interrupt handler to handled UART RX events?
-
 	TaskHandle_t SerialReceivePacketsTaskHandle;
 	xTaskCreate( SerialReceivePacketsTask, "SerialReceivePacketsTask", 4096, this, _taskPriority, &SerialReceivePacketsTaskHandle );
 }
 
 void	CentralSerial::SendPacket( ISampleSource& _sampleSource ) {
-	
-//	// Write header
-//	*((U16*) m_buffer) = m_header;
-//
-//	// Write packet info
-//	_packetID <<= 8;				// Ignore MSB
-//	_packetID |= _receiverMaskID;	// Replace by receiver mask ID
-//	*((U32*) (m_buffer+2)) = _packetID;
-
 	// Fill payload with samples
 	U32	requestedSamplesCount = _sampleSource.GetChannelsCount() == ISampleSource::CHANNELS::STEREO ? SAMPLES_PER_PACKET : 2*SAMPLES_PER_PACKET;
 	_sampleSource.GetSamples( _sampleSource.GetSamplingRate(), m_buffer, requestedSamplesCount );
@@ -111,39 +115,40 @@ void	CentralSerial::SendPacket( ISampleSource& _sampleSource ) {
 	ERROR( writtenLength != sizeof(m_buffer), "Couldn't write entire payload!" );
 }
 
-void	SerialSendPacketsTask( void* _param ) {
-	CentralSerial*	that = (CentralSerial*) _param;
-
-	const ITimeReference&	time = that->m_time;
-	ISampleSource&			sampleSource = *that->m_sampleSource;
-
-	U64	sendDeltaTime = (1000000ULL * (sampleSource.GetChannelsCount() == ISampleSource::STEREO ? CentralSerial::SAMPLES_PER_PACKET : 2*CentralSerial::SAMPLES_PER_PACKET))
-					  / U64( sampleSource.GetSamplingRate() );	// How much time represents that many samples given our sampling rate?
-
-	// Wait until time actually starts
-	while ( !time.HasStarted() ) {
-		delay( 1 );
-	}
-
-	U64	timeNextSend = time.GetTimeMicros() + sendDeltaTime;
-	while ( true ) {
-		vTaskDelay( 1 );
-
-		// Should we send a packet?
-		U64	now = time.GetTimeMicros();
-		if ( now < timeNextSend )
-			continue;	// Too soon!
-
-// @TODO: Restore this! But it crashes the PC if these are not handled properly in time!
-////		U32	packetID = that->m_sentPacketsCount;	// Use the transport's packet counter as packet ID, because the timer counter may have changed since it asked us to send the packet
-//		that->SendPacket( sampleSource );
-
-		timeNextSend += sendDeltaTime;
-	}
-}
-
 void	CentralSerial::ProcessBlock2( const U8* _data, U32 _blockSize ) {
+
 	while ( _blockSize > 0 ) {
+		// In search mode, we're trying to find the beginning of an actual packet by searching the signature 0x1234??FA or 0x1235??FA
+		if ( m_searchMode ) {
+			U8	d = *_data++; _blockSize--;
+			m_packet[m_packetOffset] = d;
+			if ( m_packetOffset == 0 ) {
+				if ( d == 0x34 || d == 0x35 )
+					m_packetOffset++;	// Validate...
+			} else if ( m_packetOffset == 1 ) {
+				if ( d == 0x12 ) {
+					m_packetOffset++;	// Validate...
+				} else {
+					m_packetOffset = 0;	// Invalidate...
+				}
+			} else if ( m_packetOffset == 2 ) {
+				m_packetOffset++;		// Validate...
+			} else if ( m_packetOffset == 3 ) {
+				if ( d == ESP_NOW_MAX_DATA_LEN ) {
+					// Search is over, packet is validated and we assume synchronicity...
+					m_packetOffset++;
+					m_searchMode = false;
+				} else {
+					m_packetOffset = 0;	// Invalidate...
+				}
+			}
+
+			m_searchedBytesCount++;
+
+			continue;
+		}
+
+		// In burst mode, we simply copy aligned data as fast as possible to complete packets
 		U32	bytesToEnd = ESP_NOW_MAX_DATA_LEN - m_packetOffset;
 		if ( bytesToEnd > _blockSize ) {
 			// Copy what we can
@@ -154,7 +159,16 @@ void	CentralSerial::ProcessBlock2( const U8* _data, U32 _blockSize ) {
 
 		// We can complete a packet!
 		memcpy( m_packet + m_packetOffset, _data, bytesToEnd );
-		m_transmitter->SendRawPacket( m_packet );
+
+		U16	header = *((U16*) m_packet);
+		if ( header == 0x1234 || header == 0x1235 ) {
+			m_transmitter->SendRawPacket( m_packet );
+			m_sentPacketsCount++;
+		} else {
+			m_invalidPacketsCount++;
+			m_searchMode = true;	// Restart search mode if we lost synchronization (i.e. packets are malformed with the wrong header)
+		}
+
 		m_packetOffset = 0;	// Restart a new packet...
 		_blockSize -= bytesToEnd;
 	}
@@ -297,7 +311,7 @@ void	SerialReceivePacketsTask( void* _param ) {
 	}
 
 	const U32	DATA_SIZE = 512;
-	U8	data[DATA_SIZE + 4];
+	U8	data[DATA_SIZE];
 
 	while ( true ) {
 		vTaskDelay( 1 );
@@ -320,22 +334,36 @@ void	SerialReceivePacketsTask( void* _param ) {
 	}
 }
 
-//void	CentralSerial::Read() {
-//	// Read data from UART.
-////	const uart_port_t uart_num = UART_NUM_2;
-//	uint8_t	data[128];
-//	int		length = 0;
-//	ESP_ERROR_CHECK( uart_get_buffered_data_len( m_port, (size_t*) &length ), "Failed to read serial data from UART!" );
-//	length = uart_read_bytes( m_port, data, length, 100 );
-//}
-//
-//void	CentralSerial::Write() {
-//	// Write data to UART.
-//	const char*	test_str = "This is a test string.\r\n";
-//	int			length =  strlen( test_str );
-//	int	writtenLength = uart_write_bytes( m_port, (const char*) test_str, length );
-//	ERROR( writtenLength != length, "Lengths mismatch!" );
-//}
+void	SerialSendPacketsTask( void* _param ) {
+	CentralSerial*	that = (CentralSerial*) _param;
+
+	const ITimeReference&	time = that->m_time;
+	ISampleSource&			sampleSource = *that->m_sampleSource;
+
+	U64	sendDeltaTime = (1000000ULL * (sampleSource.GetChannelsCount() == ISampleSource::STEREO ? CentralSerial::SAMPLES_PER_PACKET : 2*CentralSerial::SAMPLES_PER_PACKET))
+					  / U64( sampleSource.GetSamplingRate() );	// How much time represents that many samples given our sampling rate?
+
+	// Wait until time actually starts
+	while ( !time.HasStarted() ) {
+		delay( 1 );
+	}
+
+	U64	timeNextSend = time.GetTimeMicros() + sendDeltaTime;
+	while ( true ) {
+		vTaskDelay( 1 );
+
+		// Should we send a packet?
+		U64	now = time.GetTimeMicros();
+		if ( now < timeNextSend )
+			continue;	// Too soon!
+
+// @TODO: Restore this! But it crashes the PC if these are not handled properly in time!
+////		U32	packetID = that->m_sentPacketsCount;	// Use the transport's packet counter as packet ID, because the timer counter may have changed since it asked us to send the packet
+//		that->SendPacket( sampleSource );
+
+		timeNextSend += sendDeltaTime;
+	}
+}
 
 // Starts an actual serial to output debug lines after an error
 void	CENTRAL_SERIAL_ERROR( bool _setError, const char* _functionName, const char* _message ) {
@@ -352,11 +380,4 @@ void	CENTRAL_SERIAL_ERROR( bool _setError, const char* _functionName, const char
 		serial.println( _message );
 		delay( 1000 );
 	}
-}
-
-void	ESP_ERROR( esp_err_t _error, const char* _message ) {
-	if ( _error == ESP_OK )
-		return;
-	char	message[512];
-	ERROR( true, str( "%s (%s)", _message, esp_err_to_name_r( _error, message, 512 ) ) );
 }

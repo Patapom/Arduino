@@ -98,6 +98,13 @@ public:
   operator char*() { return m_string; }
 };
 
+static void	ESP_ERROR( esp_err_t _error, const char* _message ) {
+	if ( _error == ESP_OK )
+		return;
+	char	message[512];
+	ERROR( true, str( "%s (%s)", _message, esp_err_to_name_r( _error, message, 512 ) ) );
+}
+
 static void Flash( int _pin, int _duration_ms, int _count ) {
   for ( int i=0; i < _count; i++ ) {
     digitalWrite( _pin, HIGH );

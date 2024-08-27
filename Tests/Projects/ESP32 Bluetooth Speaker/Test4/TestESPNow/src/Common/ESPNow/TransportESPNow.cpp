@@ -17,16 +17,105 @@ static U32	s_sampleIndexTransmit = 0;
 #endif
 
 
-//@TODO: Check WiFi home channel and avoid?
-// Cf. => https://www.electrosoftcloud.com/en/esp32-wifi-and-esp-now-simultaneously/
-//
-void	TransportESPNow_Base::Init( U8 _WiFiChannel, U32 _samplingRate ) {
-	m_samplingRate = _samplingRate;
+// @TODO: Restore STA mode if failing in AccessPoint mode
+#if 0// defined(BUILD_CENTRAL)
+wifi_mode_t			mode = WIFI_MODE_AP;
+wifi_interface_t	interface = WIFI_IF_AP;
+#else
+wifi_mode_t			mode = WIFI_MODE_STA;
+wifi_interface_t	interface = WIFI_IF_STA;
+#endif
+
+//wifi_phy_rate_t		WiFiRate = wifi_phy_rate_t::WIFI_PHY_RATE_2M_L );	// 2 Mbps with long preamble <= Lots of ESPNOW_NO_MEM errors!
+//wifi_phy_rate_t		WiFiRate = wifi_phy_rate_t::WIFI_PHY_RATE_5M_L );	// 5.5 Mbps with long preamble <= Less packets lost! (~60 packets over 723)
+wifi_phy_rate_t		WiFiRate = wifi_phy_rate_t::WIFI_PHY_RATE_11M_L;	// 11 Mbps with long preamble <= Can't really see the difference? :/
+
+//wifi_phy_rate_t		WiFiRate = wifi_phy_rate_t::WIFI_PHY_RATE_5M_S );	// 5.5 Mbps with short preamble <= Lot less of ESPNOW_NO_MEM errors but they sometimes happens in bursts...
+//wifi_phy_rate_t		WiFiRate = wifi_phy_rate_t::WIFI_PHY_RATE_11M_S;	// 11 Mbps with short preamble <= Can't really see the difference? :/
+//wifi_phy_rate_t		WiFiRate = wifi_phy_rate_t::WIFI_PHY_RATE_54M;			// 54Mbps <= Lots of packets lost!!
+
+void	TransportESPNow_Base::ConfigureWiFi( U8 _WiFiChannel ) {
+
+
+//WiFi.enableLongRange( true );
+
+
+	WiFi.mode( mode );
+	WiFi.disconnect();	// We're using ESP-Now
+	Serial.println( str( "MAC Address is: %s", WiFi.macAddress().c_str() ) );
+
+	// Ensure we're at max power
+//wifi_power_t power = WiFi.getTxPower();
+//Serial.printf( "WiFi Power: %d\n", power );
+	WiFi.setTxPower( WIFI_POWER_19_5dBm );
+
+	#if defined(BUILD_CENTRAL)
+		// Ensure the channel is free (otherwise a lot of interference and ESP_NOW queue errors can occur!)
+		const char*	SSID = TransportESPNow_Base::CheckWiFiChannelUnused( _WiFiChannel );
+		ERROR( SSID, str( "The WiFi network \"%s\" is operating on our WiFi channel %d!", SSID ? SSID : "", _WiFiChannel ) );
+	#endif
+
+
+// Debug WiFi channels
+//U8	channels[11];
+//TransportESPNow_Base::DumpWiFiScan();
+//TransportESPNow_Base::ScanWifiChannels( channels, true );
+//ERROR( channels[ESP_NOW_WIFI_CHANNEL-1], "A WiFi network is operating on our WiFi channel!" );
+
+//	esp_wifi_set_protocol( interface, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N | WIFI_PROTOCOL_LR );
+//	esp_wifi_set_protocol( interface, WIFI_PROTOCOL_11N | WIFI_PROTOCOL_LR );
+	esp_wifi_set_protocol( interface, WIFI_PROTOCOL_LR );
+
+//	esp_wifi_set_bandwidth( interface, WIFI_BW_HT20 );
+	esp_wifi_set_bandwidth( interface, WIFI_BW_HT40 );	// Not advised in the 2.4GHz band? (source: https://support.huawei.com/enterprise/en/knowledge/EKB1000079063)
+
+//typedef enum
+//{
+//WIFI_PHY_MODE_LR,   /**< PHY mode for Low Rate */
+//WIFI_PHY_MODE_11B,  /**< PHY mode for 11b */
+//WIFI_PHY_MODE_11G,  /**< PHY mode for 11g */
+//WIFI_PHY_MODE_HT20, /**< PHY mode for Bandwidth HT20 */
+//WIFI_PHY_MODE_HT40, /**< PHY mode for Bandwidth HT40 */
+//WIFI_PHY_MODE_HE20, /**< PHY mode for Bandwidth HE20 */
+//} wifi_phy_mode_t;
 
 	// Set Wifi channel
 	esp_wifi_set_promiscuous( true );
 	esp_wifi_set_channel( _WiFiChannel, WIFI_SECOND_CHAN_NONE );
 	esp_wifi_set_promiscuous( false );
+
+	// NOTE on promiscuous mode:
+	//	In computer networking, promiscuous mode is a mode for a wired network interface controller (NIC) or wireless network interface controller (WNIC)
+	//	 that causes the controller to pass all traffic it receives to the central processing unit (CPU) rather than passing only the frames that the controller
+	//	 is specifically programmed to receive. This mode is normally used for packet sniffing that takes place on a router or on a computer connected to a
+	//	 wired network or one being part of a wireless LAN.[1] Interfaces are placed into promiscuous mode by software bridges often used with hardware virtualization.	
+
+
+//	// Source: https://forum.arduino.cc/t/esp32-and-esp-now-for-audio-streaming-slow-acknowledge-from-receiver/1055192/6
+//	// Set device as a Wi-Fi Station
+//	esp_netif_init();
+//	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+//	esp_wifi_init(&cfg);
+//	esp_wifi_set_mode(WIFI_MODE_STA);
+//	esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT40);
+	esp_wifi_set_storage(WIFI_STORAGE_RAM);
+	esp_wifi_set_ps(WIFI_PS_NONE);
+//	esp_wifi_start();
+//
+//	// Init ESP-NOW
+//	if ( esp_now_init() != ESP_OK ) {
+//		Serial.println( "Error initializing ESP-NOW" );
+//		return;
+//	}
+//	esp_wifi_config_espnow_rate(WIFI_IF_STA, WIFI_PHY_RATE_54M);
+}
+
+
+//@TODO: Check WiFi home channel and avoid?
+// Cf. => https://www.electrosoftcloud.com/en/esp32-wifi-and-esp-now-simultaneously/
+//
+void	TransportESPNow_Base::Init( U32 _samplingRate ) {
+	m_samplingRate = _samplingRate;
 
 
 // https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/network/esp_now.html#group__ESPNOW__APIs_1gaa2774e8840ff2907db46f9444a8a5728
@@ -62,10 +151,7 @@ void	TransportESPNow_Base::Init( U8 _WiFiChannel, U32 _samplingRate ) {
 	ERROR( result != ESP_OK, str( "Failed to get broadcast peer: %s", esp_err_to_name(result) ) );
 //Serial.println( str( "WiFi Interface = %s", peerInfo.ifidx == wifi_interface_t::WIFI_IF_AP ? "WIFI_IF_AP" : "WIFI_IF_STA" ) );
 
-//	result = esp_wifi_config_espnow_rate( peerInfo.ifidx, wifi_phy_rate_t::WIFI_PHY_RATE_2M_L );	// 2 Mbps with long preamble <= Lots of ESPNOW_NO_MEM errors!
-	result = esp_wifi_config_espnow_rate( peerInfo.ifidx, wifi_phy_rate_t::WIFI_PHY_RATE_5M_S );	// 5.5 Mbps with short preamble <= Lot less of ESPNOW_NO_MEM errors but they sometimes happens in bursts...
-//	result = esp_wifi_config_espnow_rate( peerInfo.ifidx, wifi_phy_rate_t::WIFI_PHY_RATE_5M_L );	// 5.5 Mbps with long preamble <= Less packets lost! (~60 packets over 723)
-//	result = esp_wifi_config_espnow_rate( peerInfo.ifidx, wifi_phy_rate_t::WIFI_PHY_RATE_11M_L );	// 11 Mbps with long preamble <= Can't really see the difference? :/
+	result = esp_wifi_config_espnow_rate( peerInfo.ifidx, WiFiRate );
 	ERROR( result != ESP_OK, str( "Failed to setup WiFi broadcast rate: %s", esp_err_to_name(result) ) );
 	Serial.println( "Successfully set WiFi rate to 5.5 Mbps" );
 
@@ -199,8 +285,8 @@ TransportESPNow_Receiver::TransportESPNow_Receiver( const ITimeReference& _time 
 TransportESPNow_Receiver::~TransportESPNow_Receiver() {
 }
 
-bool	TransportESPNow_Receiver::Init( U8 _WiFiChannel, U8 _receiverMaskID, U32 _samplingRate, CHANNELS _channelsCount, float _preLoadDelay ) {
-	TransportESPNow_Base::Init( _WiFiChannel, _samplingRate );
+bool	TransportESPNow_Receiver::Init( U8 _receiverMaskID, U32 _samplingRate, CHANNELS _channelsCount, float _preLoadDelay ) {
+	TransportESPNow_Base::Init( _samplingRate );
 
 	m_receiverMaskID = _receiverMaskID;
 	m_channelsCount = _channelsCount;
@@ -242,8 +328,8 @@ Serial.printf( "Unexpected header 0x%04X\n", *((U16*) _payload) );
 
 	// Check if this payload is addressed to us
 	U8	receiverMaskID = U8( packetID );
-	if ( (receiverMaskID & m_receiverMaskID) == 0	// Just a regular mask?
-	 && receiverMaskID != m_receiverMaskID ) {		// Or is it addressed to the Central (ID 0) and we are it?
+	if (  (receiverMaskID & m_receiverMaskID) == 0	// Just a regular mask?
+	 	&& receiverMaskID != m_receiverMaskID ) {		// Or is it addressed to the Central (ID 0) and we are it?
 		m_lastReceivedPacketStatus = NOT_FOR_US;
 Serial.println( "Not for us!" );
 		return;
@@ -258,6 +344,10 @@ Serial.println( "Not for us!" );
 	//	• Our new packet ID is suddendly jumping back down to a very low number like 0xHHvvvvvv < 0xHH^^^^^^
 	if ( packetID < m_lastReceivedPacketID ) {
 		packetID += 0x01000000UL;	// To fix this, we simply add one to the MSB of the packetID...
+	}
+
+	if ( packetID == m_lastReceivedPacketID ) {
+		return;	// Ignore packet as we've already received it! (this happens when enabling packet doubling)
 	}
 
 	U32	lostPacketsCount = packetID - m_lastReceivedPacketID - 1;
@@ -344,185 +434,6 @@ if ( m_channelsCount == ISampleSource::STEREO ) {
 	}
 }
 
-#if 0
-U32	TransportESPNow_Receiver::GetSamples( Sample* _samples, U32 _samplesCount ) {
-	ERROR( _samplesCount > m_bufferSize, str( "Buffer size is too small (%d samples), can't provide %d samples to client!", m_bufferSize, _samplesCount ) );
-
-#if 0	// => Works perfectly with I2S task requesting samples!
-static U32	s_sampleIndex = 0;
-for ( U32 i=0; i < _samplesCount; i++ ) {
-	S16	value = S16( 32768 * sin( 2*PI * (1000.0 / 22050) * s_sampleIndex++ ) );
-	_samples[i].left = value;
-	_samples[i].right = value;
-}
-return _samplesCount;
-#endif
-
-	_samplesCount = min( m_sampleIndexWrite - m_sampleIndexRead, _samplesCount );	// Constrain to what is available in the buffer now...
-	U32	bufferSampleIndex = m_sampleIndexRead % m_bufferSize;						// Constrain source index within buffer
-	U32	samplesCountToEnd = min( m_bufferSize - bufferSampleIndex, _samplesCount );
-	if ( _samplesCount <= samplesCountToEnd ) {	// Transfer in a single shot
-		memcpy( _samples, m_buffer + bufferSampleIndex, _samplesCount * sizeof(Sample) );
-	} else {	// Split in 2
-		memcpy( _samples, m_buffer + bufferSampleIndex, samplesCountToEnd * sizeof(Sample) );
-		memcpy( _samples + samplesCountToEnd, m_buffer, (_samplesCount - samplesCountToEnd) * sizeof(Sample) );
-	}
-	m_sampleIndexRead += _samplesCount;
-
-	return _samplesCount;
-}
-
-void	TransportESPNow_Receiver::Receive( const U8* _senderMACAddress, const U8* _payload, U32 _payloadSize ) {
-
-	// Check we received the expected header
-	if ( _payloadSize < ESP_NOW_MAX_DATA_LEN ) {
-		m_lastReceivedPacketStatus = INVALID_PAYLOAD_SIZE;
-Serial.printf( "Received unexpected payload size %d\n", _payloadSize );
-		return;	// Not long enough
-	}
-	if ( memcmp( _payload, &m_header, sizeof(U16) ) ) {
-		m_lastReceivedPacketStatus = INVALID_HEADER;
-Serial.printf( "Unexpected header 0x%04X\n", *((U16*) _payload) );
-		return;	// Not the expected header...
-	}
-
-	_payload += sizeof(U16);	// Skip header
-
-	// Read receiver mask ID and packet ID
-	U32	packetID = *((U32*) _payload);
-	_payload += sizeof(U32);
-
-	// Check if this payload is addressed to us
-	U8	receiverMaskID = U8( packetID );
-	if ( (receiverMaskID & m_receiverMaskID) == 0	// Just a regular mask?
-	 && receiverMaskID != m_receiverMaskID ) {		// Or is it addressed to the Central (ID 0) and we are it?
-		m_lastReceivedPacketStatus = NOT_FOR_US;
-Serial.println( "Not for us!" );
-		return;
-	}
-
-	// Read packet ID & check for lost packets
-	packetID >>= 8;
-	packetID |= m_lastReceivedPacketID & 0xFF000000UL;	// Always re-use last packet's MSB
-
-	// Fix ID looping after 2^24 packets:
-	//  • Our last received packet ID is on 32 bits and could be 0xHH^^^^^^ where HH € [0,255] and 0x00^^^^^^ is a very high 24-bits number (close to looping)
-	//	• Our new packet ID is suddendly jumping back down to a very low number like 0xHHvvvvvv < 0xHH^^^^^^
-	if ( packetID < m_lastReceivedPacketID ) {
-		packetID += 0x01000000UL;	// To fix this, we simply add one to the MSB of the packetID...
-	}
-
-	U32	lostPacketsCount = packetID - m_lastReceivedPacketID - 1;
-	if ( lostPacketsCount != 0 && lostPacketsCount < 10 ) {
-//if ( lostPacketsCount > 1 && lostPacketsCount < 10 ) {
-//	Serial.printf( "Lost %d packets!\n", lostPacketsCount );	// We very rarely lose more than a single packet (if connection is okay)
-//}
-		U32		lostSamplesCount = lostPacketsCount * SAMPLES_PER_PACKET;
-
-		#if 1	// Interpolate from last sample value
-			Sample&	lastSample = m_buffer[(m_sampleIndexWrite + m_bufferSize-1) % m_bufferSize];	// Last sample we received
-			Sample&	newSample = (Sample&) *_payload;												// Next valid sample in our new payload
-//Sample	newSample = { .left = 0, .right = 0 };
-
-#ifdef SIMULATE_WAVE_FORM_RECEIVER	// Simulate interpolation of the clear wave form with lost packets
-s_sampleIndex += lostSamplesCount;
-S16	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 44100.0f) * s_sampleIndex ) );
-newSample = (Sample) { .left = temp, .right = temp };
-#endif
-
-			S32	left0 = lastSample.left;
-			S32	dLeft = (S32) newSample.left - left0;
-			S32	right0 = lastSample.right;
-			S32	dRight = (S32) newSample.right - right0;
-
-			for ( U32 lostSampleIndex=0; lostSampleIndex < lostSamplesCount; lostSampleIndex++ ) {
-				U32	bufferSampleIndex = (m_sampleIndexWrite + lostSampleIndex) % m_bufferSize;
-				m_buffer[bufferSampleIndex].left = S16( left0 + (lostSampleIndex * dLeft) / lostSamplesCount );
-				m_buffer[bufferSampleIndex].right = S16( right0 + (lostSampleIndex * dRight) / lostSamplesCount );
-
-
-#ifdef SIMULATE_WAVE_FORM_RECEIVER	// Simulate the complete wave form (as if packets hadn't been lost)
-//S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 44100.0f) * s_sampleIndex++ ) );
-//S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 22050.0f) * s_sampleIndex++ ) );
-//m_buffer[bufferSampleIndex].left = temp;
-//m_buffer[bufferSampleIndex].right = temp;
-#endif
-
-
-			}
-			m_sampleIndexWrite += lostSamplesCount;
-
-		#elif 0	// Write 0 in place of lost packets => BAD!
-			U32	lostSamplesCount = min( m_bufferSize, lostPacketsCount * SAMPLES_PER_PACKET );
-			U32	sampleBufferIndex = m_sampleIndexWrite % m_bufferSize;
-			U32	samplesCountToEnd = m_bufferSize - sampleBufferIndex;
-			if ( lostSamplesCount <= samplesCountToEnd ) {
-				memset( m_buffer + sampleBufferIndex, 0, lostSamplesCount * sizeof(Sample) );
-			} else {
-				memset( m_buffer + sampleBufferIndex, 0, samplesCountToEnd * sizeof(Sample) );
-				memset( m_buffer, 0, (lostSamplesCount - samplesCountToEnd) * sizeof(Sample) );
-			}
-			m_sampleIndexWrite += lostPacketsCount * SAMPLES_PER_PACKET;
-//			for ( U32 sampleIndex=SAMPLES_PER_PACKET*lostPacketsCount; sampleIndex > 0; sampleIndex--, m_sampleIndexWrite++ ) {
-//				memset( m_buffer + (m_sampleIndexWrite % m_bufferSize), 0, sizeof(Sample) );
-//			}
-		#elif 0	// Duplicate lost packets
-TODO!
-		#elif 0	// Skip packets => BAD!
-			// Sound is worse if we skip packets! :/
-
-#ifdef SIMULATE_WAVE_FORM_RECEIVER	// Simulate the complete wave form (as if packets hadn't been lost)
-for ( U32 i=0; i < lostSamplesCount; i++ ) {
-//	S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 44100.0f) * s_sampleIndex++ ) );
-S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 22050.0f) * s_sampleIndex++ ) );
-	m_buffer[(m_sampleIndexWrite + i) % m_bufferSize].left = temp;
-	m_buffer[(m_sampleIndexWrite + i) % m_bufferSize].right = temp;
-}
-#endif
-
-			m_sampleIndexWrite += lostSamplesCount;
-		#endif
-
-		m_lostPacketsCount += lostPacketsCount;
-		m_receivedPacketsCount += lostPacketsCount;
-//Serial.printf( "Lost packet %02X / %02X = %d\n", m_lastReceivedPacketID, packetID, lostPacketsCount );
-	}
-//Serial.printf( "Packet ID %02X / %02X\n", m_lastReceivedPacketID, packetID );
-
-	// Read samples
-	U32	bufferIndex = m_sampleIndexWrite % m_bufferSize;
-	U32	samplesCountToEnd = m_bufferSize - bufferIndex;
-	if ( SAMPLES_PER_PACKET <= samplesCountToEnd ) {	// Transfer in a single shot
-		memcpy( m_buffer + bufferIndex, _payload, SAMPLES_PER_PACKET * sizeof(Sample) );
-	} else {	// Split in 2
-		memcpy( m_buffer + bufferIndex, _payload, samplesCountToEnd * sizeof(Sample) );
-		memcpy( m_buffer, _payload + samplesCountToEnd * sizeof(Sample), (SAMPLES_PER_PACKET - samplesCountToEnd) * sizeof(Sample) );
-	}
-
-
-#ifdef SIMULATE_WAVE_FORM_RECEIVER
-for ( U32 i=0; i < SAMPLES_PER_PACKET; i++ ) {
-//	S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 44100.0f) * s_sampleIndex++ ) );
-S32	temp = S16( SIMULATE_WAVE_FORM_RECEIVER * sin( 2*3.14159265358979f * (1000.0f / 22050.0f) * s_sampleIndex++ ) );
-	m_buffer[(m_sampleIndexWrite + i) % m_bufferSize].left = temp;
-	m_buffer[(m_sampleIndexWrite + i) % m_bufferSize].right = temp;
-}
-#endif
-
-
-	m_sampleIndexWrite += SAMPLES_PER_PACKET;
-
-	m_receivedPacketsCount++;
-	U32	oldLastReceivedPacketID = m_lastReceivedPacketID;
-	m_lastReceivedPacketID = packetID;
-
-	// Notify
-	if ( m_onPacketsReceivedCallback != NULL ) {
-		(*m_onPacketsReceivedCallback)( oldLastReceivedPacketID );
-	}
-}
-#endif
-
 void	ReceiveCallback( const U8* _senderMACAddress, const U8* _data, int _dataLength ) {
 	gs_instance->Receive( _senderMACAddress, _data, _dataLength );
 }
@@ -534,8 +445,8 @@ void	ReceiveCallback( const U8* _senderMACAddress, const U8* _data, int _dataLen
 //
 void	SendPacketsTask( void* _param );
 
-void	TransportESPNow_Transmitter::Init( U8 _WiFiChannel, U32 _samplingRate ) {
-	TransportESPNow_Base::Init( _WiFiChannel, _samplingRate );
+void	TransportESPNow_Transmitter::Init( U32 _samplingRate ) {
+	TransportESPNow_Base::Init( _samplingRate );
 }
 
 void	TransportESPNow_Transmitter::StartAutoSendTask( U8 _taskPriority, ISampleSource& _sampleSource, U8 _receiverMaskID ) {
@@ -595,8 +506,16 @@ void	TransportESPNow_Transmitter::SendRawPacket( const U8 _packet[ESP_NOW_MAX_DA
 	if ( result != ESP_OK ) {
 		Serial.printf( "Failed to send: %s\n", esp_err_to_name(result) );
 //m_sampleIndex = 0;
-//return;
+//		return;
 	}
+
+	#ifdef ENABLE_PACKET_DOUBLING
+		result = esp_now_send( broadcastAddress, _packet, ESP_NOW_MAX_DATA_LEN );
+		if ( result != ESP_OK ) {
+			Serial.printf( "Failed to send SECOND PACKET: %s\n", esp_err_to_name(result) );
+//			return;
+		}
+	#endif
 
 //Serial.printf( "Sent %d bytes", m_headerSize + m_sampleIndex );
 	
@@ -630,10 +549,10 @@ void	SendPacketsTask( void* _param ) {
 		if ( now < timeNextSend )
 			continue;	// Too soon!
 
-//		U32	packetID = timerCounter;	// Use the timer counter as packet ID
-		U32	packetID = that->m_sentPacketsCount;	// Use the transport's packet counter as packet ID, because the timer counter may have changed since it asked us to send the packet
-
-		that->SendPacket( sampleSource, packetID, receiverMaskID );
+		if ( !that->m_blockPackets ) {
+			U32	packetID = that->m_sentPacketsCount;	// Use the transport's packet counter as packet ID
+			that->SendPacket( sampleSource, packetID, receiverMaskID );
+		}
 
 		timeNextSend += sendDeltaTime;
 	}

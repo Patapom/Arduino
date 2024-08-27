@@ -36,7 +36,7 @@
 #define TRANSMIT_AUDIO			// Define this to transmit audio using ESP-Now
 //#define TRANSMIT_WAV			// Define this to transmit a WAV sample instead of microphone
 #define USE_MIC_MEMS			// Define this to use the INMP441 MEMS I2S digital microphone, disable to use the MAX9814 analog microphone
-
+#define DISABLE_TRANSMIT_ON_SILENCE	4	// Define this to disable transmission of microphone audio packets if the environment is silent for more than the time in seconds defined here
 
 char  str::ms_globalBuffer[256];
 char* str::ms_globalPointer = str::ms_globalBuffer;
@@ -74,7 +74,7 @@ TransportESPNow_Receiver	transportFromCentral( mainTime );
 
 ISampleSource&	InitSampleSource() {
 	// Initialize the audio buffer
-	transportFromCentral.Init( ESP_NOW_WIFI_CHANNEL, 0x01, CENTRAL_TO_PERIPHERAL_RATE, ISampleSource::STEREO, 0.1f );	// Use receiver ID 1
+	transportFromCentral.Init( 0x01, CENTRAL_TO_PERIPHERAL_RATE, ISampleSource::STEREO, 0.5f );	// Use receiver ID 1
 
 	Serial.println( "Transport from Central Initialized..." );
 
@@ -126,7 +126,7 @@ WAVFileSampler  WAV( mainTime );
 
 void	InitTransportToCentral() {
 
-	transportToCentral.Init( ESP_NOW_WIFI_CHANNEL, PERIPHERAL_TO_CENTRAL_RATE );
+	transportToCentral.Init( PERIPHERAL_TO_CENTRAL_RATE );
 
 	// Start transmission task
 	U8	receiverMaskID = 0x00;	// The Central has the special receiver ID 0
@@ -208,6 +208,8 @@ void	InitMicrophone() {
 S16	gs_sine[16384];
 
 void setup() {
+	pinMode( PIN_LED_RED, OUTPUT );
+
 //	InitSine();
 
 	Serial.begin( 115200 );
@@ -223,17 +225,8 @@ void setup() {
 
 	// ========================================================================================
 	// Initialize WiFi
-	WiFi.mode( WIFI_STA );
-	WiFi.disconnect();	// We're using ESP-Now
-	Serial.println( str( "MAC Address is: %s", WiFi.macAddress().c_str() ) );
+	TransportESPNow_Base::ConfigureWiFi( ESP_NOW_WIFI_CHANNEL );
 
-	// Ensure the channel is free (otherwise a lot of interference and ESP_NOW queue errors can occur!)
-	const char*	SSID = TransportESPNow_Base::CheckWiFiChannelUnused( ESP_NOW_WIFI_CHANNEL );
-	ERROR( SSID, str( "The WiFi network \"%s\" is operating on our WiFi channel!", SSID ? SSID : "" ) );
-//U8	channels[11];
-//TransportESPNow_Base::DumpWiFiScan();
-//TransportESPNow_Base::ScanWifiChannels( channels, true );
-//ERROR( channels[ESP_NOW_WIFI_CHANNEL-1], "A WiFi network is operating on our WiFi channel!" );
 
 	// ========================================================================================
 	// Initialize Speakers & Microphone + ESP-Now Transports 
@@ -261,30 +254,31 @@ bool debounce() {
 
 // Source: https://hackaday.com/2015/12/09/embed-with-elliot-debounce-your-noisy-buttons-part-i/
 enum ButtonStates { UP, DOWN, PRESS, RELEASE };
-ButtonStates	state = UP;
-enum ButtonStates delay_debounce( enum ButtonStates button_state ) {        
-    if (read_button()){                      /* if pressed     */
+static ButtonStates	state = UP;
+ButtonStates delay_debounce( ButtonStates& button_state ) {        
+    if (read_button()){	// if pressed
         if (button_state == PRESS){
             button_state = DOWN;
         } 
         if (button_state == UP){
-            _delay_ms(5);
+            delay(5);
             if (read_button()){
                 button_state = PRESS;
             }
         } 
-    } else {                                 /* if not pressed */
+    } else {	// if not pressed
         if (button_state == RELEASE){
             button_state = UP;
         } 
         if (button_state == DOWN){
-			_delay_ms(5);
+			delay(5);
 			if ( !read_button() ){
 				button_state = RELEASE;
 			}
         }
     }
-    return button_state;
+
+	return button_state;
 }
 
 void loop() {
@@ -296,10 +290,16 @@ void loop() {
 //	speakers.SetVolume( value / 4095.f );
 //Serial.println( value );
 
-#if 1
+#if defined(TRANSMIT_AUDIO) && defined(USE_MIC_MEMS) && defined(DISABLE_TRANSMIT_ON_SILENCE)
+	// Disable packets transmission if no sound is detected
+	U32	silence_seconds = microphone.GetSilentSurroundCounter() * microphone.DMA_SIZE / microphone.GetSamplingRate();
+	transportToCentral.m_blockPackets = silence_seconds > DISABLE_TRANSMIT_ON_SILENCE;
+#endif
+
+#if 0
 	// Toggle packets reception
 	static bool		receiveEnabled = true;
-	if ( delay_debounce() ) {
+	if ( delay_debounce( state ) == RELEASE ) {
 		receiveEnabled = !receiveEnabled;
 		transportFromCentral.BlockPackets( receiveEnabled );
 	}
@@ -308,7 +308,7 @@ void loop() {
 	// Toggle volume
 	static bool		volumeEnabled = true;
 	static float	oldVolume = 0;
-	if ( delay_debounce() ) {
+	if ( delay_debounce( state ) == RELEASE ) {
 		volumeEnabled = !volumeEnabled;
 		if ( !volumeEnabled ) {
 			oldVolume = speakers.GetVolume();
@@ -354,7 +354,8 @@ if ( elapsedTime_ms > 1000 ) {
 //*/
 	#endif
 
-	if ( true ) {
+#if 0	// To debug audio buffer read/write indices & interpolation to catch up with loss of packets
+	{
 		static U32	lastTime = millis();
 
 		U32	now = millis();
@@ -372,7 +373,30 @@ if ( elapsedTime_ms > 1000 ) {
 			lastTime = now;
 		}
 	}
-/* Show some packet stats
+#endif
+
+#if 0	// To debug microphone volume & auto-gain function
+	{
+		static U32	lastTime = millis();
+
+		U32	now = millis();
+		U32	elapsedTime_ms = now - lastTime;
+		if ( elapsedTime_ms > 100 ) {
+
+			U32	gainFactor = microphone.GetGainFactor();
+
+			U32	averageVolume = microphone.m_audioPacketsCount > 0 ? microphone.m_sumVolume / microphone.m_audioPacketsCount : 0;
+			microphone.m_sumVolume = 0;
+			microphone.m_audioPacketsCount = 0;
+
+			Serial.printf( "Volume = %d (avg %d) - Gain = %d - Silence #%d - Auto-Gain Avg. Volume = %d %s\n", microphone.m_volume, averageVolume, gainFactor, microphone.GetSilentSurroundCounter(), microphone.m_autoGainAverageVolume, transportToCentral.m_blockPackets ? " [PACKETS BLOCKED!!]" : "" );
+
+			lastTime = now;
+		}
+	}
+#endif
+
+#if 1	// Show some packet stats
 	#if defined(RECEIVE_AUDIO) || defined(TRANSMIT_AUDIO)
 		static U32	lastReceivedPacketsCount = 0;
 		static U32	lastSentPacketsCount = 0;
@@ -408,10 +432,10 @@ if ( elapsedTime_ms > 1000 ) {
 			#endif
 
 			// Debug ESP-Now packets status
-			Serial.printf( "Rcv. %d, ID=0x%06X = %.1fHz - Lost = %2d (%.1f%%) | Sent %d, ID=0x%06x = %.1fHz\n", receivedPackets, lastReceivedPacketID, TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * receivedPackets) / elapsedTime_ms, lostPackets, 100.0f * lostPackets / receivedPackets, sentPackets, lastSentPacketID, 2*TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * sentPackets) / elapsedTime_ms );
+			Serial.printf( "Rcv. %d, ID=0x%06X = %.1fHz - Lost = %2d (%.1f%%) | Sent %d, ID=0x%06x = %.1fHz | Mic Gain = %d (Silence %d)\n", receivedPackets, lastReceivedPacketID, TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * receivedPackets) / elapsedTime_ms, lostPackets, 100.0f * lostPackets / receivedPackets, sentPackets, lastSentPacketID, 2*TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * sentPackets) / elapsedTime_ms, microphone.GetGainFactor(), microphone.m_silentSurroundCounter );
 
 			// Debug microphone input levels and sampling frequency
-		//	Serial.printf( "Rcv. %d samples from microphone [%d, %d] - Frequency = %.1f Hz\n", U32(microphone.m_sampleIndexWrite), microphone.m_sampleMin, microphone.m_sampleMax, (1000.0f * receivedSamplesCount) / (now - lastTime) );
+//			Serial.printf( "Rcv. %d samples from microphone [%d, %d] - Frequency = %.1f Hz | Mic Gain = %d\n", U32(microphone.m_sampleIndexWrite), microphone.m_sampleMin, microphone.m_sampleMax, (1000.0f * receivedSamplesCount) / (now - lastTime), microphone.GetGainFactor() );
 
 			#ifdef RECEIVE_AUDIO
 				lastReceivedPacketsCount = transportFromCentral.m_receivedPacketsCount;
@@ -429,7 +453,7 @@ if ( elapsedTime_ms > 1000 ) {
 			lastTime = now;
 		}
 	#endif
-//*/
+#endif
 }
 
 #endif	// defined(BUILD_PERIPHERAL)

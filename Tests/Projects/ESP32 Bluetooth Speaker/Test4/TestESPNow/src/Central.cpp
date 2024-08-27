@@ -6,7 +6,7 @@
 #if defined(BUILD_CENTRAL)
 
 //#define USE_SERIAL_FOR_DEBUG	// Define this to use serial for debugging, undefine to use it for actual high-speed data transfer with the PC
-#define	USE_CENTRAL_SERIAL	// Define this for actual high-speed data transfer with the PC, undefine to use it to use serial for debugging
+//#define	USE_CENTRAL_SERIAL	// Define this for actual high-speed data transfer with the PC, undefine to use it to use serial for debugging
 #ifdef USE_CENTRAL_SERIAL
 //#define NO_GLOBAL_SERIAL	// Use our Serial instead
 #endif
@@ -51,8 +51,6 @@ TransportESPNow_Receiver	transportFromPeripherals( mainTime );
 	#endif
 #endif
 
-//void	OnPacketsReceivedCallback( U32 _formerPacketID );
-
 //S16	gs_sine[16384];
 
 void setup() {
@@ -70,10 +68,13 @@ void setup() {
 		// We need at least a 1,411,200 bps full-duplex rate to transfer 44.1KHz stereo 16-bits samples
 //		centralSerial.Init( CentralSerial::UART2, 2000000UL, GPIO_NUM_17, GPIO_NUM_16 );	// Doesn't work!
 //		centralSerial.Init( CentralSerial::UART2, 1000000UL, GPIO_NUM_17, GPIO_NUM_16 );	// Lots of bytes lost! => Has to be a multiple of 115200, like shown below...
-		centralSerial.Init( CentralSerial::UART2, 1152000UL, GPIO_NUM_17, GPIO_NUM_16 );	// 10 x 115200 => Works nicely!
 //		centralSerial.Init( CentralSerial::UART2, 2187500UL, GPIO_NUM_17, GPIO_NUM_16 );	// Maximum allowed on Windows... But doesn't work.
 //		centralSerial.Init( CentralSerial::UART2, 1728000UL, GPIO_NUM_17, GPIO_NUM_16 );	// 15 x 115200 => Doesn't work...
 //		centralSerial.Init( CentralSerial::UART2, 1382400UL, GPIO_NUM_17, GPIO_NUM_16 );	// 12 x 115200 => Doesn't work...
+
+		// WORKS!
+//		centralSerial.Init( CentralSerial::UART2, 1152000UL, GPIO_NUM_17, GPIO_NUM_16 );	// 10 x 115200 => Works nicely! But we lose so many packets @ 22kHz
+		centralSerial.Init( CentralSerial::UART2, 8 * 115200UL, GPIO_NUM_17, GPIO_NUM_16 );	// 8 x 115200 => Enough to receive 16KHz stereo without losing too many packets
 
 //		Serial2.begin( 115200 );
 //		ERROR( true, "Serial configuré!! Error depuis le setup()!" );
@@ -90,22 +91,15 @@ void setup() {
 
 	// ========================================================================================
 	// Initialize WiFi
-  	WiFi.mode( WIFI_STA );
-  	WiFi.disconnect();	// We're using ESP-Now
-	Serial.println( str( "MAC Address is: %s", WiFi.macAddress().c_str() ) );
+	TransportESPNow_Base::ConfigureWiFi( ESP_NOW_WIFI_CHANNEL );
 
-	// Ensure the channel is free (otherwise a lot of interference and ESP_NOW queue errors can occur!)
-	const char*	SSID = TransportESPNow_Base::CheckWiFiChannelUnused( ESP_NOW_WIFI_CHANNEL );
-	ERROR( SSID, str( "The WiFi network \"%s\" is operating on our WiFi channel!", SSID ? SSID : "" ) );
-//U8	channels[11];
-//TransportESPNow_Base::DumpWiFiScan();
-//TransportESPNow_Base::ScanWifiChannels( channels, true );
-//ERROR( channels[ESP_NOW_WIFI_CHANNEL-1], "A WiFi network is operating on our WiFi channel!" );
 
 	// ========================================================================================
 	// Central -> Peripheral
 	//
-	transportToPeripherals.Init( ESP_NOW_WIFI_CHANNEL, CENTRAL_TO_PERIPHERAL_RATE );
+	transportToPeripherals.Init( CENTRAL_TO_PERIPHERAL_RATE );
+
+	U8	receiverMaskID = 0xFF;	// Broadcast to every Peripheral by default...
 
 	#ifdef SEND_WAV_SAMPLE	// Send WAV samples to the Peripherals
 		transportToPeripherals.StartAutoSendTask( 4, WAV, receiverMaskID );
@@ -118,11 +112,8 @@ void setup() {
 		#endif
 
 		#ifdef USE_CENTRAL_SERIAL
-//			transportToPeripherals.StartAutoSendTask( 4, centralSerial, receiverMaskID );
-			centralSerial.StartAutoReceiveTask( 4, transportToPeripherals );
+			centralSerial.StartAutoReceiveTask( 2, transportToPeripherals );
 		#else
-			U8	receiverMaskID = 0xFF;	// Broadcast to every Peripheral by default...
-
 			transportToPeripherals.StartAutoSendTask( 4, mono2Stereo, receiverMaskID );
 //			transportToPeripherals.StartAutoSendTask( 4, microphoneDummy, receiverMaskID );
 		#endif
@@ -134,10 +125,9 @@ void setup() {
 	// ========================================================================================
 	// Peripheral -> Central
 	//
-	transportFromPeripherals.Init( ESP_NOW_WIFI_CHANNEL, 0x00, PERIPHERAL_TO_CENTRAL_RATE, ISampleSource::MONO, 0.5f );	// We're the Central with special ID 0, we receive all the packets with bit mask 0!
+	transportFromPeripherals.Init( 0x00, PERIPHERAL_TO_CENTRAL_RATE, ISampleSource::MONO, 0.5f );	// We're the Central with special ID 0, we receive all the packets with bit mask 0!
 
 	#ifdef USE_CENTRAL_SERIAL
-//		transportFromPeripherals.SetOnPacketReceivedCallback( OnPacketsReceivedCallback );
 		centralSerial.StartAutoSendTask( 4, transportFromPeripherals );
 	#endif
 
@@ -163,6 +153,8 @@ static U32	lastReceivedPacketsCount = 0;
 static U32	lastSentPacketsCount = 0;
 static U32	lastLostPacketsCount = 0;
 //static U32	lastReceivedSamplesCount = 0;
+static U32	lastInvalidPacketsUSB = 0;
+static U32	lastSearchBytesCount = 0;
 static U32	lastUpdatesCount = 0;
 static U32	lastTime = millis();
 
@@ -172,6 +164,8 @@ if ( elapsedTime_ms > 1000 ) {
 	U32	receivedPackets = transportFromPeripherals.m_receivedPacketsCount - lastReceivedPacketsCount;
 	U32	lostPackets = transportFromPeripherals.m_lostPacketsCount - lastLostPacketsCount;
 	U32	sentPackets = transportToPeripherals.m_sentPacketsCount - lastSentPacketsCount;
+	U32	invalidPacketsUSB = centralSerial.m_invalidPacketsCount - lastInvalidPacketsUSB;
+	U32	searchedBytesCount = centralSerial.m_searchedBytesCount - lastSearchBytesCount;
 //	U32	receivedSamplesCount = input.m_sampleIndexWrite - lastReceivedSamplesCount;
 	#ifdef SEND_WAV_SAMPLE
 		U32	updatesCount = WAV.m_updatesCount - lastUpdatesCount;
@@ -179,8 +173,10 @@ if ( elapsedTime_ms > 1000 ) {
 		U32	updatesCount = 0;
 	#endif
 
+	float	averageSearchedBytes = float( searchedBytesCount ) / invalidPacketsUSB;
+
 	// Debug ESP-Now packets status
-	Serial.printf( "Rcv. %d, ID=0x%06X = %.1fHz - Lost = %2d (%.1f%%) | Sent %d, ID=0x%06X = %.1fHz - Upd# = %d\n", receivedPackets, transportFromPeripherals.m_lastReceivedPacketID, 2*TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * receivedPackets) / elapsedTime_ms, lostPackets, 100.0f * lostPackets / receivedPackets, sentPackets, transportToPeripherals.m_sentPacketsCount-1, TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * sentPackets) / elapsedTime_ms, updatesCount );
+	Serial.printf( "Rcv. %d, ID=0x%06X = %.1fHz - Lost = %2d (%.1f%%) | Sent %d ID=0x%06X = %.1fHz - Lost USB %d - Avg. Searched Bytes %f / pckt - Upd# = %d\n", receivedPackets, transportFromPeripherals.m_lastReceivedPacketID, 2*TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * receivedPackets) / elapsedTime_ms, lostPackets, 100.0f * lostPackets / receivedPackets, sentPackets, transportToPeripherals.m_sentPacketsCount-1, TransportESPNow_Base::SAMPLES_PER_PACKET * (1000.0f * sentPackets) / elapsedTime_ms, invalidPacketsUSB, averageSearchedBytes, updatesCount );
 
 	// Debug microphone input levels and sampling frequency
 	//Serial.printf( "Received %d samples from microphone (Max = %d) - Frequency = %.1f Hz\n", input.m_sampleIndexWrite, input.m_sampleMax, (1000.0f * receivedSamplesCount) / (now - lastTime) );
@@ -190,6 +186,9 @@ if ( elapsedTime_ms > 1000 ) {
 	lastReceivedPacketsCount = transportFromPeripherals.m_receivedPacketsCount;
 	lastLostPacketsCount = transportFromPeripherals.m_lostPacketsCount;
 	lastSentPacketsCount = transportToPeripherals.m_sentPacketsCount;
+	lastInvalidPacketsUSB = centralSerial.m_invalidPacketsCount;
+	lastSearchBytesCount = centralSerial.m_searchedBytesCount;
+
 	#ifdef SEND_WAV_SAMPLE
 		lastUpdatesCount = WAV.m_updatesCount;
 	#endif
@@ -214,11 +213,5 @@ if ( elapsedTime_ms > 1000 ) {
 	}
 //*/
 }
-
-//void	OnPacketsReceivedCallback( U32 _formerPacketID ) {
-//	#ifdef USE_CENTRAL_SERIAL
-//		centralSerial.PushPacket( transportFromPeripherals. )
-//	#endif
-//}
 
 #endif

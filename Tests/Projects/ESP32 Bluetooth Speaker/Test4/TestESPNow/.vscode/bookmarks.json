@@ -19,8 +19,13 @@
 			"path": "src/Common/ESPNow/TransportESPNow.cpp",
 			"bookmarks": [
 				{
-					"line": 615,
-					"column": 7,
+					"line": 136,
+					"column": 8,
+					"label": ""
+				},
+				{
+					"line": 512,
+					"column": 14,
 					"label": ""
 				}
 			]
@@ -34,18 +39,18 @@
 					"label": ""
 				},
 				{
-					"line": 361,
+					"line": 292,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 362,
 					"column": 11,
 					"label": ""
-				}
-			]
-		},
-		{
-			"path": "src/Common/Serial/CentralSerial.cpp",
-			"bookmarks": [
+				},
 				{
-					"line": 105,
-					"column": 3,
+					"line": 379,
+					"column": 7,
 					"label": ""
 				}
 			]
@@ -56,6 +61,31 @@
 				{
 					"line": 421,
 					"column": 5,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "src/Central.cpp",
+			"bookmarks": [
+				{
+					"line": 77,
+					"column": 3,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "src/Common/I2S/I2SInput.cpp",
+			"bookmarks": [
+				{
+					"line": 97,
+					"column": 9,
+					"label": ""
+				},
+				{
+					"line": 241,
+					"column": 8,
 					"label": ""
 				}
 			]
