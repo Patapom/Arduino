@@ -72,14 +72,6 @@ bool	AudioBuffer::Init( U32 _bufferSize, U64 _sampleIndexWrite, U64 _preloadDela
 
 void	AudioBuffer::GetSamples( float _samplingRate, Sample* _samples, U32 _samplesCount ) {
 
-//on connait notre sampling rate théorique
-//bufferDeltaTime toujours au moins égal à 1
-//bufferSamplesCount peut être égal à 0
-//
-//U32	sourceSamplingRate = GetSamplingRate();
-//Techniquement il suffit laisser le write prendre preLoadTime secondes pour remplir son buffer et repartir à sourceSamplingRate comme en 40!
-//En fait on incrémente le timeRead comme si on lisait bien delta time secondes alors que non, on a avancé de quedalle dans le buffer puisqu'on était bloqués!
-
 	// We know:
 	//	• The time Tr of the current sample we're reading
 	//	• The time Tw when the last sample was written to the buffer
@@ -93,13 +85,11 @@ void	AudioBuffer::GetSamples( float _samplingRate, Sample* _samples, U32 _sample
 	// Finally, using Fs and Dt, we can easily compute how many samples we need to span:
 	// 
 
-
-
 //	float	bufferDeltaTime = (m_timeWrite - m_timeRead) / 1000000.0f;
 	float	bufferDeltaTime = (max( m_timeRead+1, m_timeWrite ) - m_timeRead) / 1000000.0f;	// Always keep delta time positive, even if write time isn't increasing due to a loss of the transmitter feed
 
 
-bufferDeltaTime = m_preloadDelay_Micros / 1000000.0f;
+bufferDeltaTime = m_preloadDelay_Micros / 1000000.0f;	// Always for a perfect delay between read & write times
 
 
 	float	bufferSamplesCount = m_sampleIndexWrite - m_sampleIndexRead;			// Integer part, should always be quite small (ideally, always equal to pre-load delay)
@@ -107,6 +97,18 @@ bufferDeltaTime = m_preloadDelay_Micros / 1000000.0f;
 
 	float	deltaTime = _samplesCount / _samplingRate;								// How much time are we asking for?
 	float	sourceSamplesCount = bufferSamplesCount * deltaTime / bufferDeltaTime;	// How many source samples do we need to cover that much time?
+
+// Here I tried to make read index simply reach write index - preload delay but write index keeps on growing at the same time, which accentuates wobbliness even worse!
+float	preLoadDelaySamplesCount = GetSamplingRate() * (m_preloadDelay_Micros / 1000000.0f);
+//Serial.printf( "%.1f + %.1f = %d | W %d - R %d = %f\n", m_bufferSize - preLoadDelaySamplesCount, preLoadDelaySamplesCount, m_bufferSize, U32(m_sampleIndexWrite), U32(m_sampleIndexRead), bufferSamplesCount );
+//
+////sourceSamplesCount = (m_sampleIndexWrite - preLoadDelaySamplesCount)	// <= Target position we want to reach after sampling
+////					- (m_sampleIndexRead + m_sampleIndexReadDecimal);	// - current position
+//sourceSamplesCount = bufferSamplesCount - preLoadDelaySamplesCount;		// Which is neatly simplified into this... <== SUPER WOBBLY!
+
+// Interpolate between wobbly result and wobblier result... :/
+sourceSamplesCount = 0.95f * sourceSamplesCount + (1.0f - 0.95f) * (bufferSamplesCount - preLoadDelaySamplesCount);
+
 	float	sampleInc = sourceSamplesCount / _samplesCount;
 
 	// Constrain read index to buffer size to save precision

@@ -4,12 +4,12 @@
 			"path": "src/Common/AudioBuffer.cpp",
 			"bookmarks": [
 				{
-					"line": 101,
+					"line": 91,
 					"column": 10,
 					"label": ""
 				},
 				{
-					"line": 187,
+					"line": 188,
 					"column": 16,
 					"label": ""
 				}
@@ -19,12 +19,12 @@
 			"path": "src/Common/ESPNow/TransportESPNow.cpp",
 			"bookmarks": [
 				{
-					"line": 136,
+					"line": 272,
 					"column": 8,
 					"label": ""
 				},
 				{
-					"line": 512,
+					"line": 648,
 					"column": 14,
 					"label": ""
 				}

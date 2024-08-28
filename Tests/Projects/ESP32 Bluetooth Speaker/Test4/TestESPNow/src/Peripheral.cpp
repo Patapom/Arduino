@@ -21,8 +21,8 @@
 
 //#define VOLUME	0.25f
 //#define VOLUME	0.125f
-//#define VOLUME	0.0625f
-#define VOLUME	0.03125f	// For when using mic feedback loop!!!
+#define VOLUME	0.0625f
+//#define VOLUME	0.03125f	// For when using mic feedback loop!!!
 //#define VOLUME	0.01f	// For when using mic feedback loop!!!
 
 
@@ -33,7 +33,7 @@
 //#define FEEDBACK_MICROPHONE		// Use the mic as input, just for testing... Undefine to use a WAV sample
 
 // Transmission
-#define TRANSMIT_AUDIO			// Define this to transmit audio using ESP-Now
+//#define TRANSMIT_AUDIO			// Define this to transmit audio using ESP-Now
 //#define TRANSMIT_WAV			// Define this to transmit a WAV sample instead of microphone
 #define USE_MIC_MEMS			// Define this to use the INMP441 MEMS I2S digital microphone, disable to use the MAX9814 analog microphone
 #define DISABLE_TRANSMIT_ON_SILENCE	4	// Define this to disable transmission of microphone audio packets if the environment is silent for more than the time in seconds defined here
@@ -74,7 +74,7 @@ TransportESPNow_Receiver	transportFromCentral( mainTime );
 
 ISampleSource&	InitSampleSource() {
 	// Initialize the audio buffer
-	transportFromCentral.Init( 0x01, CENTRAL_TO_PERIPHERAL_RATE, ISampleSource::STEREO, 0.5f );	// Use receiver ID 1
+	transportFromCentral.Init( 0x01, CENTRAL_TO_PERIPHERAL_RATE, ISampleSource::STEREO, 1.0f );	// Use receiver ID 1
 
 	Serial.println( "Transport from Central Initialized..." );
 
@@ -296,7 +296,7 @@ void loop() {
 	transportToCentral.m_blockPackets = silence_seconds > DISABLE_TRANSMIT_ON_SILENCE;
 #endif
 
-#if 0
+#if 1
 	// Toggle packets reception
 	static bool		receiveEnabled = true;
 	if ( delay_debounce( state ) == RELEASE ) {
@@ -354,7 +354,7 @@ if ( elapsedTime_ms > 1000 ) {
 //*/
 	#endif
 
-#if 0	// To debug audio buffer read/write indices & interpolation to catch up with loss of packets
+#if 1	// To debug audio buffer read/write indices & interpolation to catch up with loss of packets
 	{
 		static U32	lastTime = millis();
 
@@ -396,7 +396,7 @@ if ( elapsedTime_ms > 1000 ) {
 	}
 #endif
 
-#if 1	// Show some packet stats
+#if 0	// Show some packet stats
 	#if defined(RECEIVE_AUDIO) || defined(TRANSMIT_AUDIO)
 		static U32	lastReceivedPacketsCount = 0;
 		static U32	lastSentPacketsCount = 0;
