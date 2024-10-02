@@ -22,6 +22,15 @@
 
 #include "Local.h"
 
+
+
+
+// Discussions sur les CODECs et les retry values 
+https://github.com/pschatzmann/arduino-audio-tools/discussions/393
+
+
+
+
 char  str::ms_globalBuffer[256];
 char* str::ms_globalPointer = str::ms_globalBuffer;
 
