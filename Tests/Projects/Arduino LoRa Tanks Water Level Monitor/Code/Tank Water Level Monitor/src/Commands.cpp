@@ -19,84 +19,86 @@ static char  tempBuffer[256];
 // Ask for a client to execute the specified command and waits for the reply
 //  _timeOutBeforeRetry_ms, indicates the delay before we estimate a command timed out
 //  _maxRetriesCount, indicates how many times we should attempt executing the command before giving up
-char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload, U32 _timeOutBeforeRetry_ms, U32 _maxRetriesCount ) {
-  int   payloadLength = strlen( _payload );
+char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload, U32& _retriesCount, U32 _timeOutBeforeRetry_ms, U32 _maxRetriesCount ) {
+	int   payloadLength = strlen( _payload );
 
-  char* reply = NULL;
-  U8    replyLength;
-  U16   senderAddress;
+	U8    replyLength;
+	U16   senderAddress;
 
-  U32   retriesCount = 0;
-  while ( reply == NULL && retriesCount++ < _maxRetriesCount ) {
-    // Execute command
-    Execute( _clientAddress, _command, _commandID, payloadLength, _payload );
+	_retriesCount = 0;
+	while ( _retriesCount++ < _maxRetriesCount ) {
+		// Execute command
+		Execute( _clientAddress, _command, _commandID, payloadLength, _payload );
 
-#ifdef DEBUG_LIGHT
-  LogDebug( str( "Executing command %04X (attempt #%d)", _commandID, retriesCount ) );
-#endif
+		#ifdef DEBUG_LIGHT
+			LogDebug( str( F("Executing command %04X (attempt #%d)"), _commandID, _retriesCount ) );
+		#endif
 
-    // Wait for reply
-    U32 waitTimeStart_ms = millis();
-    while ( millis() - waitTimeStart_ms < _timeOutBeforeRetry_ms ) {
-      delay( 1 );
-      RECEIVE_RESULT  RR = ReceivePeek( senderAddress, replyLength, reply );
-      if ( RR == RR_OK ) {
-        // Got a reply! Check for correct command ID
-        reply[replyLength] = '\0';  // Make sure we can use the reponse as a regular string
+		// Wait for a reply
+		U32 waitTimeStart_ms = millis();
+		while ( millis() - waitTimeStart_ms < _timeOutBeforeRetry_ms ) {
+			delay( 10 );
+			char*	reply = NULL;
+			RECEIVE_RESULT  RR = ReceivePeek( senderAddress, replyLength, reply );
+			if ( RR != RR_OK )
+				continue;
+			
+			// Got a reply! Check for correct command ID
+			reply[replyLength] = '\0';  // Make sure we can use the reponse as a regular string
 
-        if ( senderAddress != _clientAddress ) {
-#ifdef DEBUG_LIGHT
-  LogDebug( reply );
-  LogDebug( "Invalid reply: client ID mismatch!" );
-#endif
-          reply = NULL;
-          continue; // Unexpected sender
-        }
-        if ( replyLength < 10 ) {
-#ifdef DEBUG_LIGHT
-  LogDebug( reply );
-  LogDebug( "Invalid reply: reply length too short!" );
-#endif
-          reply = NULL;
-          continue; // Unexpected reply length
-        }
-        if ( reply[4] != ',' || reply[9] != ',' ) {
-#ifdef DEBUG_LIGHT
-  LogDebug( reply );
-  LogDebug( "Invalid reply: bad format!" );
-#endif
-          reply = NULL;
-          continue; // Badly formatted reply
-        }
-		char*	endPtr;
-        U16 replyCommandID = strtol( reply + 5, &endPtr, 16 );
-		ERROR( *endPtr != ',', "Unexpected character!" );
+			if ( senderAddress != _clientAddress ) {
+				#ifdef DEBUG_LIGHT
+					LogDebug( reply );
+					LogDebug( str( F("Invalid reply: client ID mismatch!") ) );
+				#endif
+				reply = NULL;
+				continue; // Unexpected sender
+			}
+			if ( replyLength < 10 ) {
+				#ifdef DEBUG_LIGHT
+					LogDebug( reply );
+					LogDebug( str( F("Invalid reply: reply length too short!") ) );
+				#endif
+				reply = NULL;
+				continue; // Unexpected reply length
+			}
+			if ( reply[4] != ',' || reply[9] != ',' ) {
+				#ifdef DEBUG_LIGHT
+					LogDebug( reply );
+					LogDebug( str( F("Invalid reply: bad format!") ) );
+				#endif
+				reply = NULL;
+				continue; // Badly formatted reply
+			}
 
-        if ( replyCommandID != _commandID ) {
-#ifdef DEBUG_LIGHT
-  LogDebug( reply );
-  LogDebug( str( "Invalid reply: unexpected command ID %04X!", replyCommandID ) );
-#endif
-          reply = NULL;
-          continue;
-        }
-       
-#ifdef DEBUG_LIGHT
-  LogDebug( str( "Received successful reply %s", reply ) );
-#endif
+			char*	endPtr;
+			U16 replyCommandID = strtol( reply + 5, &endPtr, 16 );
+			ERROR( *endPtr != ',', "Unexpected character!" );
 
-        return reply;
-      }
-    }
-  }
+			if ( replyCommandID != _commandID ) {
+				#ifdef DEBUG_LIGHT
+					LogDebug( reply );
+					LogDebug( str( F("Invalid reply: unexpected command ID %04X!"), replyCommandID ) );
+				#endif
+				reply = NULL;
+				continue;
+			}
+		
+			#ifdef DEBUG_LIGHT
+				LogDebug( str( F("Received successful reply %s"), reply ) );
+			#endif
 
-  // Failed after too many attempts...
-  return reply;
+			return reply;
+		}
+	}
+
+	// Failed after too many attempts...
+	return NULL;
 }
 
 // Ask for a client to execute the specified command and waits for the reply
-char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload ) {
-  return ExecuteAndWaitReply( _clientAddress, _command,  _commandID, _payload, 1000, 10 ); // Wait 1s before retrying and retry 10 times before failing
+char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload, U32& _retriesCount ) {
+  	return ExecuteAndWaitReply( _clientAddress, _command,  _commandID, _payload, _retriesCount, 1000, 10 ); // Wait 1s before retrying and retry 10 times before failing
 }
 
 // Ask for a client to execute the specified command
@@ -125,6 +127,7 @@ SEND_RESULT Execute( U16 _clientAddress, const char _command[4], U16 _commandID,
   return Send( _clientAddress, 14 + _payloadLength, tempBuffer );
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CLIENT SIDE
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,7 +143,7 @@ bool  QuickCheckCommand( const char* _payload, const char _command[4] ) {
 }
 
 SEND_RESULT Reply( const char _command[4], U16 _commandID, const char* _reply ) {
-  char  commandID[4];
+  char  commandID[5];
   sprintf( commandID, "%04X", _commandID );
   return Reply( _command, commandID, strlen( _reply ), _reply );
 }
@@ -148,7 +151,7 @@ SEND_RESULT Reply( const char _command[4], const char _commandID[4], const char*
   return Reply( _command, _commandID, strlen( _reply ), _reply );
 }
 SEND_RESULT Reply( const char _command[4], U16 _commandID, U8 _replyLength, const char* _reply ) {
-  char  commandID[4];
+  char  commandID[5];
   sprintf( commandID, "%04X", _commandID );
   return Reply( _command, commandID, _replyLength, _reply );
 }

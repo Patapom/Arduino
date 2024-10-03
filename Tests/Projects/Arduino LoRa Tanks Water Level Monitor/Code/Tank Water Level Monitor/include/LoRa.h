@@ -8,7 +8,7 @@
 
 const U32 command_delay_ms = 100;  // Delay between commands
 
-#if !defined(LORA_PIN_RX) || !defined(LORA_PIN_TX)
+#if !defined(PIN_LORA_RX) || !defined(PIN_LORA_TX)
 	#error "You must define the LoRa RX/TX pins!"
 #endif
 

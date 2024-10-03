@@ -17,12 +17,12 @@ bool  HandleCommand_Distance( U32 _commandID, U8 _payloadLength, char* _payload 
   U32 time_microSeconds = atoi( _payload );
   if ( time_microSeconds > 38000 ) {
     // Out of range!
-    Serial.println( "Out of range!" );
+	Log( str( F("Out of range!") ) );
     return false;
   }
 
   float distance_meters = ConvertTimeOfFlightToDistance( time_microSeconds );
-  Serial.println( str( "Distance = %f cm", 100.0f * distance_meters ) );
+  Log( str( F("Distance = %f cm"), 100.0f * distance_meters ) );
   return true;
 }
 
@@ -37,17 +37,17 @@ bool  HandleReply( U16 _senderAddress, U8 _replyLength, char* _reply ) {
 	char*	endPtr;
 	U32	commandID = strtol( _reply + 8, &endPtr, 16 );
 	ERROR( *endPtr != ',', "Unexpected character!" );
-//Serial.println( String( "Command ID = " ) + commandID );
+//Log( str( F("Command ID = %d", commandID ) );
 
 	// Check for known commands
 	char*	commandName = _reply;
 	char*	replyPayload = commandName + 10;
 	U8		replyPayloadLength = _replyLength - 10;
-	if ( QuickCheckCommand( commandName, "TIME" ) ) {
+	if ( QuickCheckCommand( commandName, str( F("TIME") ) ) ) {
 		return HandleCommand_Runtime( commandID, replyPayloadLength, replyPayload );
-	} else if ( QuickCheckCommand( commandName, "PING" ) ) {
+	} else if ( QuickCheckCommand( commandName, str( F("PING") ) ) ) {
 		return HandleCommand_Ping( commandID, replyPayloadLength, replyPayload );
-	} else if ( QuickCheckCommand( commandName, "DST0" ) ) {
+	} else if ( QuickCheckCommand( commandName, str( F("DST0") ) ) ) {
 		return HandleCommand_Distance( commandID, replyPayloadLength, replyPayload );
 	}
 

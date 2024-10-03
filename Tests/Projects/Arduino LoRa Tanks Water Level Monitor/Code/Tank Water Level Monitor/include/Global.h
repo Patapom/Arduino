@@ -14,7 +14,7 @@
 #define RECEIVER_ADDRESS  0
 
 // Define this to use the "smart mode" (a.k.a. mode 2)
-#define USE_SMART_MODE
+//#define USE_SMART_MODE
 
 #ifdef TRANSMITTER
 #if TRANSMITTER == RECEIVER_ADDRESS
@@ -24,17 +24,23 @@
 
 #define LORA_BAUD_RATE  19200 // Can't use too high baud rates with software serial!
 
-static const int  CLIENT_POLL_INTERVAL_MS = 100; // Poll for a command every 100 ms
+static const int  CLIENT_POLL_INTERVAL_MS = 10000; // Poll for a command every 10 s
+static const int  SERVER_WAIT_INTERVAL_MS = 11000; // Wait 11 seconds before retrying (must always be > to client poll interval to give the client enough time to respond)
 
-#define LORA_PIN_RX		2 // RX on D2
-#define LORA_PIN_TX		3 // TX on D3
+
+#define PIN_LORA_RX		2 // RX on D2
+#define PIN_LORA_TX		3 // TX on D3
 //#define PIN_RESET		4
 #define PIN_LED_GREEN	4
 #define PIN_LED_RED		5
 
-// HC-SR04 Ultrasound Distance Measurement device
-#define PIN_HCSR04_TRIGGER  6
-#define PIN_HCSR04_ECHO     7
+#ifdef TRANSMITTER
+	// HC-SR04 Ultrasound Distance Measurement device
+	#define PIN_HCSR04_TRIGGER  6
+	#define PIN_HCSR04_ECHO     7
+#else
+	#define PIN_BUTTON	6
+#endif
 
 #define NETWORK_ID  5
 
@@ -49,24 +55,28 @@ typedef unsigned char   U8;
 
 
 #include <Arduino.h>
+
+typedef const __FlashStringHelper	FChar;
+
+
+
 #include "Time.h"
 #include "HC-SR04.h"
 #include "Lora.h"
-
 #include "Commands.h"
 
 
 #if 1
-    static void  __ERROR( bool _setError, const char* _functionName, const char* _message ) {
+    static void  __ERROR( bool _setError, const char* _functionName, FChar* _message ) {
       if ( !_setError ) return;
 // @TODO: Proper error handling
 		digitalWrite( PIN_LED_RED, 1 );
 		//while ( true ); // Hang... :/
 		while ( true ) {
 			#ifndef NO_GLOBAL_SERIAL
-				Serial.print( "ERROR " );
+				Serial.print( F("ERROR ") );
 				Serial.print( _functionName );
-				Serial.print( "() => " );
+				Serial.print( F("() => ") );
 				Serial.println( _message );
 				delay( 1000 );
 			#else	// Flash instead
@@ -76,9 +86,9 @@ typedef unsigned char   U8;
 		}
 	}
 #else
-    static void  __ERROR( bool _setError, const char* _functionName, const char* _message ) {}
+    static void  __ERROR( bool _setError, const __FlashStringHelper* _functionName, const __FlashStringHelper* _message ) {}
 #endif
-#define	ERROR( _setError, _message ) __ERROR( _setError, __func__, _message )
+#define	ERROR( _setError, _message ) __ERROR( _setError, __func__, F(_message) )
 
 
 // Lightweight string class to easily format output
@@ -87,37 +97,32 @@ public:
 	char*			m_string;
 	static char		ms_globalBuffer[256];
 	static char*	ms_globalPointer;
+
 public:
-	str( const char* _text, ... ) {
-		va_list args;
-		va_start( args, _text );	// Arguments pointers is right after our _text argument
-		m_string = ms_globalPointer;
-		U32 count = vsprintf( m_string, _text, args ) + 1;	// Always count the trailing '\0'!
-		ms_globalPointer += count;
-		ERROR( U32(ms_globalPointer - ms_globalBuffer) > 256, "Buffer overrun! Fatal error!" );	// Fatal error!
-		va_end( args );
-	}
+//	str( const char* _text, ... );
+	str( FChar* _text, ... );
 	~str() {
 		ERROR( m_string >= ms_globalPointer, "Invalid string destruction order! Fatal error!" );  // Fatal error! => Strings should stack and be freed in exact reverse order...
 		ms_globalPointer = m_string; // Restore former string pointer
 	}
 
-	operator char*() { return m_string; }
+	operator const char*() { return m_string; }
 };
 
 static void  Log( const char* _header, const char* _text ) {
 	Serial.print( _header );
 	Serial.println( _text );
 }
-static void  Log( const char* _text ) { Log( "<LOG> ", _text ); }
-static void  LogDebug( const char* _text ) { Log( "<DEBUG> ", _text ); }
-static void  LogReply( U16 _commandID, const char* _text ) { Log( str( "%d,<OK> ", _commandID ), _text ); }
-static void  LogError( U16 _commandID, const char* _text ) { Log( str( "%d,<ERROR> ", _commandID ), _text ); }
 
-static void  Log() { Log( "" ); }
-static void  LogDebug() { LogDebug( "" ); }
-static void  LogReply( U16 _commandID ) { LogReply( _commandID, "" ); }
-static void  LogError( U16 _commandID ) { LogError( _commandID, "" ); }
+static void  Log( const char* _text ) { Log( str( F( "<LOG> " ) ), _text ); }
+static void  LogDebug( const char* _text ) { Log( str( F( "<DEBUG> " ) ), _text ); }
+static void  LogReply( U16 _commandID, const char* _text ) { Log( str( F( "%d,<OK> " ), _commandID ), _text ); }
+static void  LogError( U16 _commandID, const char* _text ) { Log( str( F( "%d,<ERROR> " ), _commandID ), _text ); }
+
+static void  Log() { Log( str( F("") ) ); }
+static void  LogDebug() { LogDebug( str( F("") ) ); }
+static void  LogReply( U16 _commandID ) { LogReply( _commandID, str( F("") ) ); }
+static void  LogError( U16 _commandID ) { LogError( _commandID, str( F("") ) ); }
 
 
 static void Flash( int _pin, int _duration_ms, int _count ) {

@@ -10,11 +10,6 @@
 
 #ifdef TRANSMITTER
 
-char	str::ms_globalBuffer[256];
-char* 	str::ms_globalPointer = str::ms_globalBuffer;
-
-//SoftwareSerial	LoRa( PIN_RX, PIN_TX );
-
 Time_ms	startTime;  // Time at which the loop starts
 
 void setup() {
@@ -36,9 +31,9 @@ while ( true ) {
 
 /* Test SR04
 while ( true ) {
-//	Log( "Allo?" );
+//	Log( str( F("Allo?") ) );
 	float distance = MeasureDistance( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
-	Log( str( "distance = %d", distance );
+	Log( str( F("distance = %d"), distance );
 	delay( 100 );
 }
 //*/
@@ -53,13 +48,13 @@ while ( true ) {
 	LoRa.begin( LORA_BAUD_RATE ); // This software serial is connected to the LoRa module
 
 /* Software reset takes an annoyingly long time...
-  SendCommandAndWaitPrint( "AT+RESET" );  // Normally useless due to hard reset above
+  SendCommandAndWaitPrint( str( F("AT+RESET") ) );  // Normally useless due to hard reset above
   delay( 5000 );
 //*/
 
 	#ifdef DEBUG_LIGHT
 		Log();
-		Log( "Initializing..." );
+		Log( str( F("Initializing...") ) );
 	#endif
 
 	// Initialize the LoRa module
@@ -67,20 +62,22 @@ while ( true ) {
 
 	#ifdef DEBUG_LIGHT
 		if ( configResult == CR_OK ) {
-			Log( "Configuration successful!" );
+			Log( str( F("Configuration successful!") ) );
 		} else {
-			LogError( 0, str( "Configuration failed with code %d", (int) configResult ) );
+			LogError( 0, str( F("Configuration failed with code %d"), (int) configResult ) );
 		}
 	#endif
 
 	// Enable "smart mode"
 	#if defined(USE_SMART_MODE)
 		configResult = SetWorkingMode( WM_SMART, 1000, 10000 ); // Active for 1 second, sleep for 10 seconds
-		if ( configResult == CR_OK ) {
-			Log( "Smart mode successful!" );
-		} else {
-			LogError( 0, str( "Smart mode failed with code %d", (int) configResult ) );
-		}
+		#ifdef DEBUG_LIGHT
+			if ( configResult == CR_OK ) {
+				Log( str( F("Smart mode successful!") ) );
+			} else {
+				LogError( 0, str( F("Smart mode failed with code %d"), (int) configResult ) );
+			}
+		#endif
 	#endif
 
 	if ( configResult != CR_OK ) {
@@ -91,15 +88,15 @@ while ( true ) {
 	}
 
 // Optional password encryption
-//	SendCommandAndWaitPrint( "AT+CPIN?" );
+//	SendCommandAndWaitPrint( str( F("AT+CPIN?") ) );
 //	ClearPassword();  Doesn't work! We must reset the chip to properly clear the password...
 //	SetPassword( 0x1234ABCDU );
-//	SendCommandAndWaitPrint( "AT+CPIN?" );
+//	SendCommandAndWaitPrint( str( F("AT+CPIN?") ) );
 
 	// Setup the HC-SR04
 	SetupPins_HCSR04( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
 	#ifdef DEBUG_LIGHT
-		Log( "HC-SR04 Pins configured." );
+		Log( str( F("HC-SR04 Pins configured.") ) );
 	#endif
 
 	// Store start time
@@ -111,11 +108,11 @@ U32 runCounter = 0; // How many cycles did we execute?
 extern bool  HandleCommand( U8 _payloadLength, const char* _payload );
 
 void  ExecuteCommand_Runtime( U8 _payloadLength, const char* _payload ) {
-	Reply( _payload, _payload+5, str( "%d", runCounter ) );  // Send back the runtime counter
+	Reply( _payload, _payload+5, str( F("%d"), runCounter ) );  // Send back the runtime counter
 }
 
 void  ExecuteCommand_Ping(  U8 _payloadLength, const char* _payload ) {
-	Reply( _payload, _payload+5, "" );  // Just send the ping back...
+	Reply( _payload, _payload+5, str( F("") ) );  // Just send the ping back...
 }
 
 void loop() {
@@ -123,6 +120,17 @@ void loop() {
 	#ifdef DEBUG
 		digitalWrite( PIN_LED_GREEN, runCounter & 1 );
 	#endif
+
+/* Test SR04 every second
+delay( 1000 );
+U32 timeOfFlight_microSeconds = MeasureEchoTime( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
+char  message[16];
+sprintf( message, "%u µs", U32( timeOfFlight_microSeconds < 38000 ? timeOfFlight_microSeconds : -1 ) );  // -1 means an out of range error!
+//LogDebug( str( F("%d µs"), timeOfFlight_microSeconds ) );
+LogDebug( message );
+
+return;
+*/
 
 	// Check for a command
 	U16   senderAddress;
@@ -138,11 +146,11 @@ void loop() {
 	}
 //*/
 // Test continuous measurements...
-//payload = "CMD=DST0,1234,";
+//payload = str( F("CMD=DST0,1234,") );
 //payloadLength = strlen( payload );
 
 	#ifdef DEBUG_LIGHT
-		Serial.println( str( "Client 1 => Received %s", payload ) );
+		Log( str( F("Client 1 => Received %s"), payload ) );
 	#endif
 
 	if ( senderAddress != RECEIVER_ADDRESS ) {
@@ -156,7 +164,7 @@ void loop() {
 	}
 
 	// Analyze command
-	if ( strstr( payload, "CMD=" ) != payload ) {
+	if ( strstr( payload, str( F("CMD=") ) ) != payload ) {
 		// Not a command?
 		Flash( 50, 10 );  // Flash to signal error! => We received something that is badly formatted...
 		return;
@@ -173,10 +181,10 @@ void loop() {
 	}
 
 	// Check for common commands
-	if ( QuickCheckCommand( payload, "TIME" ) ) {
+	if ( QuickCheckCommand( payload, str( F("TIME") ) ) ) {
 		ExecuteCommand_Runtime( payloadLength, payload );
 		return;
-	} else if ( QuickCheckCommand( payload, "PING" ) ) {
+	} else if ( QuickCheckCommand( payload, str( F("PING") ) ) ) {
 		ExecuteCommand_Ping( payloadLength, payload );
 		return;
 	}

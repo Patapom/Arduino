@@ -1,12 +1,8 @@
 #include "Global.h"
 
-//#ifdef USE_GLOBAL_BUFFER
-//  char* LoRaBuffer = USE_GLOBAL_BUFFER;
-//#else
 static char	LoRaBuffer[256];    // Command/Response buffer
-//#endif
 
-SoftwareSerial	LoRa( LORA_PIN_RX, LORA_PIN_TX );
+SoftwareSerial	LoRa( PIN_LORA_RX, PIN_LORA_TX );
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,11 +27,11 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
   *command++ = '\n';
   *command++ = '\0';
 
-//  if ( SendCommandAndWaitVerify( LoRaBuffer, "+OK" ) != RT_OK ) return SR_ERROR; // <= If using this version then remove the "\r\n" that we add above otherwise the LoRa will believe we send 2 commands and will return an error
+//  if ( SendCommandAndWaitVerify( LoRaBuffer, F("+OK") ) != RT_OK ) return SR_ERROR; // <= If using this version then remove the "\r\n" that we add above otherwise the LoRa will believe we send 2 commands and will return an error
 
   // Use the fast version using char*
 #ifdef DEBUG
-  LogDebug( str( "Sending command %s", LoRaBuffer ) );
+  LogDebug( str( F("Sending command %s"), LoRaBuffer ) );
 #endif
 
   SendCommand( LoRaBuffer );
@@ -44,7 +40,7 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
     return SR_TIMEOUT;  // Timeout!
 
 #ifdef DEBUG
-  LogDebug( str( "Reply = %s", reply ) );
+  LogDebug( str( F("Reply = %s"), reply ) );
 #endif
 
   if ( strstr( reply, "+OK" ) == NULL )
@@ -135,10 +131,10 @@ RECEIVE_RESULT  ExtractReply( char* _reply, U16& _targetAddress, U8& _payloadLen
   _SNR = atoi( SNRStart );
 
 #ifdef DEBUG
-//  Serial.print( String( "Address = " ) + String( _targetAddress ) + String( ", payload size = " ) + String( _payloadLength ) );
-//  Serial.print( String( ", payload = " ) + _payload );
-//  Serial.println( String( ", RSSI = " ) + String( _RSSI ) + String( ", SNR = " ) + String( _SNR ) );
-  LogDebug( str( "Address = %d, payload size = %d, payload = %s, RSSI = %d, SNR = %d", _targetAddress, _payloadLength, _payload, _RSSI, _SNR )  );
+//  Serial.print( String( F("Address = ") ) + String( _targetAddress ) + String( F(", payload size = ") ) + String( _payloadLength ) );
+//  Serial.print( String( F(", payload = ") ) + _payload );
+//  Serial.println( String( F(", RSSI = ") ) + String( _RSSI ) + String( F(", SNR = ") ) + String( _SNR ) );
+  LogDebug( str( F("Address = %d, payload size = %d, payload = %s, RSSI = %d, SNR = %d"), _targetAddress, _payloadLength, _payload, _RSSI, _SNR )  );
 #endif
 
   return RR_OK;
@@ -162,14 +158,14 @@ CONFIG_RESULT  ConfigureLoRaModule( U8 _networkID, U16 _address, U32 _band, U8 _
   if ( _bandwidth < 7 || _bandwidth > 9 ) return CR_INVALID_PARAMETER;
 
   // Send configuration commands
-//  SendCommandAndWaitPrint( "AT+IPR?" );
-  if ( SendCommandAndWaitVerify( "AT\r\n", "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT;
+//  SendCommandAndWaitPrint( F("AT+IPR?") );
+  if ( SendCommandAndWaitVerify( str( F("AT\r\n") ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT;
   delay( command_delay_ms );
-  if ( SendCommandAndWaitVerify( str( "AT+NETWORKID=%d\r\n", _networkID ), "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT_NETWORKID;
+  if ( SendCommandAndWaitVerify( str( F("AT+NETWORKID=%d\r\n"), _networkID ), str( F( "+OK" ) ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_NETWORKID;
   delay( command_delay_ms );
-  if ( SendCommandAndWaitVerify( str( "AT+ADDRESS=%d\r\n", _address ), "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT_ADDRESS;
+  if ( SendCommandAndWaitVerify( str( F("AT+ADDRESS=%d\r\n"), _address ), str( F( "+OK" ) ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_ADDRESS;
   delay( command_delay_ms );
-  if ( SendCommandAndWaitVerify( str( "AT+PARAMETER=%d,%d,%d,%d\r\n", _spreadingFactor, _bandwidth, _codingRate, _programmedPreamble ), "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT_PARAMETER;
+  if ( SendCommandAndWaitVerify( str( F("AT+PARAMETER=%d,%d,%d,%d\r\n"), _spreadingFactor, _bandwidth, _codingRate, _programmedPreamble ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_PARAMETER;
   delay( command_delay_ms );
 
   return CR_OK; // Success!
@@ -178,9 +174,9 @@ CONFIG_RESULT  ConfigureLoRaModule( U8 _networkID, U16 _address, U32 _band, U8 _
 // Sets the working mode for the device (default is WM_TRANSCEIVER)
 CONFIG_RESULT  SetWorkingMode( WORKING_MODE _workingMode, U16 _RXTime, U16 _sleepTime ) {
   if ( _workingMode == WM_SMART ) {
-    if ( SendCommandAndWaitVerify( str( "AT+MODE=2,%d,%d\r\n", _RXTime, _sleepTime ), "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
+    if ( SendCommandAndWaitVerify( str( F("AT+MODE=2,%d,%d\r\n"), _RXTime, _sleepTime ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
   } else {
-    if ( SendCommandAndWaitVerify( str( "AT+MODE=%d\r\n", int(_workingMode) ), "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
+    if ( SendCommandAndWaitVerify( str( F("AT+MODE=%d\r\n"), int(_workingMode) ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
   }
   return CR_OK;
 }
@@ -191,7 +187,7 @@ CONFIG_RESULT  SetWorkingMode( WORKING_MODE _workingMode, U16 _RXTime, U16 _slee
 //
 CONFIG_RESULT  SetPassword( U32 _password ) {
   if ( !_password ) return CR_INVALID_PASSWORD;
-  if ( SendCommandAndWaitVerify( str( "AT+CPIN=%08X\r\n", _password ), "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
+  if ( SendCommandAndWaitVerify( str( F("AT+CPIN=%08X\r\n"), _password ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
   delay( command_delay_ms );
 
   return CR_OK; // Success!
@@ -199,7 +195,7 @@ CONFIG_RESULT  SetPassword( U32 _password ) {
 
 // Apparently, the only way to reset the password is to send an "AT+RESET" command...
 //CONFIG_RESULT ClearPassword() {
-//  if ( SendCommandAndWaitVerify( "AT+CPIN=00000000\r\n", "+OK" ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
+//  if ( SendCommandAndWaitVerify( F("AT+CPIN=00000000\r\n"), F("+OK") ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
 //  delay( command_delay_ms );
 //  return CR_OK; // Success!
 //}
@@ -244,7 +240,7 @@ char* WaitReply( U32 _maxIterationsCount ) {
  
   *p++ = '\0';  // Terminate string properly so it can be displayed...
 
-//Serial.println( "Received reply!" );
+//Serial.println( F("Received reply!") );
 //  Serial.println( LoRaBuffer );  // Print the reply to the Serial monitor
 
   return LoRaBuffer;
@@ -265,7 +261,7 @@ char* SendCommandAndWait( const char* _command ) {
 // Return an enum depending on the result
 RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expectedReply ) {
 #ifdef DEBUG
-  LogDebug( str( "Sending command %s", _command ) );
+  LogDebug( str( F("Sending command %s"), _command ) );
 #endif
 
   char* reply = SendCommandAndWait( _command );
@@ -273,7 +269,7 @@ RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expe
     return RT_TIMEOUT;
 
 #ifdef DEBUG
-LogDebug( str( "Received reply %s", reply ) ); // No need to println since the reply contains the \r\n...
+LogDebug( str( F("Received reply %s"), reply ) ); // No need to println since the reply contains the \r\n...
 #endif
 
   char* ptrExpectedReply = strstr( reply, _expectedReply );
@@ -282,10 +278,10 @@ LogDebug( str( "Received reply %s", reply ) ); // No need to println since the r
 
 // For debugging purpose
 void  SendCommandAndWaitPrint( char* _command ) {
-  Log( str( "Sending command %s", _command ) );
+  Log( str( F("Sending command %s"), _command ) );
   char* reply = SendCommandAndWait( _command );
   if ( reply != NULL ) {
-    Log( str( "Received reply: %s", reply ) );  // Print the reply to the Serial monitor
+    Log( str( F("Received reply: %s"), reply ) );  // Print the reply to the Serial monitor
   } else {
     LogError( 0, "TIMEOUT!" );
   }

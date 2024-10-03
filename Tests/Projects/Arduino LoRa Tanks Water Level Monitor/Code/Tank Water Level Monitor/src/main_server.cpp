@@ -7,11 +7,6 @@
 
 #ifndef TRANSMITTER
 
-char	str::ms_globalBuffer[256];
-char* 	str::ms_globalPointer = str::ms_globalBuffer;
-
-//SoftwareSerial	LoRa( PIN_RX, PIN_TX );
-
 Time_ms	startTime;  // Time at which the loop starts
 
 bool  ExecuteCommand_MeasureDistance( U16 _commandID, bool _forceOutOfRange );
@@ -19,12 +14,11 @@ bool  ExecuteCommand_MeasureDistance( U16 _commandID, bool _forceOutOfRange );
 void setup() {
 	pinMode( PIN_LED_RED, OUTPUT );
 	pinMode( PIN_LED_GREEN, OUTPUT );
+	pinMode( PIN_BUTTON, INPUT );
 
 	// Initiate serial communication
 	Serial.begin( 19200 );        // This one is connected to the PC
 	while ( !Serial );            // Wait for serial port to connect. Needed for Native USB only
-
-	Flash( PIN_LED_GREEN, 50, 10 );
 
 /*  Test LEDS
 while ( true ) {
@@ -43,13 +37,13 @@ while ( true ) {
 	LoRa.begin( LORA_BAUD_RATE ); // This software serial is connected to the LoRa module
 
 /* Software reset takes an annoyingly long time...
-  SendCommandAndWaitPrint( "AT+RESET" );  // Normally useless due to hard reset above
+  SendCommandAndWaitPrint( str( F("AT+RESET") ) );  // Normally useless due to hard reset above
   delay( 5000 );
 //*/
 
 	#ifdef DEBUG_LIGHT
 		Log();
-		Log( "Initializing..." );
+		Log( str( F("Initializing...") ) );
 	#endif
 
 	// Initialize the LoRa module
@@ -57,9 +51,9 @@ while ( true ) {
 
 	#ifdef DEBUG_LIGHT
 		if ( configResult == CR_OK ) {
-			Log( "Configuration successful!" );
+			Log( str( F("Configuration successful!") ) );
 		} else {
-			LogError( 0, str( "Configuration failed with code %d", (int) configResult ) );
+			LogError( 0, str( F("Configuration failed with code %d"), (int) configResult ) );
 		}
 	#endif
 
@@ -71,13 +65,15 @@ while ( true ) {
 	}
 
 // Optional password encryption
-//	SendCommandAndWaitPrint( "AT+CPIN?" );
+//	SendCommandAndWaitPrint( str( F("AT+CPIN?") ) );
 //	ClearPassword();  Doesn't work! We must reset the chip to properly clear the password...
 //	SetPassword( 0x1234ABCDU );
-//	SendCommandAndWaitPrint( "AT+CPIN?" );
+//	SendCommandAndWaitPrint( str( F("AT+CPIN?") ) );
 
 	// Store start time
 	startTime.GetTime();
+
+	Flash( PIN_LED_GREEN, 50, 10 );
 }
 
 U32 runCounter = 0; // How many cycles did we execute?
@@ -96,8 +92,24 @@ U32	measurementErrorsCounter = 0;
 U32	cyclesCounter = ~0UL;
 U32	timeReference_seconds = 0;  // Set by the user. 0 is the date 2024-06-12 at 00:00. A U32 can then count time in seconds up to 136 years...
 
+bool	read_button() { return digitalRead( PIN_BUTTON ); }
+bool	debounce_once() {
+	static uint16_t state = 0;
+	state = (state<<1) | read_button() | 0xfe00;
+	return (state == 0xff00);
+}
+bool	debounce() {
+	bool	result = false;
+	for ( int i=0; i < 16; i++ ) {
+		result |= debounce_once();
+		delay( 1 );
+	}
+	return result;
+}
+
+static U16	s_commandID = 0;
+
 void	loop() {
-//	static U16	commandID = 0;
 
 	runCounter++;
 	delay( 1000 );  // Each cycle is 1000ms
@@ -105,9 +117,10 @@ void	loop() {
 
 	// Ask client to measure a distance every 15 minutes...
 	cyclesCounter++;
-	if ( cyclesCounter >= 15 * 60 ) {
+//	if ( cyclesCounter >= 15 * 60 ) {
+	if ( debounce() ) {
 		cyclesCounter = 0;  // Reset counter
-		if ( ExecuteCommand_MeasureDistance( 0, false ) ) {
+		if ( ExecuteCommand_MeasureDistance( s_commandID++, false ) ) {
 			Flash( PIN_LED_GREEN, 250, 1 ); // Notify of a new measurement
 		} else {
 			Flash( PIN_LED_RED, 150, 10 );  // Notify of a command failure!
@@ -146,66 +159,67 @@ void	loop() {
 	command = commandBuffer;
 
 	#ifdef DEBUG_LIGHT
-		LogDebug( str( "ID %d, \"%s\"", commandID, command ) );
+		LogDebug( str( F("ID %d, \"%s\""), commandID, command ) );
 	#endif
 
-	if ( strstr( command, "PING" ) == command ) {
+	if ( strstr( command, str( F("PING") ) ) == command ) {
 		// Perform a simple ping
-		char* reply = ExecuteAndWaitReply( 1, "PING", commandID, "" );
+		U32		retriesCount = 0;
+		char*	reply = ExecuteAndWaitReply( 1, str( F("PING") ), commandID, str( F("") ), retriesCount );
 		if ( reply != NULL ) {
-			LogReply( commandID, "Ping" );
+			LogReply( commandID, str( F("Ping") ) );
 		} else {
-			LogError( commandID, "Ping failed" );
+			LogError( commandID, str( F("Ping failed") ) );
 		}
-	} else if ( strstr( command, "MEASURE" ) == command ) {
+	} else if ( strstr( command, str( F("MEASURE") ) ) == command ) {
 		// Perform a measurement
 		bool  forceOutOfRange = false;
 		#ifdef DEBUG_LIGHT
-			if ( strstr( command + 7, "PIPO" ) == command+7 ) {
+			if ( strstr( command + 7, str( F("PIPO") ) ) == command+7 ) {
 			forceOutOfRange = true;
 			}
 		#endif
 
 		if ( ExecuteCommand_MeasureDistance( commandID, forceOutOfRange ) ) {
 			measurementsCounter--;  // Don't stack it into the buffer
-			LogReply( commandID, str( "TIME=%d", bufferMeasurements[measurementsCounter & (MAX_MEASUREMENTS-1)].rawTime_microSeconds ) );
+			LogReply( commandID, str( F("TIME=%d"), bufferMeasurements[measurementsCounter & (MAX_MEASUREMENTS-1)].rawTime_microSeconds ) );
 		} else {
-			LogError( commandID, "Measure failed." );
+			LogError( commandID, str( F("Measure failed.") ) );
 		}
 
-	} else if ( strstr( command, "SETTIME=" ) == command ) {
+	} else if ( strstr( command, str( F("SETTIME=") ) ) == command ) {
 		// Sets the reference time
 		timeReference_seconds = atoi( command + 8 );
-		LogReply( commandID, str( "New reference time set to 0x%08X", timeReference_seconds ) );
+		LogReply( commandID, str( F("New reference time set to 0x%08X"), timeReference_seconds ) );
 
-	} else if ( strstr( command, "GETBUFFERSIZE" ) == command ) {
+	} else if ( strstr( command, str( F("GETBUFFERSIZE") ) ) == command ) {
 		// Return the amount of measurements in the buffer
-		LogReply( commandID, str( "%d", measurementsCounter < MAX_MEASUREMENTS ? measurementsCounter : MAX_MEASUREMENTS ) );
+		LogReply( commandID, str( F("%d"), measurementsCounter < MAX_MEASUREMENTS ? measurementsCounter : MAX_MEASUREMENTS ) );
 
-	} else if ( strstr( command, "READBUFFER" ) == command ) {
+	} else if ( strstr( command, str( F("READBUFFER") ) ) == command ) {
 		// Return the content of the buffer
 		U32 count = measurementsCounter < MAX_MEASUREMENTS ? measurementsCounter : MAX_MEASUREMENTS;
 		U8  bufferIndex = (measurementsCounter - count) & (MAX_MEASUREMENTS-1); // Index of the first measurement in the ring buffer
 
-		LogReply( commandID, str( "%d", count ) );
+		LogReply( commandID, str( F("%d"), count ) );
 
 		U32 checksum = 0;
 		for ( U8 i=0; i < count; i++, bufferIndex++ ) {
 			Measurement&  m = bufferMeasurements[bufferIndex];
-			LogReply( commandID, str( "%d;%d", m.timeStamp_seconds, m.rawTime_microSeconds ) );
+			LogReply( commandID, str( F("%d;%d"), m.timeStamp_seconds, m.rawTime_microSeconds ) );
 
 			checksum += m.timeStamp_seconds;
 			checksum += m.rawTime_microSeconds;
 		}
 
 		// Send final checksum
-		LogReply( commandID, str( "CHECKSUM=%08X", checksum ) );
+		LogReply( commandID, str( F("CHECKSUM=%08X"), checksum ) );
 
-	} else if ( strstr( command, "FLUSH" ) == command ) {
+	} else if ( strstr( command, str( F("FLUSH") ) ) == command ) {
 		// Flush the buffer
 		measurementsCounter = 0;
 		measurementErrorsCounter = 0;
-		LogReply( commandID, "" );
+		LogReply( commandID, str( F("") ) );
 	}
 }
 
@@ -214,55 +228,56 @@ void	loop() {
 //
 bool  ExecuteCommand_MeasureDistance( U16 _commandID, bool _forceOutOfRange ) {
 
-	U16 rawTime_microSeconds = ~0U;
-	U16 retriesCount = 0;
-	while ( rawTime_microSeconds == ~0U && retriesCount < 5 ) { // Retry while we're getting an out of range response...
-	if ( retriesCount > 0 ) {
-		delay( 100 );
-	}
+	U32	MAX_RETRIES_COUNT = 6;
 
-	#if 0 // At the moment the sensor is busted so let's just simulate a fake measure command
-		char* reply = ExecuteAndWaitReply( 1, "PING", _commandID, "" );
-
-		// Fake reply with a sawtooth signal ...
-		if ( reply != NULL ) {
-			const int MIN =  1772;  // 1772µs at top tank level
-			const int MAX = 11848;  // 11848µs at bottom tank level
-//			rawTime_microSeconds = MAX + ((cyclesCounter & 0x3FF) * (MIN - MAX) >> 10);
-//			rawTime_microSeconds = MAX + ((cyclesCounter & 0x3F) * (MIN - MAX) >> 6);
-			rawTime_microSeconds = U16( MAX + (1.0 + sin( cyclesCounter * (3.1415 / 64.0) )) * float(MIN - MAX) / 2.0);
-			reply = str( "DST0,%04X,%d", _commandID, rawTime_microSeconds );
+	U16	rawTime_microSeconds = ~0U;
+	U32	retriesCount = 0;
+	while ( rawTime_microSeconds == ~0U && retriesCount < 5 * MAX_RETRIES_COUNT ) { // Retry while we're getting an out of range response...
+		if ( retriesCount > 0 ) {
+			delay( 100 );
 		}
-	#else
-		// Execute the command and wait for the reply
-		char* reply = ExecuteAndWaitReply( 1, "DST0", _commandID, "" );
-	#endif
 
-	if ( reply == NULL ) {
-		// Command failed after several attempts!
-LogDebug( "reply == NULL!" );
-		measurementErrorsCounter++; // Count the amount of errors, after too many errors like this we'll consider an issue with the client module!
-		return false;
-	}
+		#if 0 // At the moment the sensor is busted so let's just simulate a fake measure command
+			char* reply = ExecuteAndWaitReply( 1, F("PING"), _commandID, F("") );
 
-//LogDebug( "Mais putain?!" );
+			// Fake reply with a sawtooth signal ...
+			if ( reply != NULL ) {
+				const int MIN =  1772;  // 1772µs at top tank level
+				const int MAX = 11848;  // 11848µs at bottom tank level
+//				rawTime_microSeconds = MAX + ((cyclesCounter & 0x3FF) * (MIN - MAX) >> 10);
+//				rawTime_microSeconds = MAX + ((cyclesCounter & 0x3F) * (MIN - MAX) >> 6);
+				rawTime_microSeconds = U16( MAX + (1.0 + sin( cyclesCounter * (3.1415 / 64.0) )) * float(MIN - MAX) / 2.0);
+				reply = str( F("DST0,%04X,%d"), _commandID, rawTime_microSeconds );
+			}
+		#else
+			// Execute the command and wait for the reply
+			U32	singleRetriesCount = 0;
+//			char* reply = ExecuteAndWaitReply( 1, str( F("DST0") ), _commandID, str( F("") ), singleRetriesCount );
+			char* reply = ExecuteAndWaitReply( 1, str( F("DST0") ), _commandID, str( F("") ), singleRetriesCount, SERVER_WAIT_INTERVAL_MS, MAX_RETRIES_COUNT );	// Wait just a bit more than the client's sleep time
+			retriesCount += singleRetriesCount;
+		#endif
+
+		if ( reply == NULL ) {
+			// Command failed after several attempts!
+LogDebug( str( F("reply == NULL!") ) );
+			measurementErrorsCounter++; // Count the amount of errors, after too many errors like this we'll consider an issue with the client module!
+			return false;
+		}
 
 		// Read back time measurement
 		rawTime_microSeconds = atoi( reply + 10 );
-		retriesCount++;
 	}
 
 	if ( _forceOutOfRange ) {
 		rawTime_microSeconds = ~0U; // Simulate an out of range measurement
 	}
 
-LogDebug( str( "rawTime_microSeconds = %d (%04X) (retries count %d)", rawTime_microSeconds, rawTime_microSeconds, retriesCount ) );
+LogDebug( str( F("#%04d rawTime_µs = %u (%04X) (retries count %d)"), _commandID, rawTime_microSeconds, rawTime_microSeconds, retriesCount ) );
 
 	// Register a new measurement
 	U8  bufferIndex = U8( measurementsCounter ) & (MAX_MEASUREMENTS-1);
 
 	Time_ms now;
-	now.GetTime();
 
 	float deltaTime_seconds = now.GetTime_seconds() - startTime.GetTime_seconds();  // Total time since the device is up
 

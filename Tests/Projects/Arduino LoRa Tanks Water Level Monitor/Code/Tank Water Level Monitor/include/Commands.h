@@ -16,9 +16,9 @@
 // Ask for a client to execute the specified command and waits for the reply
 //  _timeOutBeforeRetry_ms, indicates the delay before we estimate a command timed out
 //  _maxRetriesCount, indicates how many times we should attempt executing the command before giving up
-char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload, U32 _timeOutBeforeRetry_ms, U32 _maxRetriesCount );
+char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload, U32& _retriesCount, U32 _timeOutBeforeRetry_ms, U32 _maxRetriesCount );
 // Ask for a client to execute the specified command and waits for the reply
-char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload );
+char* ExecuteAndWaitReply( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload, U32& _retriesCount );
 
 // Ask for a client to execute the specified command
 SEND_RESULT Execute( U16 _clientAddress, const char _command[4], U16 _commandID, const char* _payload );
