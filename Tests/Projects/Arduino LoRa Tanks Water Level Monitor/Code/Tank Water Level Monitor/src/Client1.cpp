@@ -6,16 +6,18 @@
 
 #if TRANSMITTER == 1
 
-bool  ExecuteCommand_MeasureDistance( U8 _payloadLength, const char* _payload );
+bool	ExecuteCommand_MeasureDistance( U8 _payloadLength, const char* _payload );
 
 // Returns false if the command couldn't be handled
-bool  HandleCommand( U8 _payloadLength, const char* _payload ) {
+bool	HandleCommand( U8 _payloadLength, const char* _payload ) {
 //_payload[_payloadLength] = '\0';
 //Serial.println( _payload );
 
-  if ( QuickCheckCommand( _payload, str( F("DST0") ) ) ) return ExecuteCommand_MeasureDistance( _payloadLength, _payload );
+	if ( QuickCheckCommand( _payload, str( F("DST0") ) ) ) {
+		return ExecuteCommand_MeasureDistance( _payloadLength, _payload );
+	}
 
-  return false;
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,28 +26,28 @@ bool  HandleCommand( U8 _payloadLength, const char* _payload ) {
 
 //  "DST0" => measures distance on sensor 0
 bool  ExecuteCommand_MeasureDistance( U8 _payloadLength, const char* _payload ) {
-  // Measure distance
-  U32 timeOfFlight_microSeconds = MeasureEchoTime( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
+	// Measure distance
+	U32 timeOfFlight_microSeconds = MeasureEchoTime( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
 
-  char  message[16];
-  sprintf( message, "%u", U16( timeOfFlight_microSeconds < 38000 ? timeOfFlight_microSeconds : -1) );  // -1 means an out of range error!
+	char  message[16];
+	sprintf( message, "%u", U16( timeOfFlight_microSeconds < 38000 ? timeOfFlight_microSeconds : -1) );  // -1 means an out of range error!
 
 #ifdef DEBUG
-  LogDebug( str( F("%d µs"), timeOfFlight_microSeconds ) );
+	LogDebug( str( F("%d µs"), timeOfFlight_microSeconds ) );
 #endif
 
-  Flash( PIN_LED_GREEN, 150, 1 );
 #ifdef DEBUG_LIGHT
-  LogDebug( str( F("Client 1 => Replied %s"), message ) );
+	Flash( PIN_LED_GREEN, 150, 1 );
+	LogDebug( str( F("Client 1 => Replied %s"), message ) );
 #endif
 
-  // Send the response
-//  if ( Send( RECEIVER_ADDRESS, message ) != SR_OK ) {
-  if ( Reply( _payload, _payload+5, message ) != SR_OK ) {
-    Flash( 50, 10 );  // Error!
-  }
+	// Send the response
+//	if ( Send( RECEIVER_ADDRESS, message ) != SR_OK ) {
+	if ( Reply( _payload, _payload+5, message ) != SR_OK ) {
+		Flash( 50, 10 );  // Error!
+	}
 
-  return true;
+	return true;
 }
 
 #endif

@@ -5,7 +5,7 @@
 //#define DEBUG
 
 // Define this to output end product commands/responses to the serial (e.g. client send/receive, server send/receive)
-#define DEBUG_LIGHT
+//#define DEBUG_LIGHT
 
 // Define this to be the transmitter module (i.e. CLIENT) and specify the transmitter address, undefine to be the receiver module (i.e. SERVER)
 //#define TRANSMITTER 1   // Transmitter address is 1
@@ -22,9 +22,10 @@
 #endif
 #endif
 
-#define LORA_BAUD_RATE  19200 // Can't use too high baud rates with software serial!
+#define LORA_BAUD_RATE  19200	// Can't use too high baud rates with software serial!
 
-static const int  CLIENT_POLL_INTERVAL_MS = 10000; // Poll for a command every 10 s
+#define USE_LOW_POWER_IDLE		// Define this to use the LowPower library and enter idle mode for 8s instead of a delay (delay still eats energy)
+
 static const int  SERVER_WAIT_INTERVAL_MS = 11000; // Wait 11 seconds before retrying (must always be > to client poll interval to give the client enough time to respond)
 
 
@@ -58,7 +59,11 @@ typedef unsigned char   U8;
 
 typedef const __FlashStringHelper	FChar;
 
-
+#ifdef USE_LOW_POWER_IDLE
+#include <LowPower.h>
+#else
+static const int  CLIENT_POLL_INTERVAL_MS = 10000; // Poll for a command every 10 s
+#endif
 
 #include "Time.h"
 #include "HC-SR04.h"

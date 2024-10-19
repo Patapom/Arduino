@@ -141,7 +141,11 @@ return;
 	if ( (result = ReceivePeek( senderAddress, payloadLength, payload )) != RR_OK ) {
 //  if ( (result = ReceiveWait( senderAddress, payloadLength, payload )) != RR_OK ) {
 		// Nothing received...
-		delay( CLIENT_POLL_INTERVAL_MS );
+		#ifdef USE_LOW_POWER_IDLE
+			LowPower.idle( SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_OFF );
+		#else
+			delay( CLIENT_POLL_INTERVAL_MS );
+		#endif
 		return;
 	}
 //*/

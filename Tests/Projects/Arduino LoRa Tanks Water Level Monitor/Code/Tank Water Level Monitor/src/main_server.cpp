@@ -120,11 +120,7 @@ void	loop() {
 //	if ( cyclesCounter >= 15 * 60 ) {
 	if ( debounce() ) {
 		cyclesCounter = 0;  // Reset counter
-		if ( ExecuteCommand_MeasureDistance( s_commandID++, false ) ) {
-			Flash( PIN_LED_GREEN, 250, 1 ); // Notify of a new measurement
-		} else {
-			Flash( PIN_LED_RED, 150, 10 );  // Notify of a command failure!
-		}
+		ExecuteCommand_MeasureDistance( s_commandID++, false );
 	}
 
 	// Notify if client module has been returning too many successive failed measurement commands!
@@ -182,7 +178,7 @@ void	loop() {
 
 		if ( ExecuteCommand_MeasureDistance( commandID, forceOutOfRange ) ) {
 			measurementsCounter--;  // Don't stack it into the buffer
-			LogReply( commandID, str( F("TIME=%d"), bufferMeasurements[measurementsCounter & (MAX_MEASUREMENTS-1)].rawTime_microSeconds ) );
+			LogReply( commandID, str( F("TIME=%u"), bufferMeasurements[measurementsCounter & (MAX_MEASUREMENTS-1)].rawTime_microSeconds ) );
 		} else {
 			LogError( commandID, str( F("Measure failed.") ) );
 		}
@@ -206,7 +202,7 @@ void	loop() {
 		U32 checksum = 0;
 		for ( U8 i=0; i < count; i++, bufferIndex++ ) {
 			Measurement&  m = bufferMeasurements[bufferIndex];
-			LogReply( commandID, str( F("%d;%d"), m.timeStamp_seconds, m.rawTime_microSeconds ) );
+			LogReply( commandID, str( F("%d;%u"), m.timeStamp_seconds, m.rawTime_microSeconds ) );
 
 			checksum += m.timeStamp_seconds;
 			checksum += m.rawTime_microSeconds;
@@ -228,11 +224,11 @@ void	loop() {
 //
 bool  ExecuteCommand_MeasureDistance( U16 _commandID, bool _forceOutOfRange ) {
 
-	U32	MAX_RETRIES_COUNT = 6;
+	U32	MAX_RETRIES_COUNT = 5;
 
 	U16	rawTime_microSeconds = ~0U;
 	U32	retriesCount = 0;
-	while ( rawTime_microSeconds == ~0U && retriesCount < 5 * MAX_RETRIES_COUNT ) { // Retry while we're getting an out of range response...
+	while ( rawTime_microSeconds == ~0U && retriesCount < 6 * MAX_RETRIES_COUNT ) { // Retry while we're getting an out of range response...
 		if ( retriesCount > 0 ) {
 			delay( 100 );
 		}
@@ -259,8 +255,9 @@ bool  ExecuteCommand_MeasureDistance( U16 _commandID, bool _forceOutOfRange ) {
 
 		if ( reply == NULL ) {
 			// Command failed after several attempts!
+			measurementErrorsCounter++; 	// Count the amount of errors, after too many errors like this we'll consider an issue with the client module!
+			Flash( PIN_LED_RED, 150, 10 );  // Notify of a command failure!
 LogDebug( str( F("reply == NULL!") ) );
-			measurementErrorsCounter++; // Count the amount of errors, after too many errors like this we'll consider an issue with the client module!
 			return false;
 		}
 
@@ -286,6 +283,8 @@ LogDebug( str( F("#%04d rawTime_µs = %u (%04X) (retries count %d)"), _commandID
 
 	measurementsCounter++;
 	measurementErrorsCounter = 0; // Clear errors counter!
+
+	Flash( PIN_LED_GREEN, 250, 1 ); // Notify of a new measurement
 
 	return true;
 }
