@@ -50,7 +50,7 @@ while ( true ) {
 	#endif
 
 	// Initialize the LoRa module
-	CONFIG_RESULT configResult = ConfigureLoRaModule( NETWORK_ID, LORA_ADDRESS );
+	CONFIG_RESULT configResult = ConfigureLoRaModule( NETWORK_ID, LORA_ADDRESS, LORA_CONFIG );
 
 	#ifdef DEBUG_LIGHT
 		if ( configResult == CR_OK ) {
@@ -96,7 +96,12 @@ static bool	firstTime = true;
 void	Monitor::loop() {
 
 	// Perform a measurement
-	U32				sleepDuration_s = 60;	// Sleep for 1 minute the first time...
+	#ifdef DEBUG_MONITOR
+		U32	sleepDuration_s = 10;	// Sleep for 10 seconds the first time...
+	#else
+		U32	sleepDuration_s = 60;	// Sleep for 1 minute the first time...
+	#endif
+
 	Measurement&	measurement = MeasureDistance();
 	if ( !firstTime ) {
 		// Compare with previous measurement to determine a flow rate and determine the sleep interval
@@ -130,7 +135,7 @@ void	Monitor::loop() {
 				t = t < 0.0f ? 0.0 : (t > 1.0f ? 1.0f : t);
 //Serial.print( "t = " );
 //Serial.println( t );
-		sleepDuration_s = MAX_SLEEP_DURATION_S + t * (MIN_SLEEP_DURATION_S - MAX_SLEEP_DURATION_S);	// Sleep longer if flow rate is slow (t=0), for a shorter time if flow rate is fast (t=1)
+		sleepDuration_s = float(MIN_SLEEP_DURATION_S) + (1.0f - t) * (MAX_SLEEP_DURATION_S - MIN_SLEEP_DURATION_S);	// Sleep longer if flow rate is slow (t=0), for a shorter time if flow rate is fast (t=1)
 
 // Debug => 5s for long sleep, 0s for short sleep
 //sleepDuration_s = 5 + t * (0 - 5);
@@ -186,18 +191,18 @@ Measurement&	Monitor::MeasureDistance() {
 			LogDebug( str( F("%d micros"), timeOfFlight_microSeconds ) );
 		#endif
 
-		if ( timeOfFlight_microSeconds < 38000 )
+		if ( timeOfFlight_microSeconds < 32000 )
 			break;
 
-		delay( 500 );	// Wait a bit before taking another measurement...
+		delay( 250 );	// Wait a bit before taking another measurement...
 	}
 
 	// Store measurement
 	Measurement&	measurement = m_measurements[m_measurementIndex++ & 0xFUL];
-	measurement.rawValue_micros = timeOfFlight_microSeconds < 38000 ? timeOfFlight_microSeconds : 0xFFFF;  // -1 means an out of range error!
+	measurement.rawValue_micros = timeOfFlight_microSeconds < 32000 ? timeOfFlight_microSeconds : 0xFFFF;  // -1 means an out of range error!
 
-	Time_ms			now;
-	U32				now_s = m_totalSleepTime_s + now.GetTime_seconds();
+	Time_ms	now;
+	U32		now_s = m_totalSleepTime_s + now.GetTime_seconds();
 	measurement.time_s = now_s;
 
 
@@ -227,16 +232,25 @@ Measurement&	Monitor::MeasureDistance() {
 
 	U32	payloadLength = p - payload;
 
-	#ifdef DEBUG
+	#ifdef DEBUG_LIGHT
 		Flash( PIN_LED_GREEN, 150, 1 );
 		LogDebug( str( F("Monitor => Sending payload size %d"), payloadLength ) );
 		Serial.println( payload );
 	#endif
 
-	// Send the response
-	SEND_RESULT	result = Send( RECEIVER_ADDRESS, payloadLength, payload );
+	// Send the payload and wait for ACK
+	U32	retriesCount = 10;	// Retry 10 times before giving up
+	U32	timeOut_ms = 1000;	// Wait for 1s before retrying
+
+	SEND_RESULT	result = SendACK( RECEIVER_ADDRESS, payloadLength, payload, timeOut_ms, retriesCount );
+
+
 	if ( result != SR_OK ) {
-		LogError( 0, str( F("Failed to send payload! Error code = %u"), U16(result) ) );
+		if ( result == SR_NO_ACK ) {
+			LogError( 0, str( F("Payload was sent but not ACK..." ) ) );
+		} else {
+			LogError( 0, str( F("Failed to send payload! Error code = %u"), U16(result) ) );
+		}
 		Flash( 50, 10 );  // Error!
 	}
 

@@ -7,7 +7,9 @@
 //
 #include "../Global.h"
 
-#define USE_LOW_POWER_IDLE		// Define this to use the LowPower library and enter idle mode for 8s instead of a delay (delay still eats energy)
+#define DEBUG_MONITOR
+
+//#define USE_LOW_POWER_IDLE		// Define this to use the LowPower library and enter idle mode for 8s instead of a delay (delay still eats energy)
 #ifdef USE_LOW_POWER_IDLE
 #include <LowPower.h>
 #endif
@@ -19,9 +21,9 @@ class Monitor {
 	static constexpr float	FULL_TANK_VOLUME_L = 4000.0f;	// Full tank volume (litres)
 	static constexpr float	FULL_TANK_DISTANCE_M = 1.73f;	// Tank height when full (meters)
 
-	#if defined(DEBUG) || defined(DEBUG_LIGHT)
-		static constexpr U32	MAX_SLEEP_DURATION_S = 10;
-		static constexpr U32	MIN_SLEEP_DURATION_S = 1;
+	#if defined(DEBUG_MONITOR)
+		static constexpr U32	MAX_SLEEP_DURATION_S = 16;
+		static constexpr U32	MIN_SLEEP_DURATION_S = 8;
 	#else
 		static constexpr U32	MAX_SLEEP_DURATION_S = 10 * 60;	// Sleep for 10 minutes when nothing is happening (seconds)
 		static constexpr U32	MIN_SLEEP_DURATION_S = 30;		// Sleep for 30 seconds when flow is high (seconds)

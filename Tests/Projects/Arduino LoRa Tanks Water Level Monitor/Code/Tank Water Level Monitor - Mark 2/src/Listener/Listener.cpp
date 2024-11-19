@@ -3,7 +3,7 @@
 void	Listener::setup() {
 	pinMode( PIN_LED_RED, OUTPUT );
 	pinMode( PIN_LED_GREEN, OUTPUT );
-	pinMode( PIN_BUTTON, INPUT );
+//	pinMode( PIN_BUTTON, INPUT );
 
 	// Initiate serial communication
 	Serial.begin( 19200 );        // This one is connected to the PC
@@ -36,7 +36,7 @@ while ( true ) {
 	#endif
 
 	// Initialize the LoRa module
-	CONFIG_RESULT configResult = ConfigureLoRaModule( NETWORK_ID, RECEIVER_ADDRESS );
+	CONFIG_RESULT configResult = ConfigureLoRaModule( NETWORK_ID, RECEIVER_ADDRESS, LORA_CONFIG );
 
 	#ifdef DEBUG_LIGHT
 		if ( configResult == CR_OK ) {
@@ -83,20 +83,29 @@ void	Listener::loop() {
 	U16		senderAddress;
 	U8		payloadLength;
 	char*	payload;
-	if ( ReceivePeek( senderAddress, payloadLength, payload ) == RR_EMPTY_BUFFER ) {
+	RECEIVE_RESULT	result = ReceivePeekACK( senderAddress, payloadLength, payload );
+	if ( result != RR_OK ) {
+		// Failed to receive a proper packet
+		if ( result == RR_ERROR ) {
+			// Extract error code
+			LORA_ERROR_CODE	errorCode = LORA_ERROR_CODE( atoi( payload ) );
+			LogError( 0, str( F("Receive failed with error code #%d"), U16(errorCode) ) );
+			Flash( 50, 10 );  // Error!
+		}
+
 		#if !defined(DEBUG) && !defined(DEBUG_LIGHT)
 			delay( 1000 );  // Each cycle is 1000ms
 		#else
-			delay( 10 );	// During debug, we can receive a lot of messages during a single second and our payload buffer gets completely messed up!
+			delay( 1000 );	// During debug, we can receive a lot of messages during a single second and our payload buffer gets completely messed up!
 		#endif
 		return;
 	};
 
-	#ifdef DEBUG
+//	#ifdef DEBUG
 //	#ifdef DEBUG_LIGHT
-		LogDebug( str( F("Received payload size %u"), U16( payloadLength ) ) );
-		Serial.println( payload );
-	#endif
+//		Serial.print( str( F("Received payload (%u) = "), U16( payloadLength ) ) );
+//		Serial.print( payload );
+//	#endif
 
 	// Read measurements
 	Measurement		measurements[16];

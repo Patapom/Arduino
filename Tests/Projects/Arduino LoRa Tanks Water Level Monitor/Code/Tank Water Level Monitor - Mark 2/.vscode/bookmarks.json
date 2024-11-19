@@ -14,8 +14,28 @@
 			"path": "src/Monitor/Monitor.cpp",
 			"bookmarks": [
 				{
-					"line": 99,
+					"line": 104,
 					"column": 0,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "src/Helpers/LoRa.cpp",
+			"bookmarks": [
+				{
+					"line": 97,
+					"column": 6,
+					"label": ""
+				},
+				{
+					"line": 162,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 182,
+					"column": 2,
 					"label": ""
 				}
 			]

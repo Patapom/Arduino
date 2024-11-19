@@ -3,8 +3,10 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define _SS_MAX_RX_BUFF 512 // Increase buffer size for software serial so we don't risk overwriting the circular buffer!
+//#define _SS_MAX_RX_BUFF 512 // Increase buffer size for software serial so we don't risk overwriting the circular buffer!
 #include <SoftwareSerial.h>
+
+#define USE_RX_TX_BUFFERS	// Define this to use 2 buffers, 1 for RX, 1 for TX. Undefine to only use a single one (Warning! The ACK methods won't work with a single buffer)
 
 const U32 command_delay_ms = 100;  // Delay between commands
 
@@ -12,51 +14,64 @@ const U32 command_delay_ms = 100;  // Delay between commands
 	#error "You must define the LoRa RX/TX pins!"
 #endif
 
-//#ifdef USE_GLOBAL_BUFFER
-//  char* LoRaBuffer = USE_GLOBAL_BUFFER;
-//#else
-//static char	LoRaBuffer[256];    // Command/Response buffer
-//#endif
-
-
 enum SEND_RESULT {
-  SR_OK = 0,      // Success!
-  SR_INVALID_PAYLOAD_SIZE,
-  SR_INVALID_PAYLOAD,
-  SR_TIMEOUT,     // Send returned a timeout (command failed to return a response)
-  SR_ERROR,       // Send returned an error!
+	SR_OK = 0,      // Success!
+	SR_INVALID_PAYLOAD_SIZE,
+	SR_INVALID_PAYLOAD,
+	SR_TIMEOUT,     // Send returned a timeout (command failed to return a response)
+	SR_ERROR,       // Send returned an error!
+
+	// Custom result
+	SR_NO_ACK,		// Sent but not acknowledged
 };
 
 enum RECEIVE_RESULT {
-  RR_OK = 0,      // Success!
-  RR_EMPTY_BUFFER,// Notifies an empty reception buffer when doing active receive peeking using PeekReceive()
-  RR_TIMEOUT,     // Receive returned a timeout (command failed to return a response)
-  RR_ERROR,       // Receive returned an error!
+	RR_OK = 0,      // Success!
+	RR_EMPTY_BUFFER,// Notifies an empty reception buffer when doing active receive peeking using PeekReceive()
+	RR_TIMEOUT,     // Receive returned a timeout (command failed to return a response)
+	RR_ERROR,       // Receive returned an error! (error code is returned instead of payload)
 };
 
 enum RESPONSE_TYPE {
-  RT_OK = 0,      // Got the expected response
-  RT_ERROR = 1,   // Wrong response
-  RT_TIMEOUT = 2, // The command timed out
+	RT_OK = 0,      // Got the expected response
+	RT_ERROR = 1,   // Wrong response
+	RT_TIMEOUT = 2, // The command timed out
 };
 
 enum CONFIG_RESULT {
-  CR_OK = 0,            // Success!
-  CR_INVALID_PARAMETER = 1, // One of the parameters is not in the appropriate range!
-  CR_COMMAND_FAILED_ = 2,   // Command failed
-  CR_COMMAND_FAILED_AT = 3,             // AT didn't return +OK
-  CR_COMMAND_FAILED_AT_NETWORKID = 4,   // AT+NETWORKID didn't return +OK
-  CR_COMMAND_FAILED_AT_ADDRESS = 5,     // AT+ADDRESS didn't return +OK
-  CR_COMMAND_FAILED_AT_PARAMETER = 6,   // AT+PARAMETER didn't return +OK
-  CR_COMMAND_FAILED_AT_CPIN = 7,        // AT+CPIN didn't return +OK
-  CR_COMMAND_FAILED_AT_MODE = 8,        // AT+MODE didn't return +OK
-  CR_INVALID_PASSWORD = 9,              // INvalid password for AT+CPIN (most likely 0)
+	CR_OK = 0,            // Success!
+	CR_INVALID_PARAMETER = 1, // One of the parameters is not in the appropriate range!
+	CR_COMMAND_FAILED_ = 2,   // Command failed
+	CR_COMMAND_FAILED_AT = 3,             // AT didn't return +OK
+	CR_COMMAND_FAILED_AT_NETWORKID = 4,   // AT+NETWORKID didn't return +OK
+	CR_COMMAND_FAILED_AT_ADDRESS = 5,     // AT+ADDRESS didn't return +OK
+	CR_COMMAND_FAILED_AT_PARAMETER = 6,   // AT+PARAMETER didn't return +OK
+	CR_COMMAND_FAILED_AT_CPIN = 7,        // AT+CPIN didn't return +OK
+	CR_COMMAND_FAILED_AT_MODE = 8,        // AT+MODE didn't return +OK
+	CR_INVALID_PASSWORD = 9,              // INvalid password for AT+CPIN (most likely 0)
 };
 
 enum WORKING_MODE {
-  WM_TRANSCEIVER = 0, // Transceiver mode (Default)
-  WM_SLEEP = 1,       // Sleep mode
-  WM_SMART = 2,       // "Smart mode" where the device is in sleep mode for N seconds and in transceiver mode for N' seconds
+	WM_TRANSCEIVER = 0, // Transceiver mode (Default)
+	WM_SLEEP = 1,       // Sleep mode
+	WM_SMART = 2,       // "Smart mode" where the device is in sleep mode for N seconds and in transceiver mode for N' seconds
+};
+
+// From section 17 of LORA AT Command documentation
+enum LORA_ERROR_CODE {
+	LERR_MISSING_EOL = 1,	// There is not “enter” or 0x0D 0x0A in the end of the AT Command.
+	LERR_MISSING_AT_HEAD = 2,	// The head of AT command is not “AT” string.
+	LERR_UNKNOWN_COMMAND	= 4, 	// Unknown command.
+	LERR_DATA_LENGTH_MISMATCH = 5,	// The data to be sent does not match the actual length +ERR=5
+	LERR_TX_TIMEOUT = 10,	// TX is over times.+ERR=10
+	LERR_CRC_ERROR = 12,	// CRC error. +ERR=12
+	LERR_TX_DATA_OVER_240_BYTES = 13,	// TX data exceeds 240bytes. +ERR=13
+	LERR_FAILED_TO_WRITE_FLASH = 14,	// Failed to write flash memory. +ERR=14
+	LERR_UNKNOWN_FAILURE = 15,	// Unknown failure. +ERR=15
+	LERR_TX_NOT_COMPLETED = 17,	// Last TX was not completed +ERR=17
+	LERR_INVALID_PREAMBLE_VALUE = 18,	// Preamble value is not allowed. +ERR=18
+	LERR_RX_FAILED_HEADER_ERROR = 19,	// RX failed, Header error +ERR=19
+	LERR_SMART_MODE_INVALID_TIME = 20,	// The time setting value of the “Smart receiving power saving mode” is not allowed. +ERR=20
 };
 
 extern SoftwareSerial	LoRa;	// So others can initialize the LoRa module
@@ -82,6 +97,16 @@ RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _pay
 
 // Extracts the LoRa reply in the form of "+RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>"
 RECEIVE_RESULT  ExtractReply( char* _reply, U16& _targetAddress, U8& _payloadLength, char*& _payload, int& _RSSI, int& _SNR );
+
+
+// Custom functions to send/receive with ACK signal
+SEND_RESULT	SendACK( U16 _targetAddress, U8 _payloadLength, const char* _payload, U32 _timeOut_ms, U32 _retriesCount );
+
+RECEIVE_RESULT	ReceiveWaitACK( U16& _targetAddress, U8& _payloadLength, char*& _payload );
+RECEIVE_RESULT	ReceiveWaitACK( U16& _targetAddress, U8& _payloadLength, char*& _payload, int& _RSSI, int& _SNR );
+
+RECEIVE_RESULT 	ReceivePeekACK( U16& _targetAddress, U8& _payloadLength, char*& _payload );
+RECEIVE_RESULT 	ReceivePeekACK( U16& _targetAddress, U8& _payloadLength, char*& _payload, int& _RSSI, int& _SNR );
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,7 +163,6 @@ char* WaitReply( U32 _maxIterationsCount );
 
 // NOTE: _command must end with "\r\n"!
 void  SendCommand( const char* _command );
-//void  SendCommand( String _command );
 
 // Sends a command and awaits reply
 char* SendCommandAndWait( const char* _command );
