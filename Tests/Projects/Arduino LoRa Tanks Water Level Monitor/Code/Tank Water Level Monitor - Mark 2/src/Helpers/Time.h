@@ -1,0 +1,18 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Defines a precise 64-bits time structure measuring time in milliseconds and handling overflow after 50 days
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+
+// Time structure, storing the time in milliseconds on 64-bits
+struct Time_ms {
+	U32	time0_ms = 0;
+	U32	time1_ms = 0;
+
+	Time_ms() { GetTime(); }
+
+	void	GetTime();
+
+	float	GetTime_seconds() {
+		return 0.001f * time0_ms + (0.001f * time1_ms) * 4294967.296f;
+	}
+};

@@ -1,0 +1,22 @@
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// The main program either instantiates a monitor or a listener object, depending on the selected configuration
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+#include "Global.h"
+
+#ifdef MONITOR
+
+#include "Monitor/Monitor.h"
+Monitor	monitor;
+void setup() { monitor.setup(); }
+void loop() { monitor.loop(); }
+
+#else
+
+#include "Listener/Listener.h"
+Listener	PC;
+void setup() { PC.setup(); }
+void loop() { PC.loop(); }
+
+#endif
