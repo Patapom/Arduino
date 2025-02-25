@@ -7,7 +7,7 @@
 //
 #include "../Global.h"
 
-#define DEBUG_MONITOR
+#define DEBUG_MONITOR				// Define this when experimenting and debugging the monitor so we're using small time delays, default values can pause the device for 10 minutes!
 
 //#define USE_LOW_POWER_IDLE		// Define this to use the LowPower library and enter idle mode for 8s instead of a delay (delay still eats energy)
 #ifdef USE_LOW_POWER_IDLE
@@ -29,12 +29,18 @@ class Monitor {
 		static constexpr U32	MIN_SLEEP_DURATION_S = 30;		// Sleep for 30 seconds when flow is high (seconds)
 	#endif
 
-	static constexpr float	MIN_FLOW_RATE_LPM = 0.1f;		// Slow flow => 0.1 litres per minute = 6 litres per hour (= no flow with our small leak)
+	static constexpr float	MIN_FLOW_RATE_LPM = 0.1f;		// Slow flow => 0.1 litres per minute = 6 litres per hour (~= no flow with our small leak)
 	static constexpr float	MAX_FLOW_RATE_LPM = 2.0f;		// Fast flow => 2 litres per minute is considered a high flow rate (typical shower)
 
 	// HC-SR04 Ultrasound Distance Measurement device
 	static constexpr U32	PIN_HCSR04_TRIGGER = 6;
 	static constexpr U32	PIN_HCSR04_ECHO = 7;
+
+	enum SEND_STATUS {
+		UNKNOWN = -1,
+		SENT = 0,		// OK!
+		FAILED,			// Failed after many retries
+	};
 
 	Measurement	m_measurements[16];	// The circular array of measurements
 	U32			m_measurementIndex;
@@ -54,5 +60,5 @@ public:
 private:
 
 	Measurement&	MeasureDistance();
-
+	SEND_STATUS		SendMeasurements( U32 _measurementsCount );
 };

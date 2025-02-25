@@ -90,12 +90,37 @@ while ( true ) {
 	#ifdef DEBUG_LIGHT
 		Log( str( F("HC-SR04 Pins configured.") ) );
 	#endif
+
+/* Test LoRa
+while ( true ) {
+	char	payload[64] = "Prout";
+	U32		payloadLength = strlen(payload);
+	SEND_RESULT	result = Send( RECEIVER_ADDRESS, payloadLength, payload );
+
+	if ( result == SR_OK ) {
+		LogDebug( "Sent!" );
+	} else {
+		if ( result == SR_NO_ACK ) {
+			LogError( 0, str( F("Payload was sent but not ACK..." ) ) );
+		} else {
+			LogError( 0, str( F("Failed to send payload! Error code = %u"), U16(result) ) );
+		}
+		Flash( 50, 10 );  // Error!
+	}
+
+	delay( 4000 );
+}
+//*/
 }
 
 static bool	firstTime = true;
 void	Monitor::loop() {
 
+	U32	loopStartTime = millis();
+
+	////////////////////////////////////////////////////////////////////////////////////////////
 	// Perform a measurement
+	//
 	#ifdef DEBUG_MONITOR
 		U32	sleepDuration_s = 10;	// Sleep for 10 seconds the first time...
 	#else
@@ -103,7 +128,12 @@ void	Monitor::loop() {
 	#endif
 
 	Measurement&	measurement = MeasureDistance();
-	if ( !firstTime ) {
+	if ( measurement.IsOutOfRange() ) {
+		// In case of a bad measurement, sleep for the least amount of time...
+		sleepDuration_s = MIN_SLEEP_DURATION_S;
+LogDebug( str( F("Out of range!") ) );
+
+	} else if ( !firstTime ) {
 		// Compare with previous measurement to determine a flow rate and determine the sleep interval
 		// We want to sleep for shorter intervals when the flow is high, and for longer intervals when the flow is low
 		Measurement&	previousMeasurement = m_measurements[(m_measurementIndex - 1 + 0xFUL) & 0xFUL];
@@ -139,21 +169,38 @@ void	Monitor::loop() {
 
 // Debug => 5s for long sleep, 0s for short sleep
 //sleepDuration_s = 5 + t * (0 - 5);
+
+		////////////////////////////////////////////////////////////////////////////////////////////
+		// Send measurements
+		//
+//		SEND_STATUS	status = SendMeasurements( 8 );		// Some transmission errors with LORA_CONFIG = 915000000, 9, 7, 1, 12
+		SEND_STATUS	status = SendMeasurements( 16 );	// Best to use LORA_CONFIG = 915000000, 5, 9, 1, 4
+		if ( status == FAILED ) {
+LogDebug( str(F("Failed after too many retries... Assuming listener is offline and sleeping for maximum time...")) );
+			sleepDuration_s = MAX_SLEEP_DURATION_S;
+		}
+
+		// Leave a little time to complete tasks
+		delay( 500 );
 	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	// Sleep!
+	//
+
+	// Deduce time until now from sleeping time
+	U32	now = millis();
+	sleepDuration_s -= (now - loopStartTime) / 1000;
 
 	#ifdef DEBUG_LIGHT
 		LogDebug( str( F("Sleeping for %d seconds..."), sleepDuration_s ) );
 	#endif
 
-	// Leave a little time to complete tasks
-	delay( 500 );
-
-	// Sleep!
 	#ifdef USE_LOW_POWER_IDLE
 		// Unfortunately, it looks like we can't enter deep sleep for more than 8 seconds?
 		U32	sleepCyclesCount = U32( ceil( sleepDuration_s / 8.0f ) );
 		#ifdef DEBUG_LIGHT
-			LogDebug( str( F("Actually sleeping for %d seconds..."), 8 * sleepCyclesCount ) );
+			LogDebug( str( F("Actually sleeping for %d cycles of 8 seconds = %d seconds..."), U16(sleepCyclesCount), U16(8 * sleepCyclesCount) ) );
 		#endif
 
 		for ( U32 sleepCycleIndex=0; sleepCycleIndex < sleepCyclesCount; sleepCycleIndex++ ) {
@@ -163,11 +210,8 @@ void	Monitor::loop() {
 //		LowPower.idle( SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_OFF );
 	#else
 		// Wait for required time
-		U32	start = millis();
-		U32	elapsedTime_s = 0;
-		while ( elapsedTime_s < sleepDuration_s ) {
-			U32	now = millis();
-			elapsedTime_s = (now - start) / 1000;
+		U32	sleepCyclesCount = U32( ceil( sleepDuration_s ) );
+		for ( U32 sleepCycleIndex=0; sleepCycleIndex < sleepCyclesCount; sleepCycleIndex++ ) {
 			delay( 1000 );
 		}
 	#endif
@@ -198,7 +242,8 @@ Measurement&	Monitor::MeasureDistance() {
 	}
 
 	// Store measurement
-	Measurement&	measurement = m_measurements[m_measurementIndex++ & 0xFUL];
+	m_measurementIndex = (m_measurementIndex+1) & 0xFUL;
+	Measurement&	measurement = m_measurements[m_measurementIndex];
 	measurement.rawValue_micros = timeOfFlight_microSeconds < 32000 ? timeOfFlight_microSeconds : 0xFFFF;  // -1 means an out of range error!
 
 	Time_ms	now;
@@ -216,17 +261,25 @@ Measurement&	Monitor::MeasureDistance() {
 		LogDebug( str( F("New measurement { %04u, %04u }"), measurement.time_s, measurement.rawValue_micros ) );
 	#endif
 
+	return measurement;
+}
+
+Monitor::SEND_STATUS	Monitor::SendMeasurements( U32 _measurementsCount ) {
+
+	Measurement&	currentMeasurement = m_measurements[m_measurementIndex];
+
 	// Prepare payload
 	// It consists of the measurement value, then the previous measurements with their time (in seconds) adjusted relative to the current time
 	// For example, if the last measurement was done 5 minutes ago, then we will send { [(now - last measurement time):16], [measurement value:16] }
 	//
 	char	payload[240];	// Maximum payload supported by LoRa
 	char*	p = payload;
-	p += sprintf( p, "%04u", U16( timeOfFlight_microSeconds ) );
+	p += sprintf( p, "%04u", currentMeasurement.rawValue_micros );
 
-	for ( U32 i=1; i < 16; i++ ) {
-		Measurement&	previousMeasurement = m_measurements[(m_measurementIndex + 15 - i) & 0xFUL];
-		U16				deltaTime_s = U16( now_s ) - previousMeasurement.time_s;
+	_measurementsCount--;
+	for ( U32 i=0; i < _measurementsCount; i++ ) {
+		Measurement&	previousMeasurement = m_measurements[(m_measurementIndex + 0xFUL - i) & 0xFUL];
+		U16				deltaTime_s = U16( currentMeasurement.time_s ) - previousMeasurement.time_s;
 		p += sprintf( p, ",%04u,%04u", U16( deltaTime_s ), U16( previousMeasurement.rawValue_micros ) );
 	}
 
@@ -244,15 +297,15 @@ Measurement&	Monitor::MeasureDistance() {
 
 	SEND_RESULT	result = SendACK( RECEIVER_ADDRESS, payloadLength, payload, timeOut_ms, retriesCount );
 
+	if ( result == SR_OK )
+		return SEND_STATUS::SENT;
 
-	if ( result != SR_OK ) {
-		if ( result == SR_NO_ACK ) {
-			LogError( 0, str( F("Payload was sent but not ACK..." ) ) );
-		} else {
-			LogError( 0, str( F("Failed to send payload! Error code = %u"), U16(result) ) );
-		}
-		Flash( 50, 10 );  // Error!
+	if ( result == SR_NO_ACK ) {
+		LogError( 0, str( F("Payload was sent but not ACK..." ) ) );
+	} else {
+		LogError( 0, str( F("Failed to send payload! Error code = %u"), U16(result) ) );
 	}
+	Flash( 50, 10 );  // Error!
 
-	return measurement;
+	return SEND_STATUS::FAILED;
 }

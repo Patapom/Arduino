@@ -7,7 +7,7 @@
 // Define this to output end product commands/responses to the serial (e.g. client send/receive, server send/receive)
 #define DEBUG_LIGHT
 
-// Define this to be the transmitter module (i.e. MONITOR) and specify the transmitter address, undefine to be the receiver module (i.e. LISTENER)
+// Define this to be the transmitter module (i.e. MONITOR), undefine to be the receiver module (i.e. LISTENER)
 //#define MONITOR
 
 // Default receiver address is the simplest address
@@ -21,11 +21,12 @@
 #endif
 
 // Remember that if you change this, you have to reconfigure the LoRa chips with the USB tool to make it go from 19200 to whatever baud rate you choose
-#define LORA_BAUD_RATE  19200	// Can't use too high baud rates with software serial!
+//#define LORA_BAUD_RATE  19200	// This is apparently too high for larger payloads (i.e. above 40 bytes)
+#define LORA_BAUD_RATE  9600	// Okay for our large ~160 bytes payloads
 
-//#define LORA_CONFIG		915000000, 9, 7, 1, 12	// Default (okay for small messages < 100 bytes)
-//#define LORA_CONFIG		915000000, 8, 7, 1, 12	// Recommended when payload > 100 bytes
-#define LORA_CONFIG		915000000, 5, 9, 1, 4	// Smallest spread factor for larger messages
+//#define LORA_CONFIG		915000000, 9, 7, 1, 12	// Default (okay for small messages < 100 bytes) => latency = 190ms 	<== This value gives the best results for small payload of 4 to 8 measurements (~80 bytes)
+#define LORA_CONFIG		915000000, 8, 7, 1, 12	// Recommended when payload > 100 bytes ==> latency = ?? (mid point between the 2 values?)	<== This value gives the best results for our payload of 16 measurements (~160 bytes)
+//#define LORA_CONFIG		915000000, 5, 9, 1, 4	// Smallest spread factor for larger messages => latency = 9.52ms		<== This value gives quite poor results with invalid values for our payload of 16 measurements (~160 bytes)
 
 // All LoRa devices need to use the same network
 #define NETWORK_ID  5
@@ -139,6 +140,7 @@ struct Measurement {
 	U16		time_s;				// Time of measurement, in seconds. Either relative to the start time (monitor side), or relative to the first measurement sent (listener side)
 	U16		rawValue_micros;	// The raw time of flight from the sensor, in µseconds
 
+	bool	IsOutOfRange() { return rawValue_micros == 0xFFFF; }
 	float	GetDistance() { return ConvertTimeOfFlightToDistance( rawValue_micros ); }
 };
 

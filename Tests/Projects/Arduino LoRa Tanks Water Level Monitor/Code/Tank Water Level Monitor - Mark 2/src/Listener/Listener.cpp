@@ -60,6 +60,28 @@ while ( true ) {
 //	SendCommandAndWaitPrint( str( F("AT+CPIN?") ) );
 
 	Flash( PIN_LED_GREEN, 50, 10 );
+
+/* Test LoRa
+while ( true ) {
+	U16		senderAddress;
+	U8		payloadLength;
+	char*	payload;
+	RECEIVE_RESULT	result = ReceivePeek( senderAddress, payloadLength, payload );
+	if ( result == RR_OK ) {
+		Send( senderAddress, "ACK" );
+		LogDebug( "COUCOU!" );
+	} else {
+		// Failed to receive a proper packet
+		if ( result == RR_ERROR ) {
+			// Extract error code
+			LORA_ERROR_CODE	errorCode = LORA_ERROR_CODE( atoi( payload ) );
+			LogError( 0, str( F("Receive failed with error code #%d"), U16(errorCode) ) );
+			Flash( 50, 10 );  // Error!
+		}
+	}
+	delay( 1000 );
+}
+//*/
 }
 
 //bool	read_button() { return digitalRead( PIN_BUTTON ); }

@@ -73,7 +73,7 @@ RECEIVE_RESULT ReceiveWait( U16& _targetAddress, U8& _payloadLength, char*& _pay
 // Check for a +RCV reply and returns payload info if it's available, or RR_EMPTY_BUFFER if no reply is currently available
 // NOTE: This is a *non-blocking* function!
 RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _payload ) {
-	int RSSI, SNR;  // Ignore those values
+	int RSSI, SNR;  // Ignore these values
 	return ReceivePeek( _targetAddress, _payloadLength, _payload, RSSI, SNR );
 }
 RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _payload, int& _RSSI, int& _SNR ) {
@@ -185,8 +185,12 @@ SEND_RESULT SendACK( U16 _targetAddress, U8 _payloadLength, const char* _payload
 			delay( 1 );
 		}
 
-		if ( receiveResult != RR_OK )
+		if ( receiveResult != RR_OK ) {
+
+//Serial.println( str(F("Retrying (%d) after %d ms"), U16(_retriesCount), U16(millis() - waitStartTime)) );
+
 			continue;	// Retry until ACK received from the target...
+		}
 
 Serial.print( str(F("Received ack payload (%d) = "), U16(replyPayloadLengh) ) );
 Serial.println( replyPayload );
