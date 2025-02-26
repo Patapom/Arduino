@@ -80,6 +80,12 @@ while ( true ) {
 		}
 	}
 	delay( 1000 );
+
+//Serial.print( "buffer length = " );
+//Serial.println( sizeof(SoftwareSerial::_receive_buffer) );
+//Serial.print( "buffer overflow = " );
+//Serial.println( LoRa._buffer_overflow ? "yes" : "no" );
+//Serial.println( str( F("head = %02X - tail = %02X"), SoftwareSerial::_receive_buffer_head, SoftwareSerial::_receive_buffer_tail ) );
 }
 //*/
 }

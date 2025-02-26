@@ -50,8 +50,10 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
 	LogDebug( str( F("Reply = %s"), reply ) );
 #endif
 
-	if ( strstr( reply, "+OK" ) == NULL )
+	if ( strstr( reply, "+OK" ) == NULL ) {
+LogDebug( str( F("Received error: %s"), reply ) );
 		return SR_ERROR;  // Failed!
+	}
 
 	return SR_OK; // Success!
 }
@@ -84,7 +86,7 @@ RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _pay
 	char*	p = LoRaBuffer_RX;
 	char	C = '\0';
 	while ( C != '\n' ) {
-		while ( !LoRa.available() );
+		while ( !LoRa.available() ) { delayMicroseconds( 50 ); }
 //		int	value = -1;
 //		while ( value == -1 ) {
 //			value = LoRa.read();	// Read until a character is available...
@@ -159,7 +161,6 @@ RECEIVE_RESULT  ExtractReply( char* _reply, U16& _targetAddress, U8& _payloadLen
 
 	return RR_OK;
 }
-
 
 SEND_RESULT SendACK( U16 _targetAddress, U8 _payloadLength, const char* _payload, U32 _timeOut_ms, U32 _retriesCount ) {
 

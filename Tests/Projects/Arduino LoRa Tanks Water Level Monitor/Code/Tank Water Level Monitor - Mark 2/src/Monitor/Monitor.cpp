@@ -91,11 +91,15 @@ while ( true ) {
 		Log( str( F("HC-SR04 Pins configured.") ) );
 	#endif
 
-/* Test LoRa
+/* Test LoRa => I finally found out the issue: SoftwareSerial's default buffer size was set to 64 bytes! Now defined in the platformio compiler defines...
 while ( true ) {
-	char	payload[64] = "Prout";
-	U32		payloadLength = strlen(payload);
-	SEND_RESULT	result = Send( RECEIVER_ADDRESS, payloadLength, payload );
+//	char		payload[64] = "Prout";
+	const char*	payload = "1651,0016,1651,0027,1645,0036,1651,0046,1644,0054,1645,0063,1645,0073,1652";	// NO
+//	const char*	payload = "1651,0016,1651,0027,1645,0036,1651,0046,1644,0054";	// NO
+//	const char*	payload = "1651,0016,1651,0027,1645,0036,1651,0046,1644";		// OK (size 44, payload 64) <= AHA! 64!! Comme par hasard! Dès qu'on dépasse, ça reboucle!
+//	const char*	payload = "1651,0016,1651,0027,1645,0036,1651";					// OK
+	U32			payloadLength = strlen(payload);
+	SEND_RESULT	result = SendACK( RECEIVER_ADDRESS, payloadLength, payload, 1000, 10 );
 
 	if ( result == SR_OK ) {
 		LogDebug( "Sent!" );

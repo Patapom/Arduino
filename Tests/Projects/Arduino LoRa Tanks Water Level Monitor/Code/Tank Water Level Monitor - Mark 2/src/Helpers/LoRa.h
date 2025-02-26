@@ -3,7 +3,13 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//#define _SS_MAX_RX_BUFF 512 // Increase buffer size for software serial so we don't risk overwriting the circular buffer!
+// IMPORTANT! Increase buffer size for software serial so we don't risk overwriting the circular buffer!
+// The default size is 64 bytes and is too short for the maximum LoRa payload of 240 bytes...
+
+// Unfortunately, defining it only here is already too late! The code is already compiled with size 64 so the only place I could find was to define a macro at compiler level in the platformio.ini file...
+//#define _SS_MAX_RX_BUFF 256
+
+
 #include <SoftwareSerial.h>
 
 #define USE_RX_TX_BUFFERS	// Define this to use 2 buffers, 1 for RX, 1 for TX. Undefine to only use a single one (Warning! The ACK methods won't work with a single buffer)
@@ -16,13 +22,13 @@ const U32 command_delay_ms = 100;  // Delay between commands
 
 enum SEND_RESULT {
 	SR_OK = 0,      // Success!
-	SR_INVALID_PAYLOAD_SIZE,
-	SR_INVALID_PAYLOAD,
-	SR_TIMEOUT,     // Send returned a timeout (command failed to return a response)
-	SR_ERROR,       // Send returned an error!
+	SR_INVALID_PAYLOAD_SIZE = 1,
+	SR_INVALID_PAYLOAD = 2,
+	SR_TIMEOUT = 3,		// Send returned a timeout (command failed to return a response)
+	SR_ERROR = 4,		// Send returned an error!
 
 	// Custom result
-	SR_NO_ACK,		// Sent but not acknowledged
+	SR_NO_ACK,			// Sent but not acknowledged
 };
 
 enum RECEIVE_RESULT {
