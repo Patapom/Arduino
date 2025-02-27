@@ -192,9 +192,10 @@ LogDebug( str(F("Failed after too many retries... Assuming listener is offline a
 	// Sleep!
 	//
 
-	// Deduce time until now from sleeping time
+	// Deduce active time from sleeping time
 	U32	now = millis();
-	sleepDuration_s -= (now - loopStartTime) / 1000;
+	U32	activeTime_s = (now - loopStartTime) / 1000;
+	sleepDuration_s -= min( activeTime_s, sleepDuration_s );	// Don't go negative or you will sleep forever!
 
 	#ifdef DEBUG_LIGHT
 		LogDebug( str( F("Sleeping for %d seconds..."), sleepDuration_s ) );

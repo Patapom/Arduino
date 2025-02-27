@@ -5,7 +5,7 @@
 //#define DEBUG
 
 // Define this to output end product commands/responses to the serial (e.g. client send/receive, server send/receive)
-#define DEBUG_LIGHT
+//#define DEBUG_LIGHT
 
 // Define this to be the transmitter module (i.e. MONITOR), undefine to be the receiver module (i.e. LISTENER)
 //#define MONITOR
@@ -21,8 +21,7 @@
 #endif
 
 // Remember that if you change this, you have to reconfigure the LoRa chips with the USB tool to make it go from 19200 to whatever baud rate you choose
-//#define LORA_BAUD_RATE  19200	// This is apparently too high for larger payloads (i.e. above 40 bytes)
-#define LORA_BAUD_RATE  9600	// Okay for our large ~160 bytes payloads
+#define LORA_BAUD_RATE  19200
 
 //#define LORA_CONFIG		915000000, 9, 7, 1, 12	// Default (okay for small messages < 100 bytes) => latency = 190ms 	<== This value gives the best results for small payload of 4 to 8 measurements (~80 bytes)
 #define LORA_CONFIG		915000000, 8, 7, 1, 12	// Recommended when payload > 100 bytes ==> latency = ?? (mid point between the 2 values?)	<== This value gives the best results for our payload of 16 measurements (~160 bytes)

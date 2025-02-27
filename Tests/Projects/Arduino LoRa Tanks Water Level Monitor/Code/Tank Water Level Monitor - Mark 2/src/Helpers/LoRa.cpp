@@ -97,8 +97,8 @@ RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _pay
 	}
 	*p++ = '\0';  // Terminate string properly so it can be printed
 
-Serial.print( str( F("Received payload (%d) = "), U16(p-LoRaBuffer_RX) ) );
-Serial.print( LoRaBuffer_RX );
+//Serial.print( str( F("Received payload (%d) = "), U16(p-LoRaBuffer_RX) ) );
+//Serial.print( LoRaBuffer_RX );
 
 	return ExtractReply( LoRaBuffer_RX, _targetAddress, _payloadLength, _payload, _RSSI, _SNR );
 }
