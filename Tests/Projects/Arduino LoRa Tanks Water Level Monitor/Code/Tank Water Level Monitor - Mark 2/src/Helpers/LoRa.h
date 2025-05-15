@@ -164,17 +164,19 @@ CONFIG_RESULT  SetPassword( U32 _password );
 //  AT+SEND=<address 16 bits>, <payload size [0,240]>, <payload>  // Due to the program used by the module, the payload part will increase more 8 bytes than the actual data length.
 
 
+char* WaitReply( U32 _timeOut_ms, U32 _maxIterationsCount );
 char* WaitReply(); // No timeout
-char* WaitReply( U32 _maxIterationsCount );
 
 // NOTE: _command must end with "\r\n"!
 void  SendCommand( const char* _command );
 
 // Sends a command and awaits reply
-char* SendCommandAndWait( const char* _command );
+char* SendCommandAndWait( const char* _command, U32 _timeOut_ms, U32 _maxIterationsCount );
+char* SendCommandAndWait( const char* _command );	// No timeout
 
 // Sends a command, waits for the reply and compares to the expected reply
 // Return an enum depending on the result
+RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expectedReply, U32 _timeOut_ms );
 RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expectedReply );
 
 // For debugging purpose

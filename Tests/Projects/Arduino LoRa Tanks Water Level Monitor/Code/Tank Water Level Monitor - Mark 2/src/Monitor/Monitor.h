@@ -22,7 +22,7 @@ class Monitor {
 	static constexpr float	FULL_TANK_DISTANCE_M = 1.73f;	// Tank height when full (meters)
 
 	#if defined(DEBUG_MONITOR)
-		static constexpr U32	MAX_SLEEP_DURATION_S = 16;
+		static constexpr U32	MAX_SLEEP_DURATION_S = 30;
 		static constexpr U32	MIN_SLEEP_DURATION_S = 8;
 	#else
 		static constexpr U32	MAX_SLEEP_DURATION_S = 10 * 60;	// Sleep for 10 minutes when nothing is happening (seconds)

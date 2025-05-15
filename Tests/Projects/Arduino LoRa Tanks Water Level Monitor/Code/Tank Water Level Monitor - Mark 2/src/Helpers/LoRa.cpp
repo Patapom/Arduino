@@ -193,8 +193,10 @@ SEND_RESULT SendACK( U16 _targetAddress, U8 _payloadLength, const char* _payload
 			continue;	// Retry until ACK received from the target...
 		}
 
+#ifdef DEBUG_LIGHT
 Serial.print( str(F("Received ack payload (%d) = "), U16(replyPayloadLengh) ) );
 Serial.println( replyPayload );
+#endif
 
 		if ( strstr( replyPayload, "ACK" ) == replyPayload ) {
 			result = SR_OK;	// Finally acknowledged!
@@ -319,19 +321,29 @@ CONFIG_RESULT  SetPassword( U32 _password ) {
 //  AT+SEND=<address 16 bits>, <payload size [0,240]>, <payload>  // Due to the program used by the module, the payload part will increase more 8 bytes than the actual data length.
 
 
-char* WaitReply() { return WaitReply( ~0U ); } // No timeout
-char* WaitReply( U32 _maxIterationsCount ) {
+char* WaitReply( U32 _timeOut_ms, U32 _maxIterationsCount ) {
 	char* p = LoRaBuffer_RX;
 	char  receivedChar = '\0';
 	U32   iterationsCount = 0;
-	while ( receivedChar != '\n' && iterationsCount < _maxIterationsCount ) {
-		while ( LoRa.available() == 0 ); // Wait until a character is available...
+	while ( receivedChar != '\n' ) {
+		// Wait until a character is available...
+		U32	now_ms = millis();
+		while ( !LoRa.available() ) {
+			if ( millis() - now_ms > _timeOut_ms )
+				break;	// Timeout!
+		}
+		if ( !LoRa.available() ) {
+			iterationsCount++;
+			if ( iterationsCount >= _maxIterationsCount )  
+				return  NULL;  // Timeout!
+
+			continue;
+		}
+
 		receivedChar = LoRa.read();
 		*p++ = receivedChar;  // Append characters to the received message
-		iterationsCount++;
+		iterationsCount = 0;
 	}
-	if ( iterationsCount >= _maxIterationsCount )  
-		return  NULL;  // Timeout!
 
 	*p++ = '\0';  // Terminate string properly so it can be displayed...
 
@@ -340,6 +352,7 @@ char* WaitReply( U32 _maxIterationsCount ) {
 
 	return LoRaBuffer_RX;
 }
+char* WaitReply() { return WaitReply( ~0UL, ~0UL ); } // No timeout
 
 // NOTE: _command must end with "\r\n"!
 void  SendCommand( const char* _command ) {
@@ -347,19 +360,22 @@ void  SendCommand( const char* _command ) {
 }
 
 // Sends a command and awaits reply
-char* SendCommandAndWait( const char* _command ) {
+char* SendCommandAndWait( const char* _command, U32 _timeOut_ms, U32 _maxIterationsCount ) {
 	SendCommand( _command );
-	return WaitReply();
+	return WaitReply( _timeOut_ms, _maxIterationsCount );
+}
+char* SendCommandAndWait( const char* _command ) {
+	return SendCommandAndWait( _command, ~0UL, ~0UL );	// No timeout
 }
 
 // Sends a command, waits for the reply and compares to the expected reply
 // Return an enum depending on the result
-RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expectedReply ) {
+RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expectedReply, U32 _timeOut_ms ) {
 #ifdef DEBUG
 	LogDebug( str( F("Sending command %s"), _command ) );
 #endif
 
-	char* reply = SendCommandAndWait( _command );
+	char* reply = SendCommandAndWait( _command, _timeOut_ms, 1 );
 	if  ( reply == NULL )
 		return RT_TIMEOUT;
 
@@ -369,6 +385,9 @@ RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expe
 
 	char* ptrExpectedReply = strstr( reply, _expectedReply );
 	return ptrExpectedReply == reply ? RT_OK : RT_ERROR;
+}
+RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expectedReply ) {
+	return SendCommandAndWaitVerify( _command, _expectedReply, 500 );	// Default time out after 500ms
 }
 
 // For debugging purpose

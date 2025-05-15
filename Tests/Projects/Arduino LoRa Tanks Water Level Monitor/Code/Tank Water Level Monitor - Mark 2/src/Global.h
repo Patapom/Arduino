@@ -5,7 +5,7 @@
 //#define DEBUG
 
 // Define this to output end product commands/responses to the serial (e.g. client send/receive, server send/receive)
-//#define DEBUG_LIGHT
+#define DEBUG_LIGHT
 
 // Define this to be the transmitter module (i.e. MONITOR), undefine to be the receiver module (i.e. LISTENER)
 //#define MONITOR
@@ -37,16 +37,17 @@
 #define PIN_LED_GREEN	4
 #define PIN_LED_RED		5
 
-typedef unsigned int    uint;
-typedef unsigned short  ushort;
-typedef unsigned char   byte;
-typedef unsigned long   U32;
-typedef unsigned short  U16;
-typedef unsigned char   U8;
-typedef signed long   	S32;
-typedef signed short  	S16;
-typedef signed char   	S8;
-
+typedef unsigned int    	uint;
+typedef unsigned short  	ushort;
+typedef unsigned char   	byte;
+typedef unsigned long long	U64;
+typedef unsigned long		U32;
+typedef unsigned short		U16;
+typedef unsigned char		U8;
+typedef signed long	long	S64;
+typedef signed long			S32;
+typedef signed short		S16;
+typedef signed char			S8;
 
 #include <Arduino.h>
 

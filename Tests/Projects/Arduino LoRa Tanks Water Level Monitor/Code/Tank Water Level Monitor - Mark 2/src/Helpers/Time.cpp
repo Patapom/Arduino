@@ -1,13 +1,13 @@
 #include "Global.h"
 
-U32	lastMillis = 0;
-U32 timeOverflowCounter = 0;
+U32	Time_ms::ms_lastMillis = 0;
+U32 Time_ms::ms_timeOverflowCounter = 0;
 
 void	Time_ms::GetTime() {
-	time0_ms = millis();
-	if ( time0_ms < lastMillis ) {
-		timeOverflowCounter++;  // One more overflow!
+	time_ms = millis();
+	if ( time_ms < ms_lastMillis ) {
+		ms_timeOverflowCounter++;  // One more overflow!
 	}
-	lastMillis = time0_ms;
-  	time1_ms = timeOverflowCounter;
+	ms_lastMillis = U32(time_ms);
+  	*((U32*) time_ms) = ms_timeOverflowCounter;	// Store as MSW
 }

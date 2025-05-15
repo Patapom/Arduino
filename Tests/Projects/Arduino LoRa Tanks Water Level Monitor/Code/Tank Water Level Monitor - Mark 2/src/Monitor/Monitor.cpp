@@ -212,7 +212,13 @@ LogDebug( str(F("Failed after too many retries... Assuming listener is offline a
 			LowPower.powerSave( SLEEP_8S, ADC_OFF, BOD_OFF, TIMER2_OFF );
 			m_totalSleepTime_s += 8;	// Account for lost time during sleep!
 		}
+
+		// Each time we use the LowPower.powerSave() function, it takes a little time to wake up so there's a time drift to account for...
+		const U32	LOW_POWER_WAKE_UP_TIME_MS = 300;	// https://forum.arduino.cc/t/how-to-deep-sleep-for-more-than-8-seconds/624841/22
+		m_totalSleepTime_s += U32( ceil( 0.001f * sleepCyclesCount * LOW_POWER_WAKE_UP_TIME_MS ) );
+
 //		LowPower.idle( SLEEP_8S, ADC_OFF, TIMER2_OFF, TIMER1_OFF, TIMER0_OFF, SPI_OFF, USART0_OFF, TWI_OFF );
+
 	#else
 		// Wait for required time
 		U32	sleepCyclesCount = U32( ceil( sleepDuration_s ) );

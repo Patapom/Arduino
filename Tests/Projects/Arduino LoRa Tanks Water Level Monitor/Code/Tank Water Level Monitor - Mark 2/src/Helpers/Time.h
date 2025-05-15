@@ -5,14 +5,29 @@
 
 // Time structure, storing the time in milliseconds on 64-bits
 struct Time_ms {
-	U32	time0_ms = 0;
-	U32	time1_ms = 0;
+	U64	time_ms = 0;
 
 	Time_ms() { GetTime(); }
 
 	void	GetTime();
 
 	float	GetTime_seconds() {
-		return 0.001f * time0_ms + (0.001f * time1_ms) * 4294967.296f;
+		return 0.001f * time_ms;
+	}
+
+private:
+	static U32	ms_lastMillis;
+	static U32	ms_timeOverflowCounter;
+};
+
+struct DateTime {
+	U16		year;
+	U16		day;	// Day of the year in [0,364]
+
+	Time_ms	time;
+
+	DateTime() {
+		year = 0;
+		day = 0;
 	}
 };
