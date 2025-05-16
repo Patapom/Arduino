@@ -1,4 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+﻿////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // LISTENER SIDE
 //  • The listener side is located on the local PC, it waits for the monitors to broadcast some messages
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -10,7 +10,9 @@
 class Listener {
 	private:	// TYPES
 
-		static const U32	MEASUREMENTS_COUNT = 64;						// = 512 bytes
+//		static const U32	MEASUREMENTS_COUNT = 64;						// = 512 bytes (1603 bytes, 78.3% of RAM)
+//		static const U32	MEASUREMENTS_COUNT = 128;						// = 1024 bytes (2115 bytes, 103.3% of RAM)
+		static const U32	MEASUREMENTS_COUNT = 110;						// = 880 bytes (1971 bytes, 96.2% of RAM)
 		static const U64	MEASURE_DELTA_TIME_TOLERANCE_MS = 1000 * 10;	// Allow up to 10s of tolerance between measurements to consider them as identical
 
 		// The local measurement structure (size = 8 bytes)

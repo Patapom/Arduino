@@ -1,12 +1,10 @@
 #include "Global.h"
 
-#ifdef USE_RX_TX_BUFFERS
-static char	LoRaBuffer_RX[256];	// Response buffer
-static char	LoRaBuffer_TX[256];	// Command buffer
-#else
-static char		LoRaBuffer_RX[256];				// Response buffer
-static char*	LoRaBuffer_TX = LoRaBuffer_RX;	// Use same buffer for TX
-#endif
+static char	LoRaBuffer[_SS_MAX_RX_BUFF];	// Response buffer
+
+// Use the same buffer for TX and RX
+static char*	LoRaBuffer_RX = LoRaBuffer;
+//static char*	LoRaBuffer_TX = LoRaBuffer;	// Now using the str() buffer for sending!
 
 SoftwareSerial	LoRa( PIN_LORA_RX, PIN_LORA_TX );
 
@@ -25,8 +23,13 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
 	if ( _payloadLength == 0 || _payloadLength > 240 ) return SR_INVALID_PAYLOAD_SIZE;
 
 	// Prepare command
+	#if 1	// New version using the str() buffer
+		char* LoRaBuffer_TX = str::ms_globalBuffer;
+		ERROR( str::ms_globalPointer != str::ms_globalBuffer, "Expecting the entire str::ms_globalBuffer to be available for sending the LoRa command!" );
+	#endif
+
 	char* command = LoRaBuffer_TX;
-	command += sprintf( command, "AT+SEND=%d,%d,", _targetAddress, _payloadLength );
+	command += sprintf( command, str( F("AT+SEND=%d,%d,") ), _targetAddress, _payloadLength );
 	memcpy( command, _payload, _payloadLength );           // Copy payload
 	command += _payloadLength;
 	*command++ = '\r';
@@ -50,7 +53,7 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
 	LogDebug( str( F("Reply = %s"), reply ) );
 #endif
 
-	if ( strstr( reply, "+OK" ) == NULL ) {
+	if ( strstr( reply, str( F("+OK") ) ) == NULL ) {
 LogDebug( str( F("Received error: %s"), reply ) );
 		return SR_ERROR;  // Failed!
 	}
@@ -87,13 +90,9 @@ RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _pay
 	char	C = '\0';
 	while ( C != '\n' ) {
 		while ( !LoRa.available() ) { delayMicroseconds( 50 ); }
-//		int	value = -1;
-//		while ( value == -1 ) {
-//			value = LoRa.read();	// Read until a character is available...
-//		}
-//		C = (char) value;
 		C = LoRa.read();
 		*p++ = C;
+		ERROR( (p - LoRaBuffer_RX) > _SS_MAX_RX_BUFF, "LoRa buffer overflow!" );
 	}
 	*p++ = '\0';  // Terminate string properly so it can be printed
 
@@ -107,8 +106,8 @@ RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _pay
 RECEIVE_RESULT  ExtractReply( char* _reply, U16& _targetAddress, U8& _payloadLength, char*& _payload, int& _RSSI, int& _SNR ) {
 	_payloadLength = 0;
 	_payload = NULL;
-	if ( strstr( _reply, "+RCV=" ) != _reply ) {
-		if ( strstr( _reply, "+ERR=" ) ) {
+	if ( strstr( _reply, str( F("+RCV=") ) ) != _reply ) {
+		if ( strstr( _reply, str( F("+ERR=") ) ) ) {
 			_reply += 5;	// Skip "+ERR="
 			_payload = _reply;
 		}
@@ -162,7 +161,8 @@ RECEIVE_RESULT  ExtractReply( char* _reply, U16& _targetAddress, U8& _payloadLen
 	return RR_OK;
 }
 
-SEND_RESULT SendACK( U16 _targetAddress, U8 _payloadLength, const char* _payload, U32 _timeOut_ms, U32 _retriesCount ) {
+// Sends the command and waits for the ACK signal from the receiver
+SEND_RESULT SendWaitACK( U16 _targetAddress, U8 _payloadLength, const char* _payload, U32 _timeOut_ms, U32 _retriesCount ) {
 
 	SEND_RESULT	result = SR_ERROR;
 	while ( result != SR_OK && _retriesCount-- > 0 ) {
@@ -198,7 +198,7 @@ Serial.print( str(F("Received ack payload (%d) = "), U16(replyPayloadLengh) ) );
 Serial.println( replyPayload );
 #endif
 
-		if ( strstr( replyPayload, "ACK" ) == replyPayload ) {
+		if ( strstr( replyPayload, str( F("ACK") ) ) == replyPayload ) {
 			result = SR_OK;	// Finally acknowledged!
 		}
 	}
@@ -206,6 +206,7 @@ Serial.println( replyPayload );
 	return result;
 }
 
+// Wait for a message and send and ACK signal when received
 RECEIVE_RESULT ReceiveWaitACK( U16& _targetAddress, U8& _payloadLength, char*& _payload ) {
 	int RSSI, SNR;  // Ignore those values
 	return ReceiveWaitACK( _targetAddress, _payloadLength, _payload, RSSI, SNR );
@@ -216,7 +217,7 @@ RECEIVE_RESULT ReceiveWaitACK( U16& _targetAddress, U8& _payloadLength, char*& _
 		return RR_TIMEOUT;  // Timeout
 
 	// Send back the ACK message
-	Send( _targetAddress, "ACK" );
+	Send( _targetAddress, str( F("ACK") ) );
 
 	return ExtractReply( reply, _targetAddress, _payloadLength, _payload, _RSSI, _SNR );
 }
@@ -232,7 +233,7 @@ RECEIVE_RESULT 	ReceivePeekACK( U16& _targetAddress, U8& _payloadLength, char*& 
 		return result;
 
 	// Send back the ACK message
-	Send( _targetAddress, "ACK" );
+	Send( _targetAddress, str( F("ACK") ) );
 
 	return result;
 }
@@ -320,7 +321,7 @@ CONFIG_RESULT  SetPassword( U32 _password ) {
 //  AT+CRFOP=<power [0,22]>   // RF Output power in dBm (default=22)
 //  AT+SEND=<address 16 bits>, <payload size [0,240]>, <payload>  // Due to the program used by the module, the payload part will increase more 8 bytes than the actual data length.
 
-
+// Waits for a reply from the LoRa module
 char* WaitReply( U32 _timeOut_ms, U32 _maxIterationsCount ) {
 	char* p = LoRaBuffer_RX;
 	char  receivedChar = '\0';
@@ -397,6 +398,6 @@ void  SendCommandAndWaitPrint( char* _command ) {
 	if ( reply != NULL ) {
 		Log( str( F("Received reply: %s"), reply ) );  // Print the reply to the Serial monitor
 	} else {
-		LogError( 0, "TIMEOUT!" );
+		LogError( 0, str(F("TIMEOUT!")) );
 	}
 }

@@ -6,13 +6,13 @@
 // IMPORTANT! Increase buffer size for software serial so we don't risk overwriting the circular buffer!
 // The default size is 64 bytes and is too short for the maximum LoRa payload of 240 bytes...
 
+// !!WARNING!!
 // Unfortunately, defining it only here is already too late! The code is already compiled with size 64 so the only place I could find was to define a macro at compiler level in the platformio.ini file...
 //#define _SS_MAX_RX_BUFF 256
+// !!WARNING!!
 
 
 #include <SoftwareSerial.h>
-
-#define USE_RX_TX_BUFFERS	// Define this to use 2 buffers, 1 for RX, 1 for TX. Undefine to only use a single one (Warning! The ACK methods won't work with a single buffer)
 
 const U32 command_delay_ms = 100;  // Delay between commands
 
@@ -106,7 +106,7 @@ RECEIVE_RESULT  ExtractReply( char* _reply, U16& _targetAddress, U8& _payloadLen
 
 
 // Custom functions to send/receive with ACK signal
-SEND_RESULT	SendACK( U16 _targetAddress, U8 _payloadLength, const char* _payload, U32 _timeOut_ms, U32 _retriesCount );
+SEND_RESULT	SendWaitACK( U16 _targetAddress, U8 _payloadLength, const char* _payload, U32 _timeOut_ms, U32 _retriesCount );
 
 RECEIVE_RESULT	ReceiveWaitACK( U16& _targetAddress, U8& _payloadLength, char*& _payload );
 RECEIVE_RESULT	ReceiveWaitACK( U16& _targetAddress, U8& _payloadLength, char*& _payload, int& _RSSI, int& _SNR );

@@ -306,7 +306,7 @@ Monitor::SEND_STATUS	Monitor::SendMeasurements( U32 _measurementsCount ) {
 	U32	retriesCount = 10;	// Retry 10 times before giving up
 	U32	timeOut_ms = 1000;	// Wait for 1s before retrying
 
-	SEND_RESULT	result = SendACK( RECEIVER_ADDRESS, payloadLength, payload, timeOut_ms, retriesCount );
+	SEND_RESULT	result = SendWaitACK( RECEIVER_ADDRESS, payloadLength, payload, timeOut_ms, retriesCount );
 
 	if ( result == SR_OK )
 		return SEND_STATUS::SENT;

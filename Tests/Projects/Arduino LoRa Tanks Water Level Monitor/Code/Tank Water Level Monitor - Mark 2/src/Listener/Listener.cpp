@@ -207,10 +207,10 @@ void	Listener::ReadCommand() {
 	Serial.readBytesUntil( '\n', tempBuffer, 256 );
 	int		bufferLength = strlen( tempBuffer );
 
-	if ( !strcmp( tempBuffer, "CLK=" ) ) {
+	if ( strstr( tempBuffer, str( F("CLK=") ) ) == tempBuffer ) {
 		bool	success = ReadDateTime( tempBuffer + 4, bufferLength - 4 );
-		Serial.println( success ? "<OK>" : "<ERR>" );
-	} else if ( !strcmp( tempBuffer, "READ" ) ) {
+		Serial.println( success ? F("<OK>") : F("<ERR>") );
+	} else if ( strstr( tempBuffer, str( F("READ") ) ) == tempBuffer ) {
 		SendMeasurements();
 	}
 }
@@ -251,7 +251,7 @@ bool	Listener::ReadDateTime( char* _dateTime, U32 _dateTimeLength ) {
 	m_clockSetTime.time_ms = m_loopTime.time_ms;
 
 	#ifdef DEBUG_LIGHT
-		Log( "Received new clock time:");
+		Log( str( F("Received new clock time:") ) );
 		Log( str( F("Received new clock time:") ) );
 		Log( str( F("Date: %d-%d"), m_globalTime.year, m_globalTime.day ) );
 		Log( str( F("Time: %02d:%02d:%02d:%03d"), hours, minutes, seconds, milliseconds ) );

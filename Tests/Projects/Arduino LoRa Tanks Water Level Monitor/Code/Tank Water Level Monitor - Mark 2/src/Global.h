@@ -135,13 +135,4 @@ static void Flash( int _duration_ms, int _count ) {
   Flash( PIN_LED_RED, _duration_ms, _count );
 }
 
-// A structure storing a single distance measurement from the HCSR04 device
-struct Measurement {
-	U16		time_s;				// Time of measurement, in seconds. Either relative to the start time (monitor side), or relative to the first measurement sent (listener side)
-	U16		rawValue_micros;	// The raw time of flight from the sensor, in µseconds
-
-	bool	IsOutOfRange() { return rawValue_micros == 0xFFFF; }
-	float	GetDistance() { return ConvertTimeOfFlightToDistance( rawValue_micros ); }
-};
-
 #endif
