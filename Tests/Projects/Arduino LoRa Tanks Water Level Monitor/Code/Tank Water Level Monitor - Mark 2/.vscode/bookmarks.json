@@ -24,7 +24,12 @@
 			"path": "src/Helpers/LoRa.cpp",
 			"bookmarks": [
 				{
-					"line": 88,
+					"line": 26,
+					"column": 8,
+					"label": ""
+				},
+				{
+					"line": 90,
 					"column": 13,
 					"label": ""
 				}

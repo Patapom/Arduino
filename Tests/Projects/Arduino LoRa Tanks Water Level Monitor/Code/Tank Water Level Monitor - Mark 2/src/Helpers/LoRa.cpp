@@ -1,10 +1,10 @@
-#include "Global.h"
+﻿#include "Global.h"
 
 static char	LoRaBuffer[_SS_MAX_RX_BUFF];	// Response buffer
 
 // Use the same buffer for TX and RX
 static char*	LoRaBuffer_RX = LoRaBuffer;
-//static char*	LoRaBuffer_TX = LoRaBuffer;	// Now using the str() buffer for sending!
+//static char*	LoRaBuffer_TX = LoRaBuffer;	// Now directly using LoRa SoftwareSerial buffer for sending!
 
 SoftwareSerial	LoRa( PIN_LORA_RX, PIN_LORA_TX );
 
@@ -23,18 +23,18 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
 	if ( _payloadLength == 0 || _payloadLength > 240 ) return SR_INVALID_PAYLOAD_SIZE;
 
 	// Prepare command
-	#if 1	// New version using the str() buffer
-		char* LoRaBuffer_TX = str::ms_globalBuffer;
-		ERROR( str::ms_globalPointer != str::ms_globalBuffer, "Expecting the entire str::ms_globalBuffer to be available for sending the LoRa command!" );
-	#endif
-
-	char* command = LoRaBuffer_TX;
-	command += sprintf( command, str( F("AT+SEND=%d,%d,") ), _targetAddress, _payloadLength );
-	memcpy( command, _payload, _payloadLength );           // Copy payload
-	command += _payloadLength;
-	*command++ = '\r';
-	*command++ = '\n';
-	*command++ = '\0';
+	#if 1	// New version sending the command immediately using the SoftwareSerial buffer
+		LoRa.print( str( F("AT+SEND=%d,%d,"), _targetAddress, _payloadLength ) );
+		LoRa.write( _payload, _payloadLength );	// Copy payload
+		LoRa.print( "\r\n" );
+	#else
+		char* command = LoRaBuffer_TX;
+		command += sprintf( command, str( F("AT+SEND=%d,%d,") ), _targetAddress, _payloadLength );
+		memcpy( command, _payload, _payloadLength );           // Copy payload
+		command += _payloadLength;
+		*command++ = '\r';
+		*command++ = '\n';
+		*command++ = '\0';
 
 //  if ( SendCommandAndWaitVerify( LoRaBuffer, F("+OK") ) != RT_OK ) return SR_ERROR; // <= If using this version then remove the "\r\n" that we add above otherwise the LoRa will believe we send 2 commands and will return an error
 
@@ -44,7 +44,9 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
 	LogDebug( str( F("Sending command %s"), LoRaBuffer ) );
 #endif
 
-	SendCommand( LoRaBuffer_TX );
+		SendCommand( LoRaBuffer_TX );
+	#endif
+
 	char* reply = WaitReply();
 	if ( reply == NULL )
 		return SR_TIMEOUT;  // Timeout!
@@ -355,14 +357,9 @@ char* WaitReply( U32 _timeOut_ms, U32 _maxIterationsCount ) {
 }
 char* WaitReply() { return WaitReply( ~0UL, ~0UL ); } // No timeout
 
-// NOTE: _command must end with "\r\n"!
-void  SendCommand( const char* _command ) {
-	LoRa.print( _command );
-}
-
 // Sends a command and awaits reply
 char* SendCommandAndWait( const char* _command, U32 _timeOut_ms, U32 _maxIterationsCount ) {
-	SendCommand( _command );
+	LoRa.print( _command );
 	return WaitReply( _timeOut_ms, _maxIterationsCount );
 }
 char* SendCommandAndWait( const char* _command ) {

@@ -1,0 +1,176 @@
+
+---------------- VIDE ----------------
+Program:    2668 bytes (8.1% Full)
+(.text + .data + .bootloader)
+
+Data:        493 bytes (24.1% Full)
+(.data + .bss + .noinit)
+
+
+---------------- #include "Global.h" ----------------
+Program:    2668 bytes (8.1% Full)
+(.text + .data + .bootloader)
+
+Data:        493 bytes (24.1% Full)
+(.data + .bss + .noinit)
+
+
+---------------- #include "Listener.h" + instance ----------------
+Program:    3172 bytes (9.7% Full)
+(.text + .data + .bootloader)
+
+Data:       1053 bytes (51.4% Full)			<== +560 bytes (+48 bytes de base +512 bytes de tableau de GlobalMeasurements)
+(.data + .bss + .noinit)
+
+
+---------------- Call de setup() ----------------
+Program:    7032 bytes (21.5% Full)
+(.text + .data + .bootloader)
+
+Data:       1587 bytes (77.5% Full)
+(.data + .bss + .noinit)
+
+
+---------------- Call de loop() ----------------
+Program:   12072 bytes (36.8% Full)
+(.text + .data + .bootloader)
+
+Data:       1923 bytes (93.9% Full)
+(.data + .bss + .noinit)
+
+=====================================================================================
+
+
+---------------- #include "Listener.h" + instance + 1 seul global measurement ----------------
+Program:    3172 bytes (9.7% Full)
+(.text + .data + .bootloader)
+
+Data:        549 bytes (26.8% Full)			<== +56 bytes (+48 bytes de base + 1 global measurement)
+(.data + .bss + .noinit)
+
+
+---------------- setup_test() ----------------
+Program:    3268 bytes (10.0% Full)
+(.text + .data + .bootloader)
+Program:    3576 bytes (10.9% Full)
+(.text + .data + .bootloader)
+Program:    5852 bytes (17.9% Full)
+(.text + .data + .bootloader)
+Program:    6606 bytes (20.2% Full)	ConfigureLoRaModule
+(.text + .data + .bootloader)
+Program:    6850 bytes (20.9% Full)	LogResult
+(.text + .data + .bootloader)
+Program:    7000 bytes (21.4% Full)	Flash
+(.text + .data + .bootloader)
+Program:    7016 bytes (21.4% Full)	Register start time
+(.text + .data + .bootloader)
+Program:    7040 bytes (21.5% Full)	Ask for global time
+(.text + .data + .bootloader)
+
+
+
+Data:        549 bytes (26.8% Full)
+(.data + .bss + .noinit)
+Data:        549 bytes (26.8% Full)	LoRa.begin()
+(.data + .bss + .noinit)
+Data:        819 bytes (40.0% Full)	Log()		<== +270 (+14 base +256 bytes de buffer)
+(.data + .bss + .noinit)
+Data:       1075 bytes (52.5% Full)	ConfigureLoRaModule		<== +256 bytes de buffer
+(.data + .bss + .noinit)
+Data:       1075 bytes (52.5% Full) LogResult
+(.data + .bss + .noinit)
+Data:       1075 bytes (52.5% Full)	Flash
+(.data + .bss + .noinit)
+Data:       1075 bytes (52.5% Full)	Register start time
+(.data + .bss + .noinit)
+Data:       1075 bytes (52.5% Full)	Ask for global time
+(.data + .bss + .noinit)
+
+
+---------------- loop_test() ----------------
+Program:    7040 bytes (21.5% Full)	Get current time
+(.text + .data + .bootloader)
+Program:    8900 bytes (27.2% Full)	ReadCommand
+(.text + .data + .bootloader)
+Program:    7334 bytes (22.4% Full)	Remplacé par strstr( str(F("chaîne") ) + commenté les appels
+(.text + .data + .bootloader)
+Program:    7974 bytes (24.3% Full)	ReadDateTime()
+(.text + .data + .bootloader)
+Program:    7998 bytes (24.4% Full)	ReadDateTime() après fix mauvais Log()
+(.text + .data + .bootloader)
+Program:    8032 bytes (24.5% Full) ReadDateTime() + Serial.println()
+(.text + .data + .bootloader)
+Program:    9054 bytes (27.6% Full)	SendMeasurements()
+(.text + .data + .bootloader)
+Program:    9974 bytes (30.4% Full)	ReceivePeekACK()
+(.text + .data + .bootloader)
+Program:    9472 bytes (28.9% Full)	ReceivePeekACK_test()
+(.text + .data + .bootloader)
+Program:    9556 bytes (29.2% Full)	Après fix de strstr dans ExtractReply()
+(.text + .data + .bootloader)
+Program:   10200 bytes (31.1% Full)
+(.text + .data + .bootloader)
+Program:   10374 bytes (31.7% Full)
+(.text + .data + .bootloader)
+Program:   10950 bytes (33.4% Full)	Read measurements
+(.text + .data + .bootloader)
+Program:   11454 bytes (35.0% Full)	RegisterMeasurements()
+(.text + .data + .bootloader)
+Program:   11428 bytes (34.9% Full)
+(.text + .data + .bootloader)
+
+
+
+
+Data:       1083 bytes (52.9% Full)	Get current time	<== +8 (utilisation de m_loopTime qui coûte un U64?)
+(.data + .bss + .noinit)
+Data:       1129 bytes (55.1% Full)	ReadCommand			<== +46 (chaînes utilisées par strcmp)
+(.data + .bss + .noinit)
+Data:       1083 bytes (52.9% Full)	Remplacé par strstr( str(F("chaîne") ) + commenté les appels
+(.data + .bss + .noinit)
+Data:       1107 bytes (54.1% Full)	ReadDateTime()
+(.data + .bss + .noinit)
+Data:       1083 bytes (52.9% Full)	ReadDateTime() après fix mauvais Log()
+(.data + .bss + .noinit)
+Data:       1083 bytes (52.9% Full)	ReadDateTime() + Serial.println()
+(.data + .bss + .noinit)
+Data:       1083 bytes (52.9% Full)	SendMeasurements()
+(.data + .bss + .noinit)
+Data:       1373 bytes (67.0% Full)	ReceivePeekACK()	<== +290
+(.data + .bss + .noinit)
+Data:       1095 bytes (53.5% Full)	ReceivePeekACK_test() pas de Send( "ACK" )	<== +12 dans ReceivePeek() (taille des chaînes "+RCV=" et "+ERR=")
+(.data + .bss + .noinit)
+Data:       1083 bytes (52.9% Full)	Après fix de strstr dans ExtractReply()
+(.data + .bss + .noinit)
+Data:       1339 bytes (65.4% Full)	Remis Send( "ACK" ) + fix sprintf() avec chaîne dans flash	<== +256 taille du buffer d'envoi... Pourquoi on sépare les 2 buffers d'ailleurs ?
+(.data + .bss + .noinit)
+Data:       1095 bytes (53.5% Full)	Refactor de Send() pour utiliser le buffer de str plutôt qu'un buffer d'envoi spécialement pour LoRa! (on n'a donc plus besoin que d'un seul buffer de 256 bytes pour LoRa, même si ça soûle quand-même car finalement ce buffer existe déjà dans le SoftwareSerial!)
+(.data + .bss + .noinit)
+Data:       1099 bytes (53.7% Full)	Read measurements
+(.data + .bss + .noinit)
+Data:       1099 bytes (53.7% Full)	RegisterMeasurements()
+(.data + .bss + .noinit)
+Data:       1099 bytes (53.7% Full)
+(.data + .bss + .noinit)
+
+
+---------------- loop() + augmentation taille tableau de global measurements ----------------
+Program:   11428 bytes (34.9% Full)	remis loop() / effacé loop_test()
+(.text + .data + .bootloader)
+Program:   12628 bytes (38.5% Full)	64 measurements
+(.text + .data + .bootloader)
+Program:   12628 bytes (38.5% Full)
+(.text + .data + .bootloader)
+Program:   12780 bytes (39.0% Full)
+(.text + .data + .bootloader)
+
+
+Data:       1099 bytes (53.7% Full)	remis loop() / effacé loop_test()
+(.data + .bss + .noinit)
+Data:       1603 bytes (78.3% Full)	64 measurements
+(.data + .bss + .noinit)
+Data:       2115 bytes (103.3% Full)	128 measurements!
+(.data + .bss + .noinit)
+Data:       1971 bytes (96.2% Full)		110 measurements
+(.data + .bss + .noinit)
+

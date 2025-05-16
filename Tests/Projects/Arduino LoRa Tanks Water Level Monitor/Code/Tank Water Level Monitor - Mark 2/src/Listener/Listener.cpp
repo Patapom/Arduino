@@ -1,4 +1,4 @@
-#include "Listener.h"
+﻿#include "Listener.h"
 
 void	Listener::setup() {
 	pinMode( PIN_LED_RED, OUTPUT );
@@ -150,10 +150,10 @@ void	Listener::loop() {
 	LocalMeasurement	measurements[16];
 	LocalMeasurement*	measurement = measurements;
 
-	U64				localTime_ms = m_loopTime.time_ms - m_startTime.time_ms;
+	U64				localTime_s = (m_loopTime.time_ms - m_startTime.time_ms) / 1000;
 
 	bool			readTime = false;		// We're expecting a value, we know the time stamp is 0 (now)
-	measurements[0].time_ms = localTime_ms;	// First measurement's time is obviously now
+	measurements[0].time_s = localTime_s;	// First measurement's time is obviously now
 
 	char*	pLastComma = payload;
 	char*	p = payload;
@@ -166,7 +166,7 @@ void	Listener::loop() {
 
 			if ( readTime ) {
 				// The first value of a measurement is the delta time (in seconds) from the first measurement
-				measurement->time_ms = localTime_ms - (1000 * value);
+				measurement->time_s = localTime_s - value;
 				readTime = false;	// Expecting a value now
 			} else {
 				// The 2nd value of a measurement is the actual raw time of flight value
@@ -243,7 +243,7 @@ bool	Listener::ReadDateTime( char* _dateTime, U32 _dateTimeLength ) {
 	U8	minutes = atoi( _dateTime + 12 );
 	U8	seconds = atoi( _dateTime + 15 );
 	U8	milliseconds  = atoi( _dateTime + 18 );
-	U32	totalTime_ms = milliseconds + 1000 * (seconds + 60 * (minutes + 60 * hours));	// A total of 86,400,000 milliseconds per day (31,536,000,000 milliseconds per year, so we definitely need more than a U32! :D)
+	U64	totalTime_ms = milliseconds + 1000ULL * (seconds + 60ULL * (minutes + 60ULL * hours));	// A total of 86,400,000 milliseconds per day (31,536,000,000 milliseconds per year, so we definitely need more than a U32! :D)
 
 	m_globalTime.time.time_ms = totalTime_ms;
 
@@ -251,7 +251,6 @@ bool	Listener::ReadDateTime( char* _dateTime, U32 _dateTimeLength ) {
 	m_clockSetTime.time_ms = m_loopTime.time_ms;
 
 	#ifdef DEBUG_LIGHT
-		Log( str( F("Received new clock time:") ) );
 		Log( str( F("Received new clock time:") ) );
 		Log( str( F("Date: %d-%d"), m_globalTime.year, m_globalTime.day ) );
 		Log( str( F("Time: %02d:%02d:%02d:%03d"), hours, minutes, seconds, milliseconds ) );
@@ -279,7 +278,7 @@ U32	Listener::RegisterMeasurements( LocalMeasurement* _measurements, U32 _measur
 		for ( U32 i=0; i < existingMeasurementsCount; i++, existingMeasurementIndex-- ) {
 			LocalMeasurement&	existingMeasurement = m_measurements[existingMeasurementIndex % MEASUREMENTS_COUNT];
 
-			if ( newMeasurement->time_ms > existingMeasurement.time_ms + 2ULL*60ULL*1000ULL ) {
+			if ( newMeasurement->time_s > existingMeasurement.time_s + 2*60 ) {
 				break;	// No need to check any more of our existing measurements as they'll all be older than 2 minutes from this new measurement...
 			}
 			if ( existingMeasurement.rawValue_micros != newMeasurement->rawValue_micros ) {
@@ -287,8 +286,8 @@ U32	Listener::RegisterMeasurements( LocalMeasurement* _measurements, U32 _measur
 			}
 
 			// Check if it doesn't differ too much in time...
-			U64	absDeltaTime_ms = newMeasurement->time_ms > existingMeasurement.time_ms ? newMeasurement->time_ms - existingMeasurement.time_ms : existingMeasurement.time_ms - newMeasurement->time_ms;
-			if ( absDeltaTime_ms < MEASURE_DELTA_TIME_TOLERANCE_MS ) {
+			U64	absDeltaTime_s = newMeasurement->time_s > existingMeasurement.time_s ? newMeasurement->time_s - existingMeasurement.time_s : existingMeasurement.time_s - newMeasurement->time_s;
+			if ( absDeltaTime_s < MEASURE_DELTA_TIME_TOLERANCE_S ) {
 				alreadyExists = true;
 				break;
 			}
@@ -312,11 +311,11 @@ U32	Listener::RegisterMeasurements( LocalMeasurement* _measurements, U32 _measur
 	return newMeasurementsCount;
 }
 
-// Converts a local time (i.e. relative to the start time) to a global time (i.e. relative to the clock time)
-U64		Listener::ConvertLocal2GlobalTime( U64 _localTime_ms ) {
-	U64	start2Clock_ms = m_clockSetTime.time_ms - m_startTime.time_ms;	// Time since the clock was set, relative to the start time
-	U64	globalTime_ms = _localTime_ms - start2Clock_ms;					// Time since the clock was set
-	return globalTime_ms;
+// Converts a local time in seconds (i.e. relative to the start time) to a global time in seconds (i.e. relative to the clock time)
+U32		Listener::ConvertLocal2GlobalTime( U32 _localTime_s ) {
+	U32	start2Clock_s = (m_clockSetTime.time_ms - m_startTime.time_ms) / 1000;	// Time since the clock was set, relative to the start time
+	U32	globalTime_s = _localTime_s - start2Clock_s;							// Correct time on the clock
+	return globalTime_s;
 }
 
 // Sends our entire array of measurements to the PC via Serial
@@ -329,25 +328,24 @@ void	Listener::SendMeasurements() {
 	// Write the exact date and time of the first measurement
 	const LocalMeasurement&	m0 = m_measurements[measurementIndex];
 
-	DateTime	firstMeasurementDateTime;
-	firstMeasurementDateTime.time.time_ms = ConvertLocal2GlobalTime( m0.time_ms );
+	U32	firstMeasurementTime_s = ConvertLocal2GlobalTime( m0.time_s );
 
-	U32	deltaDays = firstMeasurementDateTime.time.time_ms / 86400000ULL;	// 24 * 60 * 60 * 1000 = 86,400,000 milliseconds in a day
-	firstMeasurementDateTime.time.time_ms -= 86400000ULL * U64(deltaDays);
-	firstMeasurementDateTime.day = m_globalTime.day + deltaDays;
+	U16	deltaDays = firstMeasurementTime_s / 86400UL;	// 24 * 60 * 60 = 86,400 seconds in a day
+	firstMeasurementTime_s -= 86400UL * deltaDays;
+	U16	firstMeasurementDay = m_globalTime.day + deltaDays;
 
-	U32	deltaYears = firstMeasurementDateTime.day / 365;	// Problem on bisextile years but who cares? This device won't certainly be active for more than a few months at a time!
-	firstMeasurementDateTime.day -= 365 * deltaYears;
-	firstMeasurementDateTime.year = m_globalTime.year + deltaYears;
+	U32	deltaYears = firstMeasurementDay / 365;	// Problem on bisextile years but who cares? This device won't certainly be active for more than a few months at a time! (might still be a problem though)
+	firstMeasurementDay -= 365 * deltaYears;
+	U16	firstMeasurementYear = m_globalTime.year + deltaYears;
 
-	Serial.print( str( F("%u-%u|%ull,%u"), firstMeasurementDateTime.year, firstMeasurementDateTime.day, firstMeasurementDateTime.time.time_ms, m0.rawValue_micros ) );
+	Serial.print( str( F("%u-%u|%ul,%u"), firstMeasurementYear, firstMeasurementDay, firstMeasurementTime_s, m0.rawValue_micros ) );
 
 	// Write the remaining measurements with relative time only
 	for ( U16 i=1; i < measurementsCount; i++ ) {
 		const LocalMeasurement&	m = m_measurements[(measurementIndex + MEASUREMENTS_COUNT - i) % MEASUREMENTS_COUNT];
 
-		U32	deltaTime_s = U32( (m0.time_ms - m.time_ms) / 1000 );	// A positive time value
-		Serial.print( str( F(",%u,%u"), deltaTime_s, m.rawValue_micros ) );
+		U32	deltaTime_s = m0.time_s - m.time_s;	// Always positive time value
+		Serial.print( str( F(",%ul,%u"), deltaTime_s, m.rawValue_micros ) );
 	}
 
 	Serial.println();

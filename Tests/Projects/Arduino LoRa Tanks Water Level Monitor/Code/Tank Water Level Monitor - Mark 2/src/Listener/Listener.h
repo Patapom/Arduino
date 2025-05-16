@@ -10,14 +10,17 @@
 class Listener {
 	private:	// TYPES
 
-//		static const U32	MEASUREMENTS_COUNT = 64;						// = 512 bytes (1603 bytes, 78.3% of RAM)
-//		static const U32	MEASUREMENTS_COUNT = 128;						// = 1024 bytes (2115 bytes, 103.3% of RAM)
-		static const U32	MEASUREMENTS_COUNT = 110;						// = 880 bytes (1971 bytes, 96.2% of RAM)
-		static const U64	MEASURE_DELTA_TIME_TOLERANCE_MS = 1000 * 10;	// Allow up to 10s of tolerance between measurements to consider them as identical
+//		static const U32	MEASUREMENTS_COUNT = 64;				// = 512 bytes (1603 bytes, 78.3% of RAM)
+//		static const U32	MEASUREMENTS_COUNT = 128;				// = 1024 bytes (2115 bytes, 103.3% of RAM)
+//		static const U32	MEASUREMENTS_COUNT = 110;				// = 880 bytes (1971 bytes, 96.2% of RAM)
+																	// = 660 bytes (1747 bytes, 85.3% of RAM after refactor)
+		static const U32	MEASUREMENTS_COUNT = 159;				// = 954 bytes (2041 bytes, 99.7% of RAM)
+		
+		static const U64	MEASURE_DELTA_TIME_TOLERANCE_S = 10;	// Allow up to 10s of tolerance between measurements to consider them as identical
 
-		// The local measurement structure (size = 8 bytes)
+		// The local measurement structure (size = 6 bytes)
 		struct LocalMeasurement {
-			U64			time_ms : 48;		// The time of the measurement, relative to the start time of the listener device
+			U32			time_s;				// The time of the measurement, relative to the start time of the listener device
 			U16			rawValue_micros;	// The raw time of flight from the sensor, in µseconds
 		};
 
@@ -44,5 +47,5 @@ class Listener {
 		bool	ReadDateTime( char* _dateTime, U32 _dateTimeLength );
 		U32		RegisterMeasurements( LocalMeasurement* _measurements, U32 _measurementsCount );
 		void	SendMeasurements();
-		U64		ConvertLocal2GlobalTime( U64 _localTime_ms );
+		U32		ConvertLocal2GlobalTime( U32 _localTime_ms );
 	};
