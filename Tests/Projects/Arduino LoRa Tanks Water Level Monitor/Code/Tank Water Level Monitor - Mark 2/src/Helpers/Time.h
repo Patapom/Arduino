@@ -14,10 +14,6 @@ struct Time_ms {
 	float	GetTime_seconds() {
 		return 0.001f * time_ms;
 	}
-
-private:
-	static U32	ms_lastMillis;
-	static U32	ms_timeOverflowCounter;
 };
 
 struct DateTime {

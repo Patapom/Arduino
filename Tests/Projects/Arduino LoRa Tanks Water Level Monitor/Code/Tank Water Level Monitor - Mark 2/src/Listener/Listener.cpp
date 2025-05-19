@@ -3,7 +3,7 @@
 void	Listener::setup() {
 	pinMode( PIN_LED_RED, OUTPUT );
 	pinMode( PIN_LED_GREEN, OUTPUT );
-//	pinMode( PIN_BUTTON, INPUT );
+	pinMode( PIN_BUTTON, INPUT );
 
 	// Initiate serial communication
 	Serial.begin( 19200 );        // This one is connected to the PC
@@ -46,12 +46,7 @@ while ( true ) {
 		}
 	#endif
 
-	if ( configResult != CR_OK ) {
-		// In error...
-		while ( true ) {
-			Flash( PIN_LED_RED, 250, 1 );
-		}
-	}
+	ERROR( configResult != CR_OK, "LoRa Configuration failed..." );
 
 // Optional password encryption
 //	SendCommandAndWaitPrint( str( F("AT+CPIN?") ) );
@@ -89,33 +84,54 @@ while ( true ) {
 }
 //*/
 
-	// Register start time
-	m_startTime.GetTime();
-	m_clockSetTime.GetTime();
-
 	// Ask for global time
+	m_loopTime.GetTime();
+	m_clockSetTime.GetTime();
+	m_globalTime.year = 2025;
+	m_globalTime.day = 139;							// May 19th
+	m_globalTime.time.time_ms = 41400ULL * 1000ULL;	// 11:30
 	Serial.println( "<CLK?>" );
 }
 
-//bool	read_button() { return digitalRead( PIN_BUTTON ); }
-//bool	debounce_once() {
-//	static uint16_t state = 0;
-//	state = (state<<1) | read_button() | 0xfe00;
-//	return (state == 0xff00);
-//}
-//bool	debounce() {
-//	bool	result = false;
-//	for ( int i=0; i < 16; i++ ) {
-//		result |= debounce_once();
-//		delay( 1 );
-//	}
-//	return result;
-//}
+bool	pipou = false;
+bool	read_button() { return digitalRead( Listener::PIN_BUTTON ); }
+bool	debounce_once() {
+	static uint16_t state = 0;
+	state = (state<<1) | read_button() | 0xfe00;
+	return (state == 0xff00);
+}
+bool	debounce() {
+	for ( int i=0; i < 16; i++ ) {
+		if ( debounce_once() )
+			return true;
+		delay( 10 );
+	}
+	return false;
+}
 
 void	Listener::loop() {
 
 	// Get current time
 	m_loopTime.GetTime();
+//Log( str(F("%08lX %08lX"), ((U32*) &m_loopTime.time_ms)[1], m_loopTime.time_ms ) );
+
+#if 1
+if ( debounce() ) {
+	Serial.println( "PIPOU!" );
+	pipou = true;
+	delay( 500 );
+}
+#endif
+
+	if ( m_loopTime.time_ms - m_lastUpdateTime.time_ms < 1000ULL ) {
+		return;	// Update every second
+	}
+	m_lastUpdateTime = m_loopTime;
+
+//delay( 1000 );
+
+//LogDebug( str( F("Updating at time %08lX %08lX"), ((U32*) &m_lastUpdateTime.time_ms)[1], m_lastUpdateTime.time_ms ) );
+//return;
 
 	// Listen for some command from the PC
 	if ( Serial.available() ) {
@@ -127,6 +143,36 @@ void	Listener::loop() {
 	U8		payloadLength;
 	char*	payload;
 	RECEIVE_RESULT	result = ReceivePeekACK( senderAddress, payloadLength, payload );
+
+//<MEASURES> #16 = 136-70|000036B0,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535,56241,65535
+//<DEBUG> Received 16 measurements:
+//<DEBUG> #0 => 00000174 00
+//<DEBUG> #1 => 0000FF03 FFFF
+//<DEBUG> #2 => 0000FC94 FFFF
+//<DEBUG> #3 => 0000FA24 FFFF
+//<DEBUG> #4 => 0000F7B5 FFFF
+//<DEBUG> #5 => 0000F546 FFFF
+//<DEBUG> #6 => 0000F2D7 FFFF
+//<DEBUG> #7 => 0000F068 FFFF
+//<DEBUG> #8 => 0000EDF8 FFFF
+//<DEBUG> #9 => 0000EB89 FFFF
+//<DEBUG> #10 => 0000E91A FFFF
+//<DEBUG> #11 => 0000E6AB FFFF
+//<DEBUG> #12 => 0000E43B FFFF
+//<DEBUG> #13 => 0000E1CC FFFF
+//<DEBUG> #14 => 0000DF5D FFFF
+//<DEBUG> #15 => 0000DCEE FFFF
+//<MEASURES> #21 = 136-70|00005AFA,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535,65531,65535
+
+#if 1
+if ( pipou ) {
+	pipou = false;
+	payload = "1,10,2,20,3,30,4,40,5";
+	payloadLength = strlen(payload);
+	result = RR_OK;
+}
+#endif
+
 	if ( result != RR_OK ) {
 		// Failed to receive a proper packet
 		if ( result == RR_ERROR ) {
@@ -136,7 +182,6 @@ void	Listener::loop() {
 			Flash( 50, 10 );  // Error!
 		}
 
-		delay( 1000 );  // Each cycle is 1000ms
 		return;
 	};
 
@@ -150,7 +195,7 @@ void	Listener::loop() {
 	LocalMeasurement	measurements[16];
 	LocalMeasurement*	measurement = measurements;
 
-	U64				localTime_s = (m_loopTime.time_ms - m_startTime.time_ms) / 1000;
+	U32				localTime_s = m_loopTime.time_ms / 1000;
 
 	bool			readTime = false;		// We're expecting a value, we know the time stamp is 0 (now)
 	measurements[0].time_s = localTime_s;	// First measurement's time is obviously now
@@ -161,18 +206,21 @@ void	Listener::loop() {
 		if ( *p == ',' ) {
 			// Decode and store a new value
 			*p = '\0';
-			U16	value = atoi( pLastComma );
+			U32	value = U32( atoi( pLastComma ) );
 			pLastComma = p + 1;	// Skip comma
+
+//LogDebug( str( F("value %d = %08lX"), i, value ) );
 
 			if ( readTime ) {
 				// The first value of a measurement is the delta time (in seconds) from the first measurement
-				measurement->time_s = localTime_s - value;
+				measurement->time_s = S32(localTime_s) - S32(value);
+//LogDebug( str( F("value %d => local time %08lX - value %08lX = %08lX"), U16(measurement - measurements), localTime_s, value, measurement->time_s ) );
 				readTime = false;	// Expecting a value now
 			} else {
 				// The 2nd value of a measurement is the actual raw time of flight value
 				measurement->rawValue_micros = value;
-				measurement++;				// One more completed measurement!
-				readTime  = true;	// Start a new measurement (expecting a time stamp now)
+				measurement++;		// One more completed measurement!
+				readTime = true;	// Expecting a time stamp now (start a new measurement)
 			}
 		}
 	}
@@ -188,6 +236,7 @@ void	Listener::loop() {
 		LogError( 0, str( F("Empty last value!") ) );
 		LogError( 0, str( F("Ignoring entire payload...") ) );
 		Flash( 50, 10 );  // Error!
+		return;
 	}
 
 	measurement->rawValue_micros = atoi( pLastComma );
@@ -203,15 +252,26 @@ void	Listener::loop() {
 }
 
 void	Listener::ReadCommand() {
-	char	tempBuffer[256];
-	Serial.readBytesUntil( '\n', tempBuffer, 256 );
-	int		bufferLength = strlen( tempBuffer );
+	char	tempBuffer[64];
+	int		bufferLength = Serial.readBytesUntil( '\n', tempBuffer, 64 );
+	tempBuffer[bufferLength] = '\0';
+
+#ifdef DEBUG_LIGHT
+LogDebug( str( F("Received command: %s"), tempBuffer ) );
+//Serial.print( tempBuffer )
+#endif
 
 	if ( strstr( tempBuffer, str( F("CLK=") ) ) == tempBuffer ) {
+		// Set the new clock
 		bool	success = ReadDateTime( tempBuffer + 4, bufferLength - 4 );
-		Serial.println( success ? F("<OK>") : F("<ERR>") );
+		Log( str( success ? F("<OK> CLK") : F("<ERROR> CLK") ) );
 	} else if ( strstr( tempBuffer, str( F("READ") ) ) == tempBuffer ) {
+		// Send the measurements now
 		SendMeasurements();
+	} else if ( strstr( tempBuffer, str( F("FLUSH") ) ) == tempBuffer ) {
+		// Clear the buffer of measurements
+		m_measurementsCount = 0;
+		Log( str( F("<OK> FLUSH") ) );
 	}
 }
 
@@ -263,10 +323,26 @@ bool	Listener::ReadDateTime( char* _dateTime, U32 _dateTimeLength ) {
 // Returns false if no new measurement could be registered
 U32	Listener::RegisterMeasurements( LocalMeasurement* _measurements, U32 _measurementsCount ) {
 
+#if 0
+//LogDebug( str(F("Global time: %d %d %08lX|%08lX"), m_globalTime.year, m_globalTime.day, ((U32*) &m_globalTime.time.time_ms)[1], ((U32*) &m_globalTime.time.time_ms)[0] ) );
+LogDebug( str(F("Received %d measurements:"), _measurementsCount ) );
+for ( int i=0; i < _measurementsCount; i++ ) {
+//	LogDebug( str(F("#%d => %08lX %04X"), i, _measurements[i].time_s, _measurements[i].rawValue_micros ) );
+	LogDebug( str(F("#%d => %ld %04X"), i, _measurements[i].time_s, _measurements[i].rawValue_micros ) );
+}
+#endif
+
 	U32	existingMeasurementsCount = m_measurementsCount % MEASUREMENTS_COUNT;
 
 	// We just received some measurements with time stamps relative to the start time
+	//	• The new measurements are ordered from most recent to oldest
+	//	• The first measurement is supposed to be at the current time
+	//	• Their time stamps are relative to this device's start time (i.e. 0)
+	//
 	// We must compare them with the ones we already have and only register the new ones
+	//	• The existing measurement are ordered from oldest to most recent
+	//	• The last measurement is supposed to be the most recent one
+	//	• Their time stamps are relative to this device's start time (i.e. 0)
 	//
 	LocalMeasurement*	newMeasurement = _measurements;
 	U32					newMeasurementIndex = 0;	// Start from the beginning
@@ -274,11 +350,11 @@ U32	Listener::RegisterMeasurements( LocalMeasurement* _measurements, U32 _measur
 
 		// Check if this measurement already exists in our list
 		bool	alreadyExists = false;
-		U32	existingMeasurementIndex = m_measurementsCount - 1;
+		U32	existingMeasurementIndex = m_measurementsCount - 1;	// Start from the most recent one
 		for ( U32 i=0; i < existingMeasurementsCount; i++, existingMeasurementIndex-- ) {
 			LocalMeasurement&	existingMeasurement = m_measurements[existingMeasurementIndex % MEASUREMENTS_COUNT];
 
-			if ( newMeasurement->time_s > existingMeasurement.time_s + 2*60 ) {
+			if ( newMeasurement->time_s > existingMeasurement.time_s + S32(2*60) ) {
 				break;	// No need to check any more of our existing measurements as they'll all be older than 2 minutes from this new measurement...
 			}
 			if ( existingMeasurement.rawValue_micros != newMeasurement->rawValue_micros ) {
@@ -308,45 +384,55 @@ U32	Listener::RegisterMeasurements( LocalMeasurement* _measurements, U32 _measur
 		m_measurementsCount++;	// One more new measurement!
 	}
 
+LogDebug( str(F("Found only %d new measurements"), newMeasurementsCount ) );
+
 	return newMeasurementsCount;
 }
 
-// Converts a local time in seconds (i.e. relative to the start time) to a global time in seconds (i.e. relative to the clock time)
-U32		Listener::ConvertLocal2GlobalTime( U32 _localTime_s ) {
-	U32	start2Clock_s = (m_clockSetTime.time_ms - m_startTime.time_ms) / 1000;	// Time since the clock was set, relative to the start time
-	U32	globalTime_s = _localTime_s - start2Clock_s;							// Correct time on the clock
+// Converts a local time in seconds (i.e. relative to this device's start time) to a global time in seconds (i.e. relative to the clock time)
+S32	Listener::ConvertLocal2GlobalTime( S32 _localTime_s ) {
+	S32	start2Clock_s = m_clockSetTime.time_ms / 1000;	// Time since the clock was set, relative to the start time
+	S32	globalTime_s = _localTime_s - start2Clock_s;	// Correct time on the clock
 	return globalTime_s;
 }
 
 // Sends our entire array of measurements to the PC via Serial
 void	Listener::SendMeasurements() {
+	// Format the measurements as a reply
 	U32	measurementsCount = min( MEASUREMENTS_COUNT, m_measurementsCount );
-	Serial.print( str( F("<OK> #%d = "), measurementsCount ) );
+	Serial.print( str( F("<MEASURES> #%d = "), measurementsCount ) );
 
-	U32	measurementIndex = (m_measurementsCount - measurementsCount) % MEASUREMENTS_COUNT;	// Loop around
+	U32	measurementIndex = (m_measurementsCount - 1) % MEASUREMENTS_COUNT;	// Loop around
 
 	// Write the exact date and time of the first measurement
 	const LocalMeasurement&	m0 = m_measurements[measurementIndex];
 
-	U32	firstMeasurementTime_s = ConvertLocal2GlobalTime( m0.time_s );
+	S32	firstMeasurementSeconds = ConvertLocal2GlobalTime( m0.time_s );	// Time in seconds since the moment the clock was set
+//LogDebug( str(F("m0.time_s = %ld => firstMeasurementSeconds %ld"), m0.time_s, firstMeasurementSeconds ) );
 
-	U16	deltaDays = firstMeasurementTime_s / 86400UL;	// 24 * 60 * 60 = 86,400 seconds in a day
-	firstMeasurementTime_s -= 86400UL * deltaDays;
-	U16	firstMeasurementDay = m_globalTime.day + deltaDays;
+	S16	deltaDays = firstMeasurementSeconds / 86400L;	// 24 * 60 * 60 = 86,400 seconds in a day
+	firstMeasurementSeconds -= 86400L * deltaDays;		// Now in [0,86400[
+	S16	firstMeasurementDay = S16(m_globalTime.day) + deltaDays;
+//LogDebug( str(F("firstMeasurementDay %04X"), firstMeasurementDay ) );
 
-	U32	deltaYears = firstMeasurementDay / 365;	// Problem on bisextile years but who cares? This device won't certainly be active for more than a few months at a time! (might still be a problem though)
-	firstMeasurementDay -= 365 * deltaYears;
+	S16	deltaYears = firstMeasurementDay / 365;			// Problem on bisextile years but who cares? This device won't certainly be active for more than a few months at a time! (might still be a problem though)
+	firstMeasurementDay -= 365 * deltaYears;			// Now in [0,365[
 	U16	firstMeasurementYear = m_globalTime.year + deltaYears;
+//LogDebug( str(F("firstMeasurementYear %04X"), firstMeasurementYear ) );
 
-	Serial.print( str( F("%u-%u|%ul,%u"), firstMeasurementYear, firstMeasurementDay, firstMeasurementTime_s, m0.rawValue_micros ) );
+	Serial.print( str( F("%u-%u|%08lX,%u"), firstMeasurementYear, firstMeasurementDay, firstMeasurementSeconds, m0.rawValue_micros ) );
+
+//LogDebug( str(F("Final values for Delta Year/Day/Seconds %04X/%04X/%08lX"), deltaYears, deltaDays, firstMeasurementSeconds ) );
 
 	// Write the remaining measurements with relative time only
 	for ( U16 i=1; i < measurementsCount; i++ ) {
 		const LocalMeasurement&	m = m_measurements[(measurementIndex + MEASUREMENTS_COUNT - i) % MEASUREMENTS_COUNT];
 
-		U32	deltaTime_s = m0.time_s - m.time_s;	// Always positive time value
-		Serial.print( str( F(",%ul,%u"), deltaTime_s, m.rawValue_micros ) );
+		U16	deltaTime_s = m0.time_s - m.time_s;	// Always positive time value
+		Serial.print( str( F(",%u,%u"), deltaTime_s, m.rawValue_micros ) );
 	}
 
 	Serial.println();
+
+//LogDebug( str(F("Global time: %d %d %08lX|%08lX"), m_globalTime.year, m_globalTime.day, ((U32*) &m_globalTime.time.time_ms)[1], ((U32*) &m_globalTime.time.time_ms)[0] ) );
 }

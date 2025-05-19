@@ -259,13 +259,13 @@ CONFIG_RESULT  ConfigureLoRaModule( U8 _networkID, U16 _address, U32 _band, U8 _
 
 	// Send configuration commands
 //  SendCommandAndWaitPrint( F("AT+IPR?") );
-	if ( SendCommandAndWaitVerify( str( F("AT\r\n") ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT;
+	if ( SendCommandAndWaitVerify( str( F("AT") ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT;
 	delay( command_delay_ms );
-	if ( SendCommandAndWaitVerify( str( F("AT+NETWORKID=%d\r\n"), _networkID ), str( F( "+OK" ) ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_NETWORKID;
+	if ( SendCommandAndWaitVerify( str( F("AT+NETWORKID=%d"), _networkID ), str( F( "+OK" ) ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_NETWORKID;
 	delay( command_delay_ms );
-	if ( SendCommandAndWaitVerify( str( F("AT+ADDRESS=%d\r\n"), _address ), str( F( "+OK" ) ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_ADDRESS;
+	if ( SendCommandAndWaitVerify( str( F("AT+ADDRESS=%d"), _address ), str( F( "+OK" ) ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_ADDRESS;
 	delay( command_delay_ms );
-	if ( SendCommandAndWaitVerify( str( F("AT+PARAMETER=%d,%d,%d,%d\r\n"), _spreadingFactor, _bandwidth, _codingRate, _programmedPreamble ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_PARAMETER;
+	if ( SendCommandAndWaitVerify( str( F("AT+PARAMETER=%d,%d,%d,%d"), _spreadingFactor, _bandwidth, _codingRate, _programmedPreamble ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_PARAMETER;
 	delay( command_delay_ms );
 
 	return CR_OK; // Success!
@@ -274,9 +274,9 @@ CONFIG_RESULT  ConfigureLoRaModule( U8 _networkID, U16 _address, U32 _band, U8 _
 // Sets the working mode for the device (default is WM_TRANSCEIVER)
 CONFIG_RESULT  SetWorkingMode( WORKING_MODE _workingMode, U16 _RXTime, U16 _sleepTime ) {
 	if ( _workingMode == WM_SMART ) {
-		if ( SendCommandAndWaitVerify( str( F("AT+MODE=2,%d,%d\r\n"), _RXTime, _sleepTime ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
+		if ( SendCommandAndWaitVerify( str( F("AT+MODE=2,%d,%d"), _RXTime, _sleepTime ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
 	} else {
-		if ( SendCommandAndWaitVerify( str( F("AT+MODE=%d\r\n"), int(_workingMode) ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
+		if ( SendCommandAndWaitVerify( str( F("AT+MODE=%d"), int(_workingMode) ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_MODE;
 	}
 	return CR_OK;
 }
@@ -287,7 +287,7 @@ CONFIG_RESULT  SetWorkingMode( WORKING_MODE _workingMode, U16 _RXTime, U16 _slee
 //
 CONFIG_RESULT  SetPassword( U32 _password ) {
 	if ( !_password ) return CR_INVALID_PASSWORD;
-	if ( SendCommandAndWaitVerify( str( F("AT+CPIN=%08X\r\n"), _password ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
+	if ( SendCommandAndWaitVerify( str( F("AT+CPIN=%08lX"), _password ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
 	delay( command_delay_ms );
 
 	return CR_OK; // Success!
@@ -295,7 +295,7 @@ CONFIG_RESULT  SetPassword( U32 _password ) {
 
 // Apparently, the only way to reset the password is to send an "AT+RESET" command...
 //CONFIG_RESULT ClearPassword() {
-//  if ( SendCommandAndWaitVerify( F("AT+CPIN=00000000\r\n"), F("+OK") ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
+//  if ( SendCommandAndWaitVerify( F("AT+CPIN=00000000"), F("+OK") ) != RT_OK ) return CR_COMMAND_FAILED_AT_CPIN;
 //  delay( command_delay_ms );
 //  return CR_OK; // Success!
 //}
@@ -359,7 +359,13 @@ char* WaitReply() { return WaitReply( ~0UL, ~0UL ); } // No timeout
 
 // Sends a command and awaits reply
 char* SendCommandAndWait( const char* _command, U32 _timeOut_ms, U32 _maxIterationsCount ) {
-	LoRa.print( _command );
+#ifdef DEBUG
+	LogDebug( str( F("Sending command %s"), _command ) );
+//Serial.print( F("Sending command ") );
+//Serial.println( _command );
+#endif
+
+	LoRa.println( _command );
 	return WaitReply( _timeOut_ms, _maxIterationsCount );
 }
 char* SendCommandAndWait( const char* _command ) {
@@ -369,10 +375,6 @@ char* SendCommandAndWait( const char* _command ) {
 // Sends a command, waits for the reply and compares to the expected reply
 // Return an enum depending on the result
 RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expectedReply, U32 _timeOut_ms ) {
-#ifdef DEBUG
-	LogDebug( str( F("Sending command %s"), _command ) );
-#endif
-
 	char* reply = SendCommandAndWait( _command, _timeOut_ms, 1 );
 	if  ( reply == NULL )
 		return RT_TIMEOUT;

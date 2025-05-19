@@ -1,4 +1,4 @@
-#ifndef GLOBAL_H
+﻿#ifndef GLOBAL_H
 #define GLOBAL_H
 
 // Define this to output ALL commands/responses to the serial
@@ -63,7 +63,6 @@ typedef const __FlashStringHelper	FChar;
     static void  __ERROR( bool _setError, const char* _functionName, FChar* _message ) {
       if ( !_setError ) return;
 // @TODO: Proper error handling
-		digitalWrite( PIN_LED_RED, 1 );
 		//while ( true ); // Hang... :/
 		while ( true ) {
 			#ifndef NO_GLOBAL_SERIAL
@@ -71,11 +70,9 @@ typedef const __FlashStringHelper	FChar;
 				Serial.print( _functionName );
 				Serial.print( F("() => ") );
 				Serial.println( _message );
-				delay( 1000 );
-			#else	// Flash instead
-				digitalWrite( PIN_LED_RED, _setError ); _setError = !_setError;
-				delay( 50 );
 			#endif
+			delay( 1000 );
+			digitalWrite( PIN_LED_RED, _setError ); _setError = !_setError;
 		}
 	}
 #else
