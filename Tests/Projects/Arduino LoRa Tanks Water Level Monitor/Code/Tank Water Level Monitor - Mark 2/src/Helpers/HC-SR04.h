@@ -17,7 +17,7 @@ float	MeasureDistance( U8 _pinTrigger, U8 _pinEcho );
 
 // A structure storing a single distance measurement from the HCSR04 device
 struct Measurement {
-	U16		time_s;				// Time of measurement, in seconds. Either relative to the start time (monitor side), or relative to the first measurement sent (listener side)
+	U16		time_s;				// Time of measurement, in seconds. Either relative to the first measurement time (monitor side), or relative to the next measurement (listener side)
 	U16		rawValue_micros;	// The raw time of flight from the sensor, in µseconds
 
 	bool	IsOutOfRange() { return rawValue_micros == 0xFFFF; }
