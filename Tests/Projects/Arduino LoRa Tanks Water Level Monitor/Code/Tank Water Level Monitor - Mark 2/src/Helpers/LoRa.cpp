@@ -14,8 +14,8 @@ SoftwareSerial	LoRa( PIN_LORA_RX, PIN_LORA_TX );
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // _payload, the payload to send via LoRa. The characters can be in [1,255] but MUST NOT CONTAIN '\0'!
-SEND_RESULT Send( U16 _targetAddress, const char* _message ) {
-	return Send( _targetAddress, strlen( _message ), _message );
+SEND_RESULT Send( U16 _targetAddress, const char* _payload ) {
+	return Send( _targetAddress, strlen( _payload ), _payload );
 }
 SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) {
 	// Check payload
@@ -257,8 +257,9 @@ CONFIG_RESULT  ConfigureLoRaModule( U8 _networkID, U16 _address, U32 _band, U8 _
 	if ( _spreadingFactor < 5 || _spreadingFactor > 11 ) return CR_INVALID_PARAMETER;
 	if ( _bandwidth < 7 || _bandwidth > 9 ) return CR_INVALID_PARAMETER;
 
+//SendCommandAndWaitPrint( str(F("AT+IPR?")) );
+
 	// Send configuration commands
-//  SendCommandAndWaitPrint( F("AT+IPR?") );
 	if ( SendCommandAndWaitVerify( str( F("AT") ), str( F("+OK") ) ) != RT_OK ) return CR_COMMAND_FAILED_AT;
 	delay( command_delay_ms );
 	if ( SendCommandAndWaitVerify( str( F("AT+NETWORKID=%d"), _networkID ), str( F( "+OK" ) ) ) != RT_OK ) return CR_COMMAND_FAILED_AT_NETWORKID;
@@ -391,7 +392,7 @@ RESPONSE_TYPE  SendCommandAndWaitVerify( const char* _command, const char* _expe
 }
 
 // For debugging purpose
-void  SendCommandAndWaitPrint( char* _command ) {
+void  SendCommandAndWaitPrint( const char* _command ) {
 	Log( str( F("Sending command %s"), _command ) );
 	char* reply = SendCommandAndWait( _command );
 	if ( reply != NULL ) {

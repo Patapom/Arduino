@@ -56,7 +56,6 @@ typedef const __FlashStringHelper	FChar;
 #include "./Helpers/Time.h"
 #include "./Helpers/HC-SR04.h"
 #include "./Helpers/Lora.h"
-#include "./Helpers/Commands.h"
 
 
 #if 1

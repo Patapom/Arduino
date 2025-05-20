@@ -7,7 +7,7 @@
 //
 #include "../Global.h"
 
-//#define DEBUG_MONITOR			// Define this when experimenting and debugging the monitor so we're using small time delays, default values can pause the device for 10 minutes!
+#define DEBUG_MONITOR			// Define this when experimenting and debugging the monitor so we're using small time delays, default values can pause the device for 10 minutes!
 
 #define USE_LOW_POWER_IDLE		// Define this to use the LowPower library and enter idle mode for 8s instead of a delay (delay still eats energy)
 #ifdef USE_LOW_POWER_IDLE
@@ -16,7 +16,7 @@
 
 class Monitor {
 
-	static constexpr U32	LORA_ADDRESS = 1;		// Be careful not to be the same as monitor (i.e. channel 0)!
+	static constexpr U32	LORA_ADDRESS = 1;		// Be careful not to be the same as receiver (i.e. channel 0)!
 
 	static constexpr float	FULL_TANK_VOLUME_L = 4000.0f;	// Full tank volume (litres)
 	static constexpr float	FULL_TANK_DISTANCE_M = 1.73f;	// Tank height when full (meters)

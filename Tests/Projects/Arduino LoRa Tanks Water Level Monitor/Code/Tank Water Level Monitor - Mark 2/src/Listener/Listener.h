@@ -14,13 +14,16 @@ class Listener {
 //		static const U32	MEASUREMENTS_COUNT = 110;				// = 880 bytes (1971 bytes, 96.2% of RAM)
 
 		// After refactor (4 bytes structure)
-static const U32	MEASUREMENTS_COUNT = 8;
+//static const U32	MEASUREMENTS_COUNT = 8;							// DEBUG PURPOSE
 //		static const U32	MEASUREMENTS_COUNT = 64;				// = 256 bytes (1329 bytes, 64.9% of RAM)
 //		static const U32	MEASUREMENTS_COUNT = 128;				// = 512 bytes (1585 bytes, 77.4% of RAM)
 //		static const U32	MEASUREMENTS_COUNT = 160;				// = 640 bytes (1713 bytes, 83.6% of RAM)
+		static const U32	MEASUREMENTS_COUNT = 192;				// = 768 bytes (1841 bytes, 89.9% of RAM)		END LIMIT AT 89.7% (211 free bytes)
+																	// At shortest 30s interval => Lasts 96 minutes
+																	// At longest  10m interval => Lasts 32 hours
 		// BREAKS BEYOND THAT!! LORA FAILS AFTER TIMEOUT!
-//		static const U32	MEASUREMENTS_COUNT = 192;				// = 768 bytes (1841 bytes, 89.9% of RAM)		END LIMIT AT 89.7% (211 free bytes)
-//		static const U32	MEASUREMENTS_COUNT = 159;				// = 954 bytes (2041 bytes, 99.7% of RAM) <= Can't use that as it prevents proper execution since some functions need a lot of stack memory
+//		static const U32	MEASUREMENTS_COUNT = 200;				// = 800 bytes (1871 bytes, 91.4% of RAM) <= Can't use that as it prevents proper execution since some functions need a lot of stack memory
+//		static const U32	MEASUREMENTS_COUNT = 238;				// = 952 bytes (2023 bytes, 98.8% of RAM) <= Can't use that as it prevents proper execution since some functions need a lot of stack memory
 
 		static const S32	MEASURE_DELTA_TIME_TOLERANCE_S = 10;	// Allow up to 10s of tolerance between measurements to consider them as identical
 

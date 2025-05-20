@@ -22,10 +22,11 @@ while ( true ) {
 //*/
 
 /* Test SR04
+SetupPins_HCSR04( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
 while ( true ) {
-//	Log( str( F("Allo?") ) );
-	float distance = MeasureDistance( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
-	Log( str( F("distance = %d"), distance );
+//	float distance = ::MeasureDistance( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
+//	Log( str( F("distance = %ld mm"), U32(1000 * distance) ) );
+	Measurement&	measurement = MeasureDistance();
 	delay( 100 );
 }
 //*/
@@ -50,7 +51,7 @@ while ( true ) {
 	#endif
 
 	// Initialize the LoRa module
-	CONFIG_RESULT configResult = ConfigureLoRaModule( NETWORK_ID, LORA_ADDRESS, LORA_CONFIG );
+	CONFIG_RESULT	configResult = ConfigureLoRaModule( NETWORK_ID, LORA_ADDRESS, LORA_CONFIG );
 
 	#ifdef DEBUG_LIGHT
 		if ( configResult == CR_OK ) {
@@ -59,6 +60,8 @@ while ( true ) {
 			LogError( 0, str( F("Configuration failed with code %d"), (int) configResult ) );
 		}
 	#endif
+
+	ERROR( configResult != CR_OK, "LoRa Configuration failed..." );
 
 	// Enable "smart mode"
 	#if defined(USE_SMART_MODE)
@@ -71,13 +74,6 @@ while ( true ) {
 			}
 		#endif
 	#endif
-
-	if ( configResult != CR_OK ) {
-		// In error...
-		while ( true ) {
-			Flash( PIN_LED_RED, 250, 1 );
-		}
-	}
 
 // Optional password encryption
 //	SendCommandAndWaitPrint( str( F("AT+CPIN?") ) );
@@ -140,7 +136,7 @@ LogDebug( str( F("Out of range!") ) );
 	} else if ( !firstTime ) {
 		// Compare with previous measurement to determine a flow rate and determine the sleep interval
 		// We want to sleep for shorter intervals when the flow is high, and for longer intervals when the flow is low
-		Measurement&	previousMeasurement = m_measurements[(m_measurementIndex - 1 + 0xFUL) & 0xFUL];
+		Measurement&	previousMeasurement = m_measurements[(m_measurementIndex + 0xFUL) & 0xFUL];
 
 		// Compute absolute flow rate in litres per minute
 		float	currentDistance_m = measurement.GetDistance();
@@ -158,6 +154,7 @@ LogDebug( str( F("Out of range!") ) );
 		float	flowRate_LPM = delta_L * 60.0f / delta_s;
 
 		#ifdef DEBUG_LIGHT
+			LogDebug( str( F("Previous measurement { %04u, %04u }"), previousMeasurement.time_s, previousMeasurement.rawValue_micros ) );
 			LogDebug( str( F("Previous.time = %u - Current.time = %u"), previousMeasurement.time_s, measurement.time_s ) );
 			LogDebug( str( F("Delta_m = %d - Delta_L = %d - Delta_s = %d"), S16(delta_m), S16(delta_L), S16(delta_s) ) );
 			Serial.print( F("Flow rate = ") );

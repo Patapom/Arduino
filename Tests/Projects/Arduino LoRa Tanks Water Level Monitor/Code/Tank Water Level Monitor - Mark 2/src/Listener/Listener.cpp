@@ -127,7 +127,7 @@ if ( debounce() ) {
 	char*	payload;
 	RECEIVE_RESULT	result = ReceivePeekACK( senderAddress, payloadLength, payload );
 
-#if 1
+#if 0
 if ( pipou ) {
 	pipou = false;
 	static char		pipouPayload[64];
@@ -265,9 +265,10 @@ LogDebug( str(F("Now = %ld - Then = %ld"), nowTime_s, m_lastMeasurementTime_s ) 
 	}
 
 	// Register only the new measurements
-	if ( newMeasurementIndex == 0 )
+	if ( newMeasurementIndex == 0 ) {
+LogDebug( str(F("Nothing new!")) );
 		return false;	// No new measurement...
-
+	}
 
 	// Go back one step to reach the last accepted measurement
 	newMeasurement--;
