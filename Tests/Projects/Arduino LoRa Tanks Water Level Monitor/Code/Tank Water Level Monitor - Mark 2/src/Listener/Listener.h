@@ -16,12 +16,17 @@ class Listener {
 		// After refactor (4 bytes structure)
 //static const U32	MEASUREMENTS_COUNT = 8;							// DEBUG PURPOSE
 //		static const U32	MEASUREMENTS_COUNT = 64;				// = 256 bytes (1329 bytes, 64.9% of RAM)
-//		static const U32	MEASUREMENTS_COUNT = 128;				// = 512 bytes (1585 bytes, 77.4% of RAM)
-//		static const U32	MEASUREMENTS_COUNT = 160;				// = 640 bytes (1713 bytes, 83.6% of RAM)
-		static const U32	MEASUREMENTS_COUNT = 192;				// = 768 bytes (1841 bytes, 89.9% of RAM)		END LIMIT AT 89.7% (211 free bytes)
-																	// At shortest 30s interval => Lasts 96 minutes
-																	// At longest  10m interval => Lasts 32 hours
-		// BREAKS BEYOND THAT!! LORA FAILS AFTER TIMEOUT!
+		static const U32	MEASUREMENTS_COUNT = 128;				// = 512 bytes (1585 bytes, 77.4% of RAM)
+																	// At shortest 30s interval => Lasts 64 minutes
+																	// At longest  10m interval => Lasts 10 hours and 40 minutes
+
+			// BREAKS AT CONFIG TIME!!
+//		static const U32	MEASUREMENTS_COUNT = 160;				// = 640 bytes (1723 bytes, 83.6% of RAM)
+
+			// BREAKS BEYOND THAT!! LORA FAILS WITH BUFFER OVERFLOW AT SOME POINT...
+//		static const U32	MEASUREMENTS_COUNT = 192;				// = 768 bytes (1841 bytes, 89.9% of RAM)		END LIMIT AT 89.7% (211 free bytes)
+//																	// At shortest 30s interval => Lasts 96 minutes
+//																	// At longest  10m interval => Lasts 32 hours
 //		static const U32	MEASUREMENTS_COUNT = 200;				// = 800 bytes (1871 bytes, 91.4% of RAM) <= Can't use that as it prevents proper execution since some functions need a lot of stack memory
 //		static const U32	MEASUREMENTS_COUNT = 238;				// = 952 bytes (2023 bytes, 98.8% of RAM) <= Can't use that as it prevents proper execution since some functions need a lot of stack memory
 
@@ -48,6 +53,7 @@ class Listener {
 		void 	loop();
 
 	private:
+		void	ReadCommand();
 		U32		RegisterMeasurements( const Time_ms& _now, Measurement* _newMeasurements, U32 _newMeasurementsCount );
-		void	SendMeasurements();
+		void	SendMeasurements( const Time_ms& _now );
 };

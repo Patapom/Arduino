@@ -7,7 +7,7 @@
 //
 #include "../Global.h"
 
-#define DEBUG_MONITOR			// Define this when experimenting and debugging the monitor so we're using small time delays, default values can pause the device for 10 minutes!
+//#define DEBUG_MONITOR			// Define this when experimenting and debugging the monitor so we're using small time delays, default values can pause the device for 10 minutes!
 
 #define USE_LOW_POWER_IDLE		// Define this to use the LowPower library and enter idle mode for 8s instead of a delay (delay still eats energy)
 #ifdef USE_LOW_POWER_IDLE

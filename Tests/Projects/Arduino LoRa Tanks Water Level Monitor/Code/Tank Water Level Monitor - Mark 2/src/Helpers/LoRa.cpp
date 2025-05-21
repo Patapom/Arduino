@@ -2,10 +2,6 @@
 
 static char	LoRaBuffer[_SS_MAX_RX_BUFF];	// Response buffer
 
-// Use the same buffer for TX and RX
-static char*	LoRaBuffer_RX = LoRaBuffer;
-//static char*	LoRaBuffer_TX = LoRaBuffer;	// Now directly using LoRa SoftwareSerial buffer for sending!
-
 SoftwareSerial	LoRa( PIN_LORA_RX, PIN_LORA_TX );
 
 
@@ -23,29 +19,9 @@ SEND_RESULT Send( U16 _targetAddress, U8 _payloadLength, const char* _payload ) 
 	if ( _payloadLength == 0 || _payloadLength > 240 ) return SR_INVALID_PAYLOAD_SIZE;
 
 	// Prepare command
-	#if 1	// New version sending the command immediately using the SoftwareSerial buffer
-		LoRa.print( str( F("AT+SEND=%d,%d,"), _targetAddress, _payloadLength ) );
-		LoRa.write( _payload, _payloadLength );	// Copy payload
-		LoRa.print( "\r\n" );
-	#else
-		char* command = LoRaBuffer_TX;
-		command += sprintf( command, str( F("AT+SEND=%d,%d,") ), _targetAddress, _payloadLength );
-		memcpy( command, _payload, _payloadLength );           // Copy payload
-		command += _payloadLength;
-		*command++ = '\r';
-		*command++ = '\n';
-		*command++ = '\0';
-
-//  if ( SendCommandAndWaitVerify( LoRaBuffer, F("+OK") ) != RT_OK ) return SR_ERROR; // <= If using this version then remove the "\r\n" that we add above otherwise the LoRa will believe we send 2 commands and will return an error
-
-	// Use the fast version using char*
-#ifdef DEBUG
-	LogDebug( str( F("Payload length = %d"), U32(command - LoRaBuffer) ) );
-	LogDebug( str( F("Sending command %s"), LoRaBuffer ) );
-#endif
-
-		SendCommand( LoRaBuffer_TX );
-	#endif
+	LoRa.print( str( F("AT+SEND=%d,%d,"), _targetAddress, _payloadLength ) );
+	LoRa.write( _payload, _payloadLength );	// Copy payload
+	LoRa.print( "\r\n" );
 
 	char* reply = WaitReply();
 	if ( reply == NULL )
@@ -88,20 +64,20 @@ RECEIVE_RESULT ReceivePeek( U16& _targetAddress, U8& _payloadLength, char*& _pay
 		return RR_EMPTY_BUFFER;
 
 	// Read reply
-	char*	p = LoRaBuffer_RX;
+	char*	p = LoRaBuffer;
 	char	C = '\0';
 	while ( C != '\n' ) {
 		while ( !LoRa.available() ) { delayMicroseconds( 50 ); }
 		C = LoRa.read();
 		*p++ = C;
-		ERROR( (p - LoRaBuffer_RX) > _SS_MAX_RX_BUFF, "LoRa buffer overflow!" );
+		ERROR( (p - LoRaBuffer) > _SS_MAX_RX_BUFF, "LoRa RX buffer overflow!" );
 	}
 	*p++ = '\0';  // Terminate string properly so it can be printed
 
-//Serial.print( str( F("Received payload (%d) = "), U16(p-LoRaBuffer_RX) ) );
-//Serial.print( LoRaBuffer_RX );
+//Serial.print( str( F("Received payload (%d) = "), U16(p-LoRaBuffer) ) );
+//Serial.print( LoRaBuffer );
 
-	return ExtractReply( LoRaBuffer_RX, _targetAddress, _payloadLength, _payload, _RSSI, _SNR );
+	return ExtractReply( LoRaBuffer, _targetAddress, _payloadLength, _payload, _RSSI, _SNR );
 }
 
 // Extracts the LoRa reply in the form of "+RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>"
@@ -326,7 +302,7 @@ CONFIG_RESULT  SetPassword( U32 _password ) {
 
 // Waits for a reply from the LoRa module
 char* WaitReply( U32 _timeOut_ms, U32 _maxIterationsCount ) {
-	char* p = LoRaBuffer_RX;
+	char* p = LoRaBuffer;
 	char  receivedChar = '\0';
 	U32   iterationsCount = 0;
 	while ( receivedChar != '\n' ) {
@@ -347,14 +323,16 @@ char* WaitReply( U32 _timeOut_ms, U32 _maxIterationsCount ) {
 		receivedChar = LoRa.read();
 		*p++ = receivedChar;  // Append characters to the received message
 		iterationsCount = 0;
+
+		ERROR( (p - LoRaBuffer) > _SS_MAX_RX_BUFF, "LoRa RX buffer overflow!" );
 	}
 
 	*p++ = '\0';  // Terminate string properly so it can be displayed...
 
 //Serial.println( F("Received reply!") );
-//  Serial.println( LoRaBuffer );  // Print the reply to the Serial monitor
+//Serial.println( LoRaBuffer );  // Print the reply to the Serial monitor
 
-	return LoRaBuffer_RX;
+	return LoRaBuffer;
 }
 char* WaitReply() { return WaitReply( ~0UL, ~0UL ); } // No timeout
 

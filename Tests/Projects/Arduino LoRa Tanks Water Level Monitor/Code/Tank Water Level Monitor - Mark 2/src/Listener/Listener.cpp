@@ -1,5 +1,7 @@
 ﻿#include "Listener.h"
 
+//#define ENABLE_PIPOU	// Define this to enable the push button that will create fake measurements (for testing purpose)
+
 void	Listener::setup() {
 	pinMode( PIN_LED_RED, OUTPUT );
 	pinMode( PIN_LED_GREEN, OUTPUT );
@@ -8,6 +10,8 @@ void	Listener::setup() {
 	// Initiate serial communication
 	Serial.begin( 19200 );        // This one is connected to the PC
 	while ( !Serial );            // Wait for serial port to connect. Needed for Native USB only
+
+	Flash( PIN_LED_GREEN, 50, 10 );
 
 /*	// Hardware reset LoRa module
 	pinMode( PIN_RESET, OUTPUT );
@@ -22,6 +26,14 @@ void	Listener::setup() {
 	SendCommandAndWaitPrint( str( F("AT+RESET") ) );  // Normally useless due to hard reset above
 	delay( 5000 );
 //*/
+
+//delay( 1000 );
+//LoRa.print( "AT\r\n" );
+//char*	reply = WaitReply( 1000, 1 );
+//LogDebug( str(F("Reply = %s"), reply != NULL ? reply : "TIME OUT") );
+////Serial.print( "Reply = " );
+////Serial.println( reply != NULL ? reply : "TIME OUT" );
+////Serial.println( reply != NULL ? "BLOUP" : "TIME OUT" );
 
 	#ifdef DEBUG_LIGHT
 		Log();
@@ -81,6 +93,7 @@ while ( true ) {
 	m_loopTime.GetTime();
 }
 
+#ifdef ENABLE_PIPOU
 bool	pipou = false;
 bool	read_button() { return digitalRead( Listener::PIN_BUTTON ); }
 bool	debounce_once() {
@@ -96,6 +109,7 @@ bool	debounce() {
 	}
 	return false;
 }
+#endif
 
 void	Listener::loop() {
 
@@ -103,11 +117,15 @@ void	Listener::loop() {
 	m_loopTime.GetTime();
 //Log( str(F("%08lX %08lX"), ((U32*) &m_loopTime.time_ms)[1], m_loopTime.time_ms ) );
 
-#if 1
+	// Listen for some command from the PC
+	if ( Serial.available() ) {
+		ReadCommand();
+	}
+
+#ifdef ENABLE_PIPOU
 if ( debounce() ) {
-	Serial.println( "PIPOU!" );
+	Serial.println( str(F("PIPOU!")) );
 	pipou = true;
-	delay( 500 );
 }
 #endif
 
@@ -127,14 +145,14 @@ if ( debounce() ) {
 	char*	payload;
 	RECEIVE_RESULT	result = ReceivePeekACK( senderAddress, payloadLength, payload );
 
-#if 0
+#ifdef ENABLE_PIPOU
 if ( pipou ) {
 	pipou = false;
 	static char		pipouPayload[64];
 //	static U32		lastPipouTime_s = 0;
 	static U32		pipouCount = 0;
 
-	strcpy( pipouPayload, "1,10,2,21,3,33,4,46,5" );
+	strcpy( pipouPayload, str(F("1,10,2,21,3,33,4,46,5")) );
 /*
 	char*	temp = pipouPayload;
 	temp += sprintf( temp, "%ld", pipouCount );
@@ -170,11 +188,11 @@ if ( pipou ) {
 	};
 
 //#ifdef DEBUG
-#ifdef DEBUG_LIGHT
-	Serial.println();
-	Serial.print( str( F("Received payload (%u) = "), U16( payloadLength ) ) );
-	Serial.println( payload );
-#endif
+//#ifdef DEBUG_LIGHT
+//	LogDebug();
+//	LogDebug( str( F("Received payload (%u) = "), U16( payloadLength ) ) );
+//	LogDebug( payload );
+//#endif
 
 	// Read measurements
 	Measurement		measurements[16];
@@ -227,7 +245,19 @@ if ( pipou ) {
 	// Register any new measurement
 	if ( RegisterMeasurements( m_loopTime, measurements, measurementsCount ) ) {
 		// Send that to the application on the PC
-		SendMeasurements();
+		SendMeasurements( m_loopTime );
+	}
+}
+
+void	Listener::ReadCommand() {
+	char	tempBuffer[256];
+	int		bufferLength = Serial.readBytesUntil( '\n', tempBuffer, 255 );
+	tempBuffer[bufferLength] = '\0';
+
+//LogDebug( str(F("Received command %s "), tempBuffer ) );
+
+	if ( strstr( tempBuffer, str( F("READ") ) ) == tempBuffer ) {
+		SendMeasurements( m_loopTime );
 	}
 }
 
@@ -235,7 +265,10 @@ if ( pipou ) {
 // Returns false if no new measurement could be registered
 U32	Listener::RegisterMeasurements( const Time_ms& _now, Measurement* _newMeasurements, U32 _newMeasurementsCount ) {
 
-#if 1
+	S32	nowTime_s = _now.time_ms / 1000ULL;
+
+#if 0
+LogDebug( str(F("Now = %ld - Then = %ld"), nowTime_s, m_lastMeasurementTime_s ) );
 //LogDebug( str(F("Global time: %d %d %08lX|%08lX"), m_globalTime.year, m_globalTime.day, ((U32*) &m_globalTime.time.time_ms)[1], ((U32*) &m_globalTime.time.time_ms)[0] ) );
 LogDebug( str(F("Received %d measurements:"), _newMeasurementsCount ) );
 for ( U32 i=0; i < _newMeasurementsCount; i++ ) {
@@ -243,9 +276,6 @@ for ( U32 i=0; i < _newMeasurementsCount; i++ ) {
 	LogDebug( str(F("#%lu => %d %04X"), i, _newMeasurements[i].time_s, _newMeasurements[i].rawValue_micros ) );
 }
 #endif
-
-	S32	nowTime_s = _now.time_ms / 1000;
-LogDebug( str(F("Now = %ld - Then = %ld"), nowTime_s, m_lastMeasurementTime_s ) );
 
 	// We just received some measurements with time stamps relative to the current time
 	//	• The new measurements are ordered from most recent to oldest
@@ -266,7 +296,7 @@ LogDebug( str(F("Now = %ld - Then = %ld"), nowTime_s, m_lastMeasurementTime_s ) 
 
 	// Register only the new measurements
 	if ( newMeasurementIndex == 0 ) {
-LogDebug( str(F("Nothing new!")) );
+		LogDebug( str(F("Nothing new!")) );
 		return false;	// No new measurement...
 	}
 
@@ -292,34 +322,36 @@ LogDebug( str(F("Nothing new!")) );
 
 		previousMeasurementTime_s = newMeasurementTime_s;
 
+#ifdef DEBUG_LIGHT
 LogDebug( str(F("Registering #%lu = {%d, %04X}"), m_measurementsCount, targetMeasurement.time_s, targetMeasurement.rawValue_micros ) );
+#endif
 	}
 
 	// Store the time of the newest measurement
 	m_lastMeasurementTime_s = nowTime_s;
 
+#ifdef DEBUG_LIGHT
 LogDebug( str(F("Found %d new measurements"), newMeasurementIndex ) );
+#endif
 
 	return newMeasurementIndex;
 }
 
 // Sends our entire array of measurements to the PC via Serial
-void	Listener::SendMeasurements() {
+void	Listener::SendMeasurements( const Time_ms& _now ) {
 	if ( m_measurementsCount == 0 )
 		return;
 
+	// Compute delta time to reach first measurement
+	S32	now_s = _now.time_ms / 1000ULL;
+	S32	deltaTimeToLastMeasurement_s = now_s - m_lastMeasurementTime_s;	// Always positive
+
 	// Format the measurements as a reply
-	U32	measurementsCount = min( MEASUREMENTS_COUNT, m_measurementsCount );
-	Serial.print( str( F("<MEASURES> #%d = "), measurementsCount ) );
+	U16	measurementsCount = min( MEASUREMENTS_COUNT, m_measurementsCount );
+	Serial.print( str( F("<MEASURES> #%d = %ld"), measurementsCount, deltaTimeToLastMeasurement_s ) );
 
-	// Write first measurement without a heading comma
-	{
-		const Measurement&	measurement = m_measurements[(m_measurementsCount-1) % MEASUREMENTS_COUNT];	// Loop around
-		Serial.print( str( F("%u,%u"), measurement.rawValue_micros, measurement.time_s ) );
-	}
-
-	// Write the rest
-	for ( U32 i=1; i < measurementsCount; i++ ) {
+	// Write measurements
+	for ( U32 i=0; i < measurementsCount; i++ ) {
 		U32					measurementIndex = (m_measurementsCount-1 - i) % MEASUREMENTS_COUNT;	// Loop around
 		const Measurement&	measurement = m_measurements[measurementIndex];
 		Serial.print( str( F(",%u,%u"), measurement.rawValue_micros, measurement.time_s ) );
