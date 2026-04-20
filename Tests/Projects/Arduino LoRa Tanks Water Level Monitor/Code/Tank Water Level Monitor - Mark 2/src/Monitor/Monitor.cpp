@@ -24,9 +24,9 @@ while ( true ) {
 /* Test SR04
 SetupPins_HCSR04( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
 while ( true ) {
-//	float distance = ::MeasureDistance( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
-//	Log( str( F("distance = %ld mm"), U32(1000 * distance) ) );
-	Measurement&	measurement = MeasureDistance();
+	float distance = ::MeasureDistance( PIN_HCSR04_TRIGGER, PIN_HCSR04_ECHO );
+	Log( str( F("distance = %ld mm"), U32(1000 * distance) ) );
+//	Measurement&	measurement = MeasureDistance();
 	delay( 100 );
 }
 //*/
@@ -131,7 +131,7 @@ void	Monitor::loop() {
 	if ( measurement.IsOutOfRange() ) {
 		// In case of a bad measurement, sleep for the least amount of time...
 		sleepDuration_s = MIN_SLEEP_DURATION_S;
-LogDebug( str( F("Out of range!") ) );
+//LogDebug( str( F("Out of range!") ) );
 
 	} else if ( !firstTime ) {
 		// Compare with previous measurement to determine a flow rate and determine the sleep interval
