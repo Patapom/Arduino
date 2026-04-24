@@ -33,7 +33,6 @@
 //	$GPGLL,4930.96893,N,12421.72849,W,220824.00,A,A*72
 //
 #include <Arduino.h>
-//#include "SoftwareSerial.h"
 #include <TinyGPSPlus.h>
 
 // File system & SD card libraries
@@ -41,38 +40,43 @@
 #include <SD.h>
 #include <FS.h>
 
-// GPS Communication & Decoding
-static const int 		pinRX = D0, pinTX = D1;
-static const uint32_t	GPSBaud = 9600;
-//SoftwareSerial	SoftSerial( RXPin, TXPin ); // RX, TX
-
 TinyGPSPlus		GPS;
+static const uint32_t	GPSBaud = 9600;
 
-// SD Card pins
+
+#if 1	// ESP32
+static const int 		pinMISO = GPIO_NUM_19, pinMOSI = GPIO_NUM_23, pinSCK = GPIO_NUM_18, pinCS = GPIO_NUM_5;	// SD Card pins
+static const int 		pinRX = GPIO_NUM_16, pinTX = GPIO_NUM_17;	// GPS Communication & Decoding
+#else	// XIAO
 //static const int 		pinMISO = D9, pinMOSI = D10, pinSCK = D8, pinCS = D2;
-static const int 		pinMISO = GPIO_NUM_9, pinMOSI = GPIO_NUM_10, pinSCK = GPIO_NUM_8, pinCS = GPIO_NUM_4;
+static const int 		pinMISO = GPIO_NUM_9, pinMOSI = GPIO_NUM_10, pinSCK = GPIO_NUM_8, pinCS = GPIO_NUM_4;	// SD Card pins
+static const int 		pinRX = GPIO_NUM_0, pinTX = GPIO_NUM_1;		// GPS Communication & Decoding
+#endif
 
 SPIClass	mySPI;
 
 void	setup() {
 	Serial.begin( 115200 );
-	while ( !Serial.isConnected() ) {
-		delay( 100 );
-	}
-essaie avec un vrai ESP32 et qu'on en finisse bordel !
+//	while ( !Serial.isConnected() ) {
+//		delay( 100 );
+//	}
 
-	delay( 2000 );
-	Serial.println( "Initializing..." );
+	delay( 1000 );
+
+	// =======================================================
+	Serial.println( "Initializing SD card module..." );
 
 	mySPI.begin( pinSCK, pinMISO, pinMOSI, pinCS );
-	if ( !SD.begin( pinCS, mySPI, 4000000U ) ) {
+	if ( !SD.begin( pinCS, mySPI ) ) {
+//	if ( !SD.begin( pinCS, mySPI, 4000000U ) ) {
 		Serial.println( "Card mount Failed!" );
+		return;
 	}
 
 	uint8_t	cardType = SD.cardType();
 	if ( cardType == CARD_NONE ) {
 		Serial.println( "No SD card attached!" );
-//		return;
+		return;
 	} else {
 		Serial.print( "SD Card Type: " );
 		switch ( cardType ) {
@@ -94,9 +98,9 @@ essaie avec un vrai ESP32 et qu'on en finisse bordel !
 	uint64_t cardSize = SD.cardSize() / (1024 * 1024);
 	Serial.printf( "SD Card Size: %lluMB\n", cardSize );
 
-//return;
+	// =======================================================
+	Serial.println( "Initializing GPS module..." );
 
-//	SoftSerial.begin( GPSBaud );
 	Serial1.begin( GPSBaud, SERIAL_8N1, pinRX, pinTX );
 
 	delay( 1000 );
@@ -104,17 +108,21 @@ essaie avec un vrai ESP32 et qu'on en finisse bordel !
 	Serial.println( "Awaiting GPS location data..." );
 }
 
+bool	foundFix = false;
+bool	findingFix = false;
+
 void	loop() {
 //	Serial.println( "COUCOU!" );
 //	delay( 1000 );
 //	return;
 
-//if ( Serial1.available() ) {
-//	Serial.print( (char) Serial1.read() );
-//}
-//return;
+#if 0 // Basic serial printing of GPS data
+	if ( Serial1.available() ) {
+		Serial.print( (char) Serial1.read() );
+	}
+	return;
+#endif
 
-//	if ( SoftSerial.available() == 0 || !GPS.encode( SoftSerial.read() ) ) {
 	if ( Serial1.available() == 0 || !GPS.encode( Serial1.read() ) ) {
 		if ( millis() > 5000 && GPS.charsProcessed() < 10 ) {
 			Serial.println( F("No GPS detected: check wiring.") );
@@ -125,13 +133,29 @@ void	loop() {
 	}
 
 	if ( GPS.location.isValid() ) {
+		foundFix = true;
+		if ( findingFix ) {
+			Serial.println( " FOUND!" );
+			findingFix = false;
+		}
+
 		Serial.print( "> Location " );
 		Serial.print( GPS.location.lat(), 6 );
 		Serial.print( ", " );
 		Serial.print( GPS.location.lng(), 6 );
 		Serial.println();
+
 	} else {
-		Serial.println( "Invalid GPS position..." );
+		if ( findingFix ) {
+			Serial.print( "." );
+		} else {
+			findingFix = true;
+			if ( !foundFix ) {
+				Serial.print( "Invalid GPS position → Waiting for a fix" );
+			} else {
+				Serial.print( "Lost fix → Waiting for a fix" );
+			}
+		}
 	}
 	delay( 1000 );
 }
