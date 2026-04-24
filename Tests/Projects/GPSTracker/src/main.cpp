@@ -132,20 +132,7 @@ void	loop() {
 		return;
 	}
 
-	if ( GPS.location.isValid() ) {
-		foundFix = true;
-		if ( findingFix ) {
-			Serial.println( " FOUND!" );
-			findingFix = false;
-		}
-
-		Serial.print( "> Location " );
-		Serial.print( GPS.location.lat(), 6 );
-		Serial.print( ", " );
-		Serial.print( GPS.location.lng(), 6 );
-		Serial.println();
-
-	} else {
+	if ( !GPS.location.isValid() && !GPS.time.isValid() && !GPS.date.isValid() ) {
 		if ( findingFix ) {
 			Serial.print( "." );
 		} else {
@@ -156,6 +143,31 @@ void	loop() {
 				Serial.print( "Lost fix → Waiting for a fix" );
 			}
 		}
+		delay( 1000 );
+		return;
 	}
+
+	foundFix = true;
+	if ( findingFix ) {
+		Serial.println( " FOUND!" );
+		findingFix = false;
+	}
+
+	if ( GPS.location.isValid() ) {
+		Serial.print( "> Location " );
+		Serial.print( GPS.location.lat(), 6 );
+		Serial.print( ", " );
+		Serial.print( GPS.location.lng(), 6 );
+		Serial.println();
+	}
+
+	if ( GPS.date.isValid() ) {
+		Serial.printf( "> Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
+	}
+
+	if ( GPS.time.isValid() ) {
+		Serial.printf( "> Time %02d:%02d:%02d\r\n", GPS.time.hour(), GPS.time.minute(), GPS.time.second() );
+	}
+
 	delay( 1000 );
 }
