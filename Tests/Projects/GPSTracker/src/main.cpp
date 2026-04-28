@@ -80,6 +80,7 @@
 
 TinyGPSPlus		GPS;
 static const uint32_t	GPSBaud = 9600;
+static const uint32_t	LORABaud = 115200;
 
 Adafruit_BNO055	bno = Adafruit_BNO055( 55, 0x29 );
 
@@ -87,6 +88,7 @@ Adafruit_BNO055	bno = Adafruit_BNO055( 55, 0x29 );
 static const int 		pinMISO = GPIO_NUM_19, pinMOSI = GPIO_NUM_23, pinSCK = GPIO_NUM_18, pinCS = GPIO_NUM_5;	// SD Card pins
 static const int 		pinRX = GPIO_NUM_16, pinTX = GPIO_NUM_17;	// GPS Communication & Decoding
 static const int		pinSDA = GPIO_NUM_21, pinSCL = GPIO_NUM_22;	// I2C for accelerometer
+static const int 		pinRX2 = GPIO_NUM_35, pinTX2 = GPIO_NUM_32;	// RYLR998 Lora Communication
 #else	// XIAO
 //static const int 		pinMISO = D9, pinMOSI = D10, pinSCK = D8, pinCS = D2;
 static const int 		pinMISO = GPIO_NUM_9, pinMOSI = GPIO_NUM_10, pinSCK = GPIO_NUM_8, pinCS = GPIO_NUM_4;	// SD Card pins
@@ -150,6 +152,29 @@ void tftPrintTest() {
 	tft.print(" seconds.");
 }
 
+void	TestTime() {
+	struct tm tm_utc = {0};
+	tm_utc.tm_year = 2025 - 1900;
+	tm_utc.tm_mon  = 3 - 1;
+	tm_utc.tm_mday = 10;
+	tm_utc.tm_hour = 12;
+	tm_utc.tm_min  = 0;
+	tm_utc.tm_sec  = 0;
+
+	// Convertir en time_t (interprété comme UTC)
+//	time_t	t = timegm( &tm_utc );  // GNU / POSIX
+//	time_t	t = _mkgmtime( &tm_utc );  // GNU / POSIX
+	time_t	t = mktime( &tm_utc );
+
+	// Définir le fuseau PST avec DST automatique
+	setenv( "TZ", "America/Los_Angeles", 1 );
+	setenv( "TZ", "PST8PDT,M3.2.0,M11.1.0", 1 );
+	tzset();
+
+	struct tm*	tm_pst = localtime( &t );
+
+	Serial.printf( "Heure PST/PDT: %s", asctime(tm_pst) );
+}
 
 void	setup() {
 	Serial.begin( 115200 );
@@ -158,6 +183,8 @@ void	setup() {
 //	}
 
 	delay( 1000 );
+
+TestTime();
 
 	pinMode( pinCS, OUTPUT );	// SD CS
 	pinMode( TFT_CS, OUTPUT );	// TFT CS
@@ -336,6 +363,33 @@ Serial.println("After init");
 	}
 //*/
 
+
+	// =======================================================
+	Serial.println( "Initializing LORA module..." );
+
+	Serial2.begin( LORABaud, SERIAL_8N1, pinRX2, pinTX2 );
+	delay( 1000 );
+
+	Serial2.write( "AT+VER?\r\n" );
+
+	// Read response
+	char	buffer[256];
+	bool	exit = false;
+	while ( !exit ) {
+		int	charsCount = Serial2.available();
+		if ( charsCount == 0 )
+			continue;
+
+		Serial2.read( buffer, charsCount );
+		for ( int i=0; i < charsCount; i++ ) {
+			char	C = buffer[i];
+			Serial.print( C );
+			if ( C == '\n' )
+				exit = true;
+		}
+	}
+
+
 	// =======================================================
 	Serial.println( "Initializing GPS module..." );
 
@@ -392,6 +446,7 @@ void	loop() {
 	}
 
 	ShowGPSData();
+	delay( 1000 );
 }
 
 void	ShowMagnetometerData() {
@@ -499,7 +554,11 @@ void	RestoreOffsets() {
 	bno.getSensorOffsets( offsets );
 }
 
+void	ShowGPSDateTime();
+
 void	ShowGPSData() {
+
+	ShowGPSDateTime();
 
 	if ( !GPS.location.isValid() ) {
 		if ( findingFix ) {
@@ -512,7 +571,7 @@ void	ShowGPSData() {
 				Serial.print( "Lost fix → Waiting for a fix" );
 			}
 		}
-		delay( 1000 );
+
 		return;
 	}
 
@@ -529,40 +588,45 @@ void	ShowGPSData() {
 		Serial.print( GPS.location.lng(), 6 );
 		Serial.println();
 	}
+}
 
-	if ( GPS.date.isValid() && GPS.time.isValid() ) {
-		struct tm	t;
+// So apparently we can get a "valid" time and date that is clearly wrong, even without a location fix...
+// I think it's best to wait for a proper satellite fix before reading the date & time! (it can take a while though :/)
+//
+void	ShowGPSDateTime() {
+	if ( !GPS.date.isValid() || !GPS.time.isValid() )
+		return;
+	
+	struct tm	utc;
+				utc.tm_year = GPS.date.year() - 1900;
+				utc.tm_mon  = GPS.date.month() - 1;
+				utc.tm_mday = GPS.date.day();
+				utc.tm_hour = GPS.time.hour();
+				utc.tm_min  = GPS.time.minute();
+				utc.tm_sec  = GPS.time.second();
 
-		t.tm_year = GPS.date.year() - 1900;
-		t.tm_mon  = GPS.date.month() - 1;
-		t.tm_mday = GPS.date.day();
-		t.tm_hour = GPS.time.hour();
-		t.tm_min  = GPS.time.minute();
-		t.tm_sec  = GPS.time.second();
 
+//	// UTC time zone
+//	setenv( "TZ", "UTC0", 1 );
+//	tzset();
+//	time_t	utc = mktime( &t );
 
-		// UTC time zone
-		setenv( "TZ", "UTC0", 1 );
-		tzset();
-		time_t	utc = mktime( &t );
+	// Vancouver Time Zone
+	setenv( "TZ", "PST8PDT,M3.2.0,M11.1.0", 1 );
+	tzset();
 
-		// Vancouver Time Zone
-		setenv( "TZ", "PST8PDT,M3.2.0,M11.1.0", 1 );
-		tzset();
-		utc = mktime( &t );	// Convert into timestamp
-//		time_t 		utc = timegm( &t );
-		struct tm*	local = localtime( &utc );
+	// Convert into timestamp
+//	time_t		t = timegm( &t );	// Non standard... Doesn't exist on ESP32
+	time_t		t = mktime( &utc );
+	struct tm*	local = localtime( &t );
 
-		// UTC
-//		Serial.printf( "> Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
-//		Serial.printf( "> Time %02d:%02d:%02d\r\n", GPS.time.hour(), GPS.time.minute(), GPS.time.second() );
+	// UTC
+	Serial.printf( "> UTC Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
+	Serial.printf( "> UTC Time %02d:%02d:%02d\r\n", GPS.time.hour(), GPS.time.minute(), GPS.time.second() );
 
-		// Local
-		Serial.printf( "> Date %04d/%02d/%02d\r\n", local->tm_year, local->tm_mon, local->tm_mday );
-		Serial.printf( "> Time %02d:%02d:%02d\r\n", local->tm_hour, local->tm_min, local->tm_sec );
-	}
-
-	delay( 1000 );
+	// Local
+	Serial.printf( "> Date %04d/%02d/%02d\r\n", local->tm_year, local->tm_mon, local->tm_mday );
+	Serial.printf( "> Time %02d:%02d:%02d\r\n", local->tm_hour, local->tm_min, local->tm_sec );
 }
 
 void	ScanI2C() {
