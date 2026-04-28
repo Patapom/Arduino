@@ -357,14 +357,14 @@ Serial.println("After init");
 	// Show calibration values
 	GetCalibration();	// MAG should be at 3 to be working properly!
 
-	if ( ShouldCalibrate() ) {
-		Serial.println( "Entering calibration mode..." );
-		Calibrate();
-	}
+//	if ( ShouldCalibrate() ) {
+//		Serial.println( "Entering calibration mode..." );
+//		Calibrate();
+//	}
 //*/
 
 
-	// =======================================================
+/*	// =======================================================
 	Serial.println( "Initializing LORA module..." );
 
 	Serial2.begin( LORABaud, SERIAL_8N1, pinRX2, pinTX2 );
@@ -388,7 +388,7 @@ Serial.println("After init");
 				exit = true;
 		}
 	}
-
+//*/
 
 	// =======================================================
 	Serial.println( "Initializing GPS module..." );
@@ -590,6 +590,32 @@ void	ShowGPSData() {
 	}
 }
 
+time_t gpsToUnixUTC( struct tm& t ) {
+	static const int days_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+
+	int year = t.tm_year + 1900;
+	int month = t.tm_mon + 1;
+
+	// années depuis 1970
+	long days = 0;
+	for (int y = 1970; y < year; y++) {
+		days += ( (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) ) ? 366 : 365;
+	}
+
+	for (int m = 1; m < month; m++) {
+		days += days_month[m-1];
+		if (m == 2 && ((year%4==0 && year%100!=0) || (year%400==0)))
+			days += 1;
+	}
+
+	days += (t.tm_mday - 1);
+
+	return days * 86400
+			+ t.tm_hour * 3600
+			+ t.tm_min * 60
+			+ t.tm_sec;
+}
+
 // So apparently we can get a "valid" time and date that is clearly wrong, even without a location fix...
 // I think it's best to wait for a proper satellite fix before reading the date & time! (it can take a while though :/)
 //
@@ -605,20 +631,22 @@ void	ShowGPSDateTime() {
 				utc.tm_min  = GPS.time.minute();
 				utc.tm_sec  = GPS.time.second();
 
+	// UTC time zone
+	setenv( "TZ", "UTC0", 1 );
+	tzset();
 
-//	// UTC time zone
-//	setenv( "TZ", "UTC0", 1 );
-//	tzset();
-//	time_t	utc = mktime( &t );
+	// Convert into timestamp
+//	time_t		t = timegm( &t );	// Non standard... Doesn't exist on ESP32
+//	time_t		t = mktime( &utc );
+	time_t		t = gpsToUnixUTC( utc );
 
 	// Vancouver Time Zone
 	setenv( "TZ", "PST8PDT,M3.2.0,M11.1.0", 1 );
 	tzset();
 
-	// Convert into timestamp
-//	time_t		t = timegm( &t );	// Non standard... Doesn't exist on ESP32
-	time_t		t = mktime( &utc );
 	struct tm*	local = localtime( &t );
+				local->tm_year += 1900;
+				local->tm_mon++;
 
 	// UTC
 	Serial.printf( "> UTC Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
