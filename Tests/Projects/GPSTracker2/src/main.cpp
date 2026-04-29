@@ -1,48 +1,57 @@
+
+// Wake →
+//   Power GPS ON →
+//   Attendre fix (max 15 s) →
+//   Lire position →
+//   Power GPS OFF →
+//   Init LoRa →
+//   Envoyer →
+//   Sleep	(1 à 5 minutes selon qu'on a bougé ou non)
+//
+// Sleep:
+//	esp_sleep_enable_timer_wakeup(60LL * 1000000); // 60 s
+//	esp_deep_sleep_start();
+//
+// Optims:
+// 	WiFi.mode(WIFI_OFF);
+//	btStop();
+#include "Global.h"
+
 #include <Arduino.h>
 
-// I2C & SPI
 #include <SPI.h>
 
 // TFT screen (ST7789 v3.0)
-#if 1
 #include <Adafruit_GFX.h>		// Core graphics library
-//#include <Adafruit_I2CDevice.h>
 #include <Adafruit_ST7789.h>	// Hardware-specific library for ST7789
-
-//#define TFT_MOSI 23  // SDA Pin on ESP32
-//#define TFT_SCLK 18  // SCL Pin on ESP32
-//#define TFT_CS   15  // Chip select control pin
-//#define TFT_DC    2  // Data Command control pin
-//#define TFT_RST   4  // Reset pin (could connect to RST pin)
 
 #define TFT_MOSI	23	// SDA Pin on ESP32
 #define TFT_SCLK	18	// SCL Pin on ESP32
-//#define TFT_RST		27
-//#define TFT_DC		26	// Data Command control pin
-//#define TFT_CS		5	// Chip select control pin
-
 #define TFT_RST		33
 #define TFT_DC		25	// Data Command control pin
 #define TFT_CS		26	// Chip select control pin
 
-
-#else
-
-#include "../include/User_Setup.h"
-#include <TFT_eSPI.h>
-
-TFT_eSPI	tft = TFT_eSPI();
-
-#endif
-
-
-static const int 		pinMISO = GPIO_NUM_19, pinMOSI = GPIO_NUM_23, pinSCK = GPIO_NUM_18, pinCS = GPIO_NUM_5;	// SD Card pins
-
-//SPIClass	mySPI;
-
 // Initialize Adafruit ST7789 TFT library
 Adafruit_ST7789	tft = Adafruit_ST7789( TFT_CS, TFT_DC, TFT_RST );
- 
+
+// GPS Module (Neo 6M)
+#include <TinyGPSPlus.h>
+
+#define	GPS_BAUD	9600
+#define	PIN_GPS_RX	17
+#define	PIN_GPS_TX	16
+TinyGPSPlus		GPS;
+
+// LORA
+#include "LORA.h"
+
+#define	LORA_BAUD	115200
+#define	PIN_LORA_RX	35
+#define	PIN_LORA_TX	32
+
+LORA	lora( 1 );
+
+
 float p = 3.1415926;
  
 void tftPrintTest() {
@@ -61,9 +70,9 @@ void tftPrintTest() {
 	tft.setTextColor(ST77XX_BLUE);
 	tft.setTextSize(4);
 	tft.print(1234.567);
+}
 
-	delay(1500);
-
+void tftPrintTest2() {
 	tft.setCursor(0, 0);
 	tft.fillScreen(ST77XX_BLACK);
 	tft.setTextColor(ST77XX_WHITE);
@@ -87,6 +96,7 @@ void tftPrintTest() {
 }
 
 
+int		startTime_ms;
 void	setup() {
 	Serial.begin( 115200 );
 
@@ -95,8 +105,7 @@ void	setup() {
 	// =======================================================
 	Serial.println( "Initializing SPI..." );
 
-//	mySPI.begin( pinSCK, pinMISO, pinMOSI, pinCS );
-	SPI.begin( pinSCK, pinMISO, pinMOSI );
+	SPI.begin( TFT_SCLK, -1, TFT_MOSI );
 
 
 //*	// =======================================================
@@ -106,80 +115,191 @@ Serial.printf( "TFT_RST = %d, TFT_DC = %d, TFT_CS = %d\r\n", TFT_RST, TFT_DC, TF
 
 Serial.println("Before init");
 
-#if 1
-
-/*pinMode( TFT_RST, OUTPUT );
-digitalWrite(TFT_RST, HIGH);
-
-SPI.transfer(0x11);
-delay(120);
-
-// display on
-SPI.transfer(0x29);
-
-// write RAM
-SPI.transfer(0x2C);
-
-while( 1 );
-//*/
-
 	tft.init( 240, 280, SPI_MODE0 );	// Init ST7789 display 135x240 pixel
 	tft.setRotation( 2 );
 //	tft.fillScreen( ST77XX_BLACK );
 	tft.fillScreen( ST77XX_RED );
 
-/*
-digitalWrite( TFT_CS, LOW );
-
-// Commande RAM write
-digitalWrite( TFT_DC, LOW );
-SPI.transfer( 0x2C );
-
-// Données
-digitalWrite( TFT_DC, HIGH );
-for (int i = 0; i < 240 * 240; i++) {
-	SPI.transfer( 0xF8 );	// rouge
-	SPI.transfer( 0x00 );
-}
-
-digitalWrite( TFT_CS, HIGH );
-*/
-
-//while ( 1 );
-
-#else
-	tft.init();
-
-	#if 1
-	tft.setRotation( 0 );
-	tft.fillScreen( TFT_RED );
-	#else
-	tft.setRotation( 1 );
-	
-	tft.fillScreen( TFT_BLACK );
-	tft.setTextColor( TFT_WHITE );
-	tft.setTextSize( 2 );
-
-	tft.setCursor( 10, 10 );
-	tft.println( "ESP32 ST7789 OK" );
-//	tft.drawPixel( 10, 10, TFT_WHITE );
-	#endif
-
-#endif
-
 Serial.println("After init");
+//*/
+
+//*	// =======================================================
+	Serial.println( "Initializing LORA module..." );
+
+	if ( !lora.Begin( Serial2, LORA_BAUD, PIN_LORA_RX, PIN_LORA_TX ) ) {
+		Serial.println( "Initialization failed..." );
+		Serial.printf( "Last error → %s\r\n", lora.LastErrorString() );
+		Serial.printf( "Return → %s\r\n", lora.m_receiveBuffer );
+		while ( 1 );
+	}
+//*/
+
+//*	// =======================================================
+	Serial.println( "Initializing GPS..." );
+
+	Serial1.begin( GPS_BAUD, SERIAL_8N1, PIN_GPS_RX, PIN_GPS_TX );
+
+	delay( 1000 );
+
+	Serial.println( "Awaiting GPS location data..." );
+//*/
+
+	startTime_ms = millis();
 }
+
+bool	foundFix = false;
+bool	findingFix = false;
+
+int		displayCounter = 0;
+int		lastDisplayTime_ms = -1000;
+
+void	ShowGPSDateTime();
+void	ShowGPSData();
 
 void	loop() {
 //	Serial.println( "COUCOU!" );
 //	delay( 1000 );
 //	return;
 
-	tft.invertDisplay( true );
-	tftPrintTest();
-	delay( 1000 );
+//*	/////////////////////////////////////////////////////////////////////
+	// Update display
+	//
+	int	now_ms = millis();
+	if ( now_ms - lastDisplayTime_ms > 1000 ) {
+		displayCounter++;
 
-	tft.invertDisplay( false );
-	tftPrintTest();
+		if ( displayCounter & 1 ) {
+			tftPrintTest();
+		} else {
+			tftPrintTest2();
+		}
+		tft.invertDisplay( displayCounter & 2 );
+
+		lastDisplayTime_ms = now_ms;
+	}
+//*/
+
+	////////////////////////////////////////////////////////////////////
+	// Update GPS
+	//
+
+#if 0 // Basic serial printing of GPS data
+	if ( Serial1.available() ) {
+		Serial.print( (char) Serial1.read() );
+	}
+	return;
+#endif
+
+	if ( Serial1.available() == 0 || !GPS.encode( Serial1.read() ) ) {
+		if ( (millis() - startTime_ms) > 5000 && GPS.charsProcessed() < 10 ) {
+			Serial.println( F("No GPS detected: check wiring.") );
+			while(true);
+		}
+		delay( 100 );
+		return;
+	}
+
+	ShowGPSData();
 	delay( 1000 );
+}
+
+void	ShowGPSData() {
+
+	ShowGPSDateTime();
+
+	if ( !GPS.location.isValid() ) {
+		if ( findingFix ) {
+			Serial.print( "." );
+		} else {
+			findingFix = true;
+			if ( !foundFix ) {
+				Serial.print( "Invalid GPS position → Waiting for a fix" );
+			} else {
+				Serial.print( "Lost fix → Waiting for a fix" );
+			}
+		}
+
+		return;
+	}
+
+	foundFix = true;
+	if ( findingFix ) {
+		Serial.println( " FOUND!" );
+		findingFix = false;
+	}
+
+	if ( GPS.location.isValid() ) {
+		Serial.print( "> Location " );
+		Serial.print( GPS.location.lat(), 6 );
+		Serial.print( ", " );
+		Serial.print( GPS.location.lng(), 6 );
+		Serial.println();
+	}
+}
+
+time_t gpsToUnixUTC( struct tm& t ) {
+	static const int days_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+
+	int year = t.tm_year + 1900;
+	int month = t.tm_mon + 1;
+
+	// années depuis 1970
+	long days = 0;
+	for (int y = 1970; y < year; y++) {
+		days += ( (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) ) ? 366 : 365;
+	}
+
+	for (int m = 1; m < month; m++) {
+		days += days_month[m-1];
+		if (m == 2 && ((year%4==0 && year%100!=0) || (year%400==0)))
+			days += 1;
+	}
+
+	days += (t.tm_mday - 1);
+
+	return days * 86400
+			+ t.tm_hour * 3600
+			+ t.tm_min * 60
+			+ t.tm_sec;
+}
+
+// So apparently we can get a "valid" time and date that is clearly wrong, even without a location fix...
+// I think it's best to wait for a proper satellite fix before reading the date & time! (it can take a while though :/)
+//
+void	ShowGPSDateTime() {
+	if ( !GPS.date.isValid() || !GPS.time.isValid() )
+		return;
+	
+	struct tm	utc;
+				utc.tm_year = GPS.date.year() - 1900;
+				utc.tm_mon  = GPS.date.month() - 1;
+				utc.tm_mday = GPS.date.day();
+				utc.tm_hour = GPS.time.hour();
+				utc.tm_min  = GPS.time.minute();
+				utc.tm_sec  = GPS.time.second();
+
+	// UTC time zone
+	setenv( "TZ", "UTC0", 1 );
+	tzset();
+
+	// Convert into timestamp
+//	time_t		t = timegm( &t );	// Non standard... Doesn't exist on ESP32
+//	time_t		t = mktime( &utc );
+	time_t		t = gpsToUnixUTC( utc );
+
+	// Vancouver Time Zone
+	setenv( "TZ", "PST8PDT,M3.2.0,M11.1.0", 1 );
+	tzset();
+
+	struct tm*	local = localtime( &t );
+				local->tm_year += 1900;
+				local->tm_mon++;
+
+	// UTC
+	Serial.printf( "> UTC Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
+	Serial.printf( "> UTC Time %02d:%02d:%02d\r\n", GPS.time.hour(), GPS.time.minute(), GPS.time.second() );
+
+	// Local
+	Serial.printf( "> Date %04d/%02d/%02d\r\n", local->tm_year, local->tm_mon, local->tm_mday );
+	Serial.printf( "> Time %02d:%02d:%02d\r\n", local->tm_hour, local->tm_min, local->tm_sec );
 }
