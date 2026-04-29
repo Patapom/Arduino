@@ -24,6 +24,7 @@
 // TFT screen (ST7789 v3.0)
 #include <Adafruit_GFX.h>		// Core graphics library
 #include <Adafruit_ST7789.h>	// Hardware-specific library for ST7789
+#include "Modules/Display.h"
 
 #define TFT_MOSI	23	// SDA Pin on ESP32
 #define TFT_SCLK	18	// SCL Pin on ESP32
@@ -33,6 +34,7 @@
 
 // Initialize Adafruit ST7789 TFT library
 Adafruit_ST7789	tft = Adafruit_ST7789( TFT_CS, TFT_DC, TFT_RST );
+TFTDisplay		display( tft );
 
 // GPS Module (Neo 6M)
 #include <TinyGPSPlus.h>
@@ -49,51 +51,7 @@ TinyGPSPlus		GPS;
 #define	PIN_LORA_RX	35
 #define	PIN_LORA_TX	32
 
-LORA	lora( 1 );
-
-
-float p = 3.1415926;
- 
-void tftPrintTest() {
-	tft.setTextWrap(false);
-	tft.fillScreen(ST77XX_BLACK);
-	tft.setCursor(0, 30);
-	tft.setTextColor(ST77XX_RED);
-	tft.setTextSize(1);
-	tft.println("Hello World!");
-	tft.setTextColor(ST77XX_YELLOW);
-	tft.setTextSize(2);
-	tft.println("Hello World!");
-	tft.setTextColor(ST77XX_GREEN);
-	tft.setTextSize(3);
-	tft.println("Hello World!");
-	tft.setTextColor(ST77XX_BLUE);
-	tft.setTextSize(4);
-	tft.print(1234.567);
-}
-
-void tftPrintTest2() {
-	tft.setCursor(0, 0);
-	tft.fillScreen(ST77XX_BLACK);
-	tft.setTextColor(ST77XX_WHITE);
-	tft.setTextSize(0);
-	tft.println("Hello World!");
-	tft.setTextSize(1);
-	tft.setTextColor(ST77XX_GREEN);
-	tft.print(p, 6);
-	tft.println(" Want pi?");
-	tft.println(" ");
-	tft.print(8675309, HEX); // print 8,675,309 out in HEX!
-	tft.println(" Print HEX!");
-	tft.println(" ");
-	tft.setTextColor(ST77XX_WHITE);
-	tft.println("Sketch has been");
-	tft.println("running for: ");
-	tft.setTextColor(ST77XX_MAGENTA);
-	tft.print(millis() / 1000);
-	tft.setTextColor(ST77XX_WHITE);
-	tft.print(" seconds.");
-}
+LORA	lora( 2 );
 
 
 int		startTime_ms;
@@ -111,20 +69,21 @@ void	setup() {
 //*	// =======================================================
 	Serial.println( "Initializing TFT Screen..." );
 
-Serial.printf( "TFT_RST = %d, TFT_DC = %d, TFT_CS = %d\r\n", TFT_RST, TFT_DC, TFT_CS );
+//Serial.printf( "TFT_RST = %d, TFT_DC = %d, TFT_CS = %d\r\n", TFT_RST, TFT_DC, TFT_CS );
 
-Serial.println("Before init");
+//Serial.println("Before init");
 
 	tft.init( 240, 280, SPI_MODE0 );	// Init ST7789 display 135x240 pixel
-	tft.setRotation( 2 );
-//	tft.fillScreen( ST77XX_BLACK );
-	tft.fillScreen( ST77XX_RED );
+	tft.setRotation( 3 );
 
-Serial.println("After init");
+	display.Clear( 255, 128, 32 );
+	display.SetTextProperties( 2, 0, 0, 0 );
+
+//Serial.println("After init");
 //*/
 
 //*	// =======================================================
-	Serial.println( "Initializing LORA module..." );
+	display.println( "Initializing LORA module..." );
 
 #if 0	// Functional!
 	Serial2.begin( LORA_BAUD, SERIAL_8N1, PIN_LORA_RX, PIN_LORA_TX );
@@ -151,21 +110,21 @@ Serial.println("After init");
 #endif
 
 	if ( !lora.Begin( Serial2, LORA_BAUD, PIN_LORA_RX, PIN_LORA_TX ) ) {
-		Serial.println( "Initialization failed..." );
-		Serial.printf( "Last error → %s\r\n", lora.LastErrorString() );
-		Serial.printf( "Return → %s\r\n", lora.m_receiveBuffer );
+		display.println( "Initialization failed..." );
+		display.printf( "Last error → %s\r\n", lora.LastErrorString() );
+		display.printf( "Return → %s\r\n", lora.m_receiveBuffer );
 		while ( 1 );
 	}
 //*/
 
 //*	// =======================================================
-	Serial.println( "Initializing GPS..." );
+	display.println( "Initializing GPS..." );
 
 	Serial1.begin( GPS_BAUD, SERIAL_8N1, PIN_GPS_RX, PIN_GPS_TX );
 
 	delay( 1000 );
 
-	Serial.println( "Awaiting GPS location data..." );
+	display.println( "Awaiting GPS location data..." );
 //*/
 
 	startTime_ms = millis();
@@ -185,7 +144,7 @@ void	loop() {
 //	delay( 1000 );
 //	return;
 
-//*	/////////////////////////////////////////////////////////////////////
+/*	/////////////////////////////////////////////////////////////////////
 	// Update display
 	//
 	int	now_ms = millis();
@@ -193,9 +152,9 @@ void	loop() {
 		displayCounter++;
 
 		if ( displayCounter & 1 ) {
-			tftPrintTest();
+			display.PrintTest();
 		} else {
-			tftPrintTest2();
+			display.PrintTest2();
 		}
 		tft.invertDisplay( displayCounter & 2 );
 
@@ -216,7 +175,7 @@ void	loop() {
 
 	if ( Serial1.available() == 0 || !GPS.encode( Serial1.read() ) ) {
 		if ( (millis() - startTime_ms) > 5000 && GPS.charsProcessed() < 10 ) {
-			Serial.println( F("No GPS detected: check wiring.") );
+			display.println( "No GPS detected: check wiring." );
 			while(true);
 		}
 		delay( 100 );
@@ -233,13 +192,13 @@ void	ShowGPSData() {
 
 	if ( !GPS.location.isValid() ) {
 		if ( findingFix ) {
-			Serial.print( "." );
+			display.print( "." );
 		} else {
 			findingFix = true;
 			if ( !foundFix ) {
-				Serial.print( "Invalid GPS position → Waiting for a fix" );
+				display.print( "Invalid GPS position → Waiting for a fix" );
 			} else {
-				Serial.print( "Lost fix → Waiting for a fix" );
+				display.print( "Lost fix → Waiting for a fix" );
 			}
 		}
 
@@ -248,16 +207,12 @@ void	ShowGPSData() {
 
 	foundFix = true;
 	if ( findingFix ) {
-		Serial.println( " FOUND!" );
+		display.println( " FOUND!" );
 		findingFix = false;
 	}
 
 	if ( GPS.location.isValid() ) {
-		Serial.print( "> Location " );
-		Serial.print( GPS.location.lat(), 6 );
-		Serial.print( ", " );
-		Serial.print( GPS.location.lng(), 6 );
-		Serial.println();
+		display.printf( "> Location %f, %f\r\n", GPS.location.lat(), GPS.location.lng() );
 	}
 }
 
@@ -320,10 +275,10 @@ void	ShowGPSDateTime() {
 				local->tm_mon++;
 
 	// UTC
-	Serial.printf( "> UTC Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
-	Serial.printf( "> UTC Time %02d:%02d:%02d\r\n", GPS.time.hour(), GPS.time.minute(), GPS.time.second() );
+	display.printf( "> UTC Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
+	display.printf( "> UTC Time %02d:%02d:%02d\r\n", GPS.time.hour(), GPS.time.minute(), GPS.time.second() );
 
 	// Local
-	Serial.printf( "> Date %04d/%02d/%02d\r\n", local->tm_year, local->tm_mon, local->tm_mday );
-	Serial.printf( "> Time %02d:%02d:%02d\r\n", local->tm_hour, local->tm_min, local->tm_sec );
+	display.printf( "> Date %04d/%02d/%02d\r\n", local->tm_year, local->tm_mon, local->tm_mday );
+	display.printf( "> Time %02d:%02d:%02d\r\n", local->tm_hour, local->tm_min, local->tm_sec );
 }

@@ -61,12 +61,14 @@ bool	LORA::Begin( HardwareSerial& _serial, U32 _baudRate, U8 _pinRX, U8 _pinTX )
 		return false;
 	}
 
-	// SF=12 → max range
-	// BW=7 → short band
-	// CR=1 → robust
-	// Preamble=4 → Only if network ID == 18 !
+	// ChatGPT shitty proposal:
+	// 	SF=12 → max range
+	// 	BW=7 → short band
+	// 	CR=1 → robust
+	// 	Preamble=4 → Only if network ID == 18 !
 	//
 //	Write( F("AT+PARAMETER=12,7,1,4\r\n") );
+
 	Write( F("AT+PARAMETER=9,7,1,12\r\n") );	// Default
 	if ( Expect( F("+OK"), 1000 ) != RESPONSE_TYPE::OK ) {
 		SetLastErrorString( "Parameters → Received \"%s\" instead of \"+OK\" (REPLY=%s)", m_receiveBuffer, LastReplyCode() );
@@ -92,7 +94,7 @@ bool	LORA::SetMode( bool _sleep ) {
 }
 
 bool	LORA::Send( const U8* _payload, U32 _payloadLength ) {
-
+	return true;
 }
 
 const char*	LORA::LastReplyCode() {
@@ -119,7 +121,7 @@ void	LORA::Write( const U8* _string, U32 _size ) {
 #endif
 //	((char*) _string)[_size] = '\0';	// Just make sure string terminates!
 
-DEBUG( "Writing \"%s\"\r\n", _string );
+//DEBUG( "Writing \"%s\"\r\n", _string );
 
 	m_serial->write( _string, _size );
 }
