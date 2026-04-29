@@ -43,7 +43,7 @@ Adafruit_ST7789	tft = Adafruit_ST7789( TFT_CS, TFT_DC, TFT_RST );
 TinyGPSPlus		GPS;
 
 // LORA
-#include "LORA.h"
+#include "Modules/LORA.h"
 
 #define	LORA_BAUD	115200
 #define	PIN_LORA_RX	35
@@ -125,6 +125,30 @@ Serial.println("After init");
 
 //*	// =======================================================
 	Serial.println( "Initializing LORA module..." );
+
+#if 0	// Functional!
+	Serial2.begin( LORA_BAUD, SERIAL_8N1, PIN_LORA_RX, PIN_LORA_TX );
+	delay( 1000 );
+
+	Serial2.write( "AT+VER?\r\n" );
+
+	// Read response
+	char	buffer[256];
+	bool	exit = false;
+	while ( !exit ) {
+		int	charsCount = Serial2.available();
+		if ( charsCount == 0 )
+			continue;
+
+		Serial2.read( buffer, charsCount );
+		for ( int i=0; i < charsCount; i++ ) {
+			char	C = buffer[i];
+			Serial.print( C );
+			if ( C == '\n' )
+				exit = true;
+		}
+	}
+#endif
 
 	if ( !lora.Begin( Serial2, LORA_BAUD, PIN_LORA_RX, PIN_LORA_TX ) ) {
 		Serial.println( "Initialization failed..." );
