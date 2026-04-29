@@ -176,6 +176,8 @@ void	TestTime() {
 	Serial.printf( "Heure PST/PDT: %s", asctime(tm_pst) );
 }
 
+int	startTime_ms;
+
 void	setup() {
 	Serial.begin( 115200 );
 //	while ( !Serial.isConnected() ) {
@@ -402,6 +404,8 @@ Serial.println("After init");
 //	tzset();
 
 	Serial.println( "Awaiting GPS location data..." );
+
+	startTime_ms = millis();
 }
 
 bool	foundFix = false;
@@ -437,7 +441,7 @@ void	loop() {
 #endif
 
 	if ( Serial1.available() == 0 || !GPS.encode( Serial1.read() ) ) {
-		if ( millis() > 5000 && GPS.charsProcessed() < 10 ) {
+		if ( (millis() - startTime_ms) > 5000 && GPS.charsProcessed() < 10 ) {
 			Serial.println( F("No GPS detected: check wiring.") );
 			while(true);
 		}

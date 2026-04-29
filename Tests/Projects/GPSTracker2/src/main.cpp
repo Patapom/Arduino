@@ -37,12 +37,12 @@ Adafruit_ST7789	tft = Adafruit_ST7789( TFT_CS, TFT_DC, TFT_RST );
 TFTDisplay		display( tft );
 
 // GPS Module (Neo 6M)
-#include <TinyGPSPlus.h>
+#include "Modules/GPS.h"
+GPS		gps( Serial1 );
 
 #define	GPS_BAUD	9600
 #define	PIN_GPS_RX	17
 #define	PIN_GPS_TX	16
-TinyGPSPlus		GPS;
 
 // LORA
 #include "Modules/LORA.h"
@@ -121,6 +121,11 @@ void	setup() {
 	display.println( "Initializing GPS..." );
 
 	Serial1.begin( GPS_BAUD, SERIAL_8N1, PIN_GPS_RX, PIN_GPS_TX );
+	if ( !gps.FindFix( 10000 ) ) {
+		display.println( "Initialization failed..." );
+		display.println( "Couldn't find any satellite!" );
+		while ( 1 );
+	}
 
 	delay( 1000 );
 
@@ -165,24 +170,10 @@ void	loop() {
 	////////////////////////////////////////////////////////////////////
 	// Update GPS
 	//
-
-#if 0 // Basic serial printing of GPS data
-	if ( Serial1.available() ) {
-		Serial.print( (char) Serial1.read() );
-	}
-	return;
-#endif
-
-	if ( Serial1.available() == 0 || !GPS.encode( Serial1.read() ) ) {
-		if ( (millis() - startTime_ms) > 5000 && GPS.charsProcessed() < 10 ) {
-			display.println( "No GPS detected: check wiring." );
-			while(true);
-		}
-		delay( 100 );
-		return;
-	}
+	gps.ReadGPSData();
 
 	ShowGPSData();
+	
 	delay( 1000 );
 }
 
@@ -190,95 +181,47 @@ void	ShowGPSData() {
 
 	ShowGPSDateTime();
 
-	if ( !GPS.location.isValid() ) {
-		if ( findingFix ) {
-			display.print( "." );
-		} else {
-			findingFix = true;
-			if ( !foundFix ) {
-				display.print( "Invalid GPS position → Waiting for a fix" );
-			} else {
-				display.print( "Lost fix → Waiting for a fix" );
-			}
-		}
-
-		return;
-	}
-
-	foundFix = true;
-	if ( findingFix ) {
-		display.println( " FOUND!" );
-		findingFix = false;
-	}
-
-	if ( GPS.location.isValid() ) {
-		display.printf( "> Location %f, %f\r\n", GPS.location.lat(), GPS.location.lng() );
-	}
-}
-
-time_t gpsToUnixUTC( struct tm& t ) {
-	static const int days_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
-
-	int year = t.tm_year + 1900;
-	int month = t.tm_mon + 1;
-
-	// années depuis 1970
-	long days = 0;
-	for (int y = 1970; y < year; y++) {
-		days += ( (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) ) ? 366 : 365;
-	}
-
-	for (int m = 1; m < month; m++) {
-		days += days_month[m-1];
-		if (m == 2 && ((year%4==0 && year%100!=0) || (year%400==0)))
-			days += 1;
-	}
-
-	days += (t.tm_mday - 1);
-
-	return days * 86400
-			+ t.tm_hour * 3600
-			+ t.tm_min * 60
-			+ t.tm_sec;
-}
-
-// So apparently we can get a "valid" time and date that is clearly wrong, even without a location fix...
-// I think it's best to wait for a proper satellite fix before reading the date & time! (it can take a while though :/)
+//	if ( !GPS.location.isValid() ) {
+//		if ( findingFix ) {
+//			display.print( "." );
+//		} else {
+//			findingFix = true;
+//			if ( !foundFix ) {
+//				display.print( "Invalid GPS position → Waiting for a fix" );
+//			} else {
+//				display.print( "Lost fix → Waiting for a fix" );
+//			}
+//		}
 //
+//		return;
+//	}
+//
+//	foundFix = true;
+//	if ( findingFix ) {
+//		display.println( " FOUND!" );
+//		findingFix = false;
+//	}
+
+	if ( gps.m_locationQuality != GPS::Invalid ) {
+//		display.printf( "> Location %f, %f\r\n", gps.lat(), gps.lng() );
+		display.printf( "> Location %s%d.%09d, %%s%d.%09d\r\n",
+			gps.m_latitude.negative ? "-" : "", gps.m_latitude.deg, gps.m_latitude.billionths,
+			gps.m_longitude.negative ? "-" : "", gps.m_longitude.deg, gps.m_longitude.billionths );
+	}
+}
+
 void	ShowGPSDateTime() {
-	if ( !GPS.date.isValid() || !GPS.time.isValid() )
+	if ( !gps.isDateTimeValid() )
 		return;
-	
-	struct tm	utc;
-				utc.tm_year = GPS.date.year() - 1900;
-				utc.tm_mon  = GPS.date.month() - 1;
-				utc.tm_mday = GPS.date.day();
-				utc.tm_hour = GPS.time.hour();
-				utc.tm_min  = GPS.time.minute();
-				utc.tm_sec  = GPS.time.second();
 
-	// UTC time zone
-	setenv( "TZ", "UTC0", 1 );
-	tzset();
-
-	// Convert into timestamp
-//	time_t		t = timegm( &t );	// Non standard... Doesn't exist on ESP32
-//	time_t		t = mktime( &utc );
-	time_t		t = gpsToUnixUTC( utc );
-
-	// Vancouver Time Zone
-	setenv( "TZ", "PST8PDT,M3.2.0,M11.1.0", 1 );
-	tzset();
-
-	struct tm*	local = localtime( &t );
-				local->tm_year += 1900;
-				local->tm_mon++;
-
-	// UTC
-	display.printf( "> UTC Date %04d/%02d/%02d\r\n", GPS.date.year(), GPS.date.month(), GPS.date.day() );
-	display.printf( "> UTC Time %02d:%02d:%02d\r\n", GPS.time.hour(), GPS.time.minute(), GPS.time.second() );
+//	// UTC
+//	display.printf( "> UTC Date %04d/%02d/%02d\r\n", gps.m_dateTime.Y, gps.m_dateTime.M, gps.m_dateTime.D );
+//	display.printf( "> UTC Time %02d:%02d:%02d\r\n", gps.m_dateTime.h, gps.m_dateTime.m, gps.m_dateTime.s );
 
 	// Local
-	display.printf( "> Date %04d/%02d/%02d\r\n", local->tm_year, local->tm_mon, local->tm_mday );
-	display.printf( "> Time %02d:%02d:%02d\r\n", local->tm_hour, local->tm_min, local->tm_sec );
+	GPS::DateTime	localDateTime;
+	gps.m_dateTime.ToLocal( localDateTime );
+
+	display.printf( "> Date %04d/%02d/%02d\r\n", localDateTime.Y, localDateTime.M, localDateTime.D );
+	display.printf( "> Time %02d:%02d:%02d\r\n", localDateTime.h, localDateTime.m, localDateTime.s );
 }
