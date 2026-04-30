@@ -44,8 +44,15 @@ GPS		gps( Serial1 );
 #define	PIN_GPS_RX	17
 #define	PIN_GPS_TX	16
 
-RawDegrees	homeLatitude { 49, 516223500, false };	// Home Latitude 49.516223500
-RawDegrees	homeLongitude { 124, 362310167, true };	// Home Longitude -124.362310167
+// Home latitude
+double	homeLatitude = 49.516223500;
+double	homeLongitude = -124.362310167;
+
+//RawDegrees	homeLatitude { 49, 516223500, false };	// Home Latitude 49.516223500
+//RawDegrees	homeLongitude { 124, 362310167, true };	// Home Longitude -124.362310167
+// Minimum latitude is the bottom-left corner of Lasqueti so we can only get positive values from the delta location
+//RawDegrees	minLatitude {   49, 516100000, false };
+//RawDegrees	minLongitude { 124, 362500000, true };
 
 // LORA
 #include "Modules/LORA.h"
@@ -178,16 +185,41 @@ void	loop() {
 	ShowGPSData();
 
 	// Send delta position through LORA
+	#if 1	// Use simple double precision floats
+
+	double	deltaLatitude = gps.m_avgLatitude - homeLatitude;
+	double	deltaLongitude = gps.m_avgLongitude - homeLongitude;
+
+Serial.printf( "Delta lat = %f / %f\r\n", deltaLatitude, deltaLongitude );
+
+	int		intDeltaLatitude = 10000000 * deltaLatitude;
+	int		intDeltaLongitude = 10000000 * deltaLongitude;
+
+Serial.printf( "Integer Delta lat/long = %f / %f\r\n", deltaLatitude, deltaLongitude );
+
+	lora.Sendf( 0,	// Broadcast to all!
+				"%d,%d",  intDeltaLatitude, intDeltaLongitude
+				);
+
+	#else	// Use raw degrees operations
 	RawDegrees	deltaLatitude;
 	RawDegrees	deltaLongitude;
 
-	GPS::Subtract( homeLatitude, gps.m_latitude, deltaLatitude );
-	GPS::Subtract( homeLongitude, gps.m_longitude, deltaLongitude );
+// We're not using the actual home location as moving to the south-east will always yield very large billionth values
+	GPS::Subtract( gps.m_latitude, homeLatitude, deltaLatitude );
+	GPS::Subtract( gps.m_longitude, homeLongitude, deltaLongitude );
+//// Instead we subtract the minimum corner of the island so we always get positive values
+//	GPS::Subtract( gps.m_latitude, minLatitude, deltaLatitude );
+//	GPS::Subtract( gps.m_longitude, minLongitude, deltaLongitude );
+
+Serial.printf( "Delta lat = %d.%09d ", deltaLatitude.negative ? -deltaLatitude.deg : deltaLatitude.deg, deltaLatitude.billionths );
+Serial.printf( "Delta lon = %d.%09d\r\n", deltaLongitude.negative ? -deltaLongitude.deg : deltaLongitude.deg, deltaLongitude.billionths );
 
 	lora.Sendf( 0,	// Broadcast to all!
 				 "%d,%d",  deltaLatitude.negative  ? -S32( deltaLatitude.billionths )  : deltaLatitude.billionths
 						, deltaLongitude.negative ? -S32( deltaLongitude.billionths ) : deltaLongitude.billionths
 				);
+#endif
 
 	delay( 1000 );
 }
@@ -219,8 +251,8 @@ void	ShowGPSData() {
 
 	if ( gps.m_locationQuality != GPS::Invalid ) {
 //		display.printf( "> Location %f, %f\r\n", gps.lat(), gps.lng() );
-		display.printf( "> Latitude %s%d.%09d\r\n", gps.m_latitude.negative ? "-" : "", gps.m_latitude.deg, gps.m_latitude.billionths );
-		display.printf( "> Longitude %s%d.%09d\r\n", gps.m_longitude.negative ? "-" : "", gps.m_longitude.deg, gps.m_longitude.billionths );
+		display.printf( "> Latitude %f\r\n", gps.m_latitude );
+		display.printf( "> Longitude %f\r\n", gps.m_longitude );
 	}
 }
 

@@ -107,7 +107,7 @@ void	LORA::Send( U16 _targetDeviceID, const char* _payload, U8 _payloadLength ) 
 	if ( _payloadLength > 240 )
 		throw "Payload size exceeds maximum value of 240 characters!";
 
-	Writef( F("AT+SEND=%d,%d,%s"), _targetDeviceID, _payloadLength, _payload );
+	Writef( F("AT+SEND=%d,%d,%s\r\n"), _targetDeviceID, _payloadLength, _payload );
 }
 
 void	LORA::Sendf( U16 _targetDeviceID, const char* _payload, ... ) {
@@ -168,16 +168,14 @@ void	LORA::Writef( const __FlashStringHelper* _string, ... ) {
 
 	va_end( copy );
 
+//Debug( (char*) m_sendBuffer );
+
 	Write( m_sendBuffer, len );
 }
 
 U8	LORA::ReadLine() {
-//DEBUG( "PLOUP!" );
-
 	if ( !m_serial->available() )
 		return 0;
-
-//DEBUG( "GLOUBI!" );
 
 	// Read until EOL
 	m_receiveBuffer[0] = '\0';

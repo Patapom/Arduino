@@ -43,16 +43,6 @@ bool	GPS::FindFix( U32 _timeOut_ms ) {
 	return m_hasFix;
 }
 
-double	GPS::lat() const {
-   double ret = m_latitude.deg + m_latitude.billionths / 1000000000.0;
-   return m_latitude.negative ? -ret : ret;
-}
-
-double	GPS::lng() const {
-	double ret = m_longitude.deg + m_longitude.billionths / 1000000000.0;
-	return m_longitude.negative ? -ret : ret;
-}
-
 // Read GPS data while it's available
 void	GPS::ReadGPSData() {
 	while ( m_serial.available() ) {
@@ -62,8 +52,18 @@ void	GPS::ReadGPSData() {
 	// Extract location if available
 	if ( m_GPS.location.isValid() ) {
 		m_locationQuality = (Quality) m_GPS.location.FixQuality();
-		m_latitude = m_GPS.location.rawLat();
-		m_longitude = m_GPS.location.rawLng();
+
+		m_latitude = m_GPS.location.lat();
+		m_longitude = m_GPS.location.lng();
+
+// Conversion from raw degrees:
+// double ret = m_latitude.deg + m_latitude.billionths / 1000000000.0;
+// return m_latitude.negative ? -ret : ret;
+
+		// Update exponential moving average
+		m_avgLatitude = m_latitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLatitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
+		m_avgLongitude = m_longitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLongitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
+		m_avgCount++;
 
 		m_lastValidLocation_Time_ms = millis();
 	}
@@ -160,6 +160,11 @@ void	GPS::Subtract( const RawDegrees& a, const RawDegrees& b, RawDegrees& result
 
 	S32	deltaDeg = degA - degB;
 	S32	deltaBilionths = billionthA - billionthB;
+
+Serial.printf( "A = %d.%09d\r\n", degA, billionthA );
+Serial.printf( "B = %d.%09d\r\n", degB, billionthB );
+Serial.printf( "delta = %d.%09d\r\n", deltaDeg, deltaBilionths );
+
 	if ( deltaBilionths < 0 ) {
 		deltaDeg--;
 		deltaBilionths += 1000000000;
@@ -167,6 +172,16 @@ void	GPS::Subtract( const RawDegrees& a, const RawDegrees& b, RawDegrees& result
 		deltaDeg--;
 		deltaBilionths -= 1000000000;
 	}
+
+//A = 49.516243333
+//B = 49.516100000
+//delta = 0.000143333
+//
+//A = -124.362251333
+//B = -124.362500000
+//delta = 0.-00248667
+//Delta lat = 0.000143333 Delta lon = -1.999751333
+
 
 	result.negative = deltaDeg < 0;
 	result.deg = deltaDeg < 0 ? -deltaDeg : deltaDeg;

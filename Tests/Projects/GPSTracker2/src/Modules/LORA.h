@@ -22,7 +22,7 @@
 
 class LORA {
 public:
-	static constexpr int	NETWORK_ID = 5;
+	static constexpr int	NETWORK_ID = 6;		// All our GPS trackers use network 6 (don't use 5 as it's used by the water monitor!)
 //	static constexpr int 	BAND = 433000000;	// 433MHz (long range, ideal for forest and landscapes with obstacles)
 	static constexpr int 	BAND = 915000000;	// RYLR998 = 915MHz (faster but shorter range if obstacles)
 
