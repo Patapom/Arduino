@@ -191,7 +191,7 @@ void	loop() {
 	//
 	gps.ReadGPSData();
 
-	ShowGPSData();
+//	ShowGPSData();
 
 	// Send delta position through LORA
 	#if 1	// Use simple double precision floats
@@ -205,6 +205,7 @@ void	loop() {
 	int		intDeltaLongitude = 10000000 * deltaLongitude;
 
 //Serial.printf( "Integer Delta lat/long = %d / %d\r\n", intDeltaLatitude, intDeltaLongitude );
+display.printf( "Dlat/lng = %d / %d\r\n", intDeltaLatitude, intDeltaLongitude );
 
 	lora.Sendf( 0,	// Broadcast to all!
 				"%d,%d", intDeltaLatitude, intDeltaLongitude
