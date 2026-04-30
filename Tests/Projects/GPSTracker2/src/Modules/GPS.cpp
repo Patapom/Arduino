@@ -22,10 +22,17 @@ bool	GPS::FindFix( U32 _timeOut_ms ) {
 	U32	now_ms = startTime_ms;
 
 	m_hasFix = false;
-	while ( !m_hasFix && now_ms - startTime_ms < _timeOut_ms ) {
+	U32	satellitesCount = 0;
+	while ( !m_hasFix && (now_ms - startTime_ms) < _timeOut_ms ) {
 		ReadGPSData();
 
+		if ( m_GPS.satellites.isValid() && m_GPS.satellites.value() != satellitesCount ) {
+			satellitesCount = m_GPS.satellites.value();
+Serial.printf( "Satellites count %d\r\n", satellitesCount );
+		}
+
 		if ( m_GPS.location.isValid() ) {
+			// Found a fix!
 			m_hasFix = true;
 			break;
 		}
@@ -61,8 +68,13 @@ void	GPS::ReadGPSData() {
 // return m_latitude.negative ? -ret : ret;
 
 		// Update exponential moving average
-		m_avgLatitude = m_latitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLatitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
-		m_avgLongitude = m_longitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLongitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
+		if ( m_avgCount == 0 ) {
+			m_avgLatitude = m_latitude;
+			m_avgLongitude = m_longitude;
+		} else {
+			m_avgLatitude = m_latitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLatitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
+			m_avgLongitude = m_longitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLongitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
+		}
 		m_avgCount++;
 
 		m_lastValidLocation_Time_ms = millis();

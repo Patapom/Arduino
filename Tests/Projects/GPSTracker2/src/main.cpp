@@ -1,7 +1,7 @@
 
 // Wake →
 //   Power GPS ON →
-//   Attendre fix (max 15 s) →
+//   Attendre fix (max 15 s) →			<== ON N'A JAMAIS DE FIX EN SI PEU DE TEMPS !
 //   Lire position →
 //   Power GPS OFF →
 //   Init LoRa →
@@ -15,6 +15,13 @@
 // Optims:
 // 	WiFi.mode(WIFI_OFF);
 //	btStop();
+//
+
+// TODO:
+//	• Gérer le GPS dans un thread à part et attendre qu'il donne de bonne valeurs
+//		→ Pas besoin d'attendre un fix au setup...
+//		→ Par contre, pas de sleep avant d'avoir un fix !
+//
 #include "Global.h"
 
 #include <Arduino.h>
@@ -131,13 +138,15 @@ void	setup() {
 	display.println( "Initializing GPS..." );
 
 	Serial1.begin( GPS_BAUD, SERIAL_8N1, PIN_GPS_RX, PIN_GPS_TX );
-	if ( !gps.FindFix( 10000 ) ) {
+
+//	delay( 1000 );
+
+	// Try to find a fix for 15 seconds
+	if ( !gps.FindFix( 15000 ) ) {
 		display.println( "Initialization failed..." );
 		display.println( "Couldn't find any satellite!" );
 		while ( 1 );
 	}
-
-	delay( 1000 );
 
 	display.println( "Awaiting GPS location data..." );
 //*/
@@ -190,15 +199,15 @@ void	loop() {
 	double	deltaLatitude = gps.m_avgLatitude - homeLatitude;
 	double	deltaLongitude = gps.m_avgLongitude - homeLongitude;
 
-Serial.printf( "Delta lat = %f / %f\r\n", deltaLatitude, deltaLongitude );
+//Serial.printf( "Delta lat = %f / %f\r\n", deltaLatitude, deltaLongitude );
 
 	int		intDeltaLatitude = 10000000 * deltaLatitude;
 	int		intDeltaLongitude = 10000000 * deltaLongitude;
 
-Serial.printf( "Integer Delta lat/long = %f / %f\r\n", deltaLatitude, deltaLongitude );
+//Serial.printf( "Integer Delta lat/long = %d / %d\r\n", intDeltaLatitude, intDeltaLongitude );
 
 	lora.Sendf( 0,	// Broadcast to all!
-				"%d,%d",  intDeltaLatitude, intDeltaLongitude
+				"%d,%d", intDeltaLatitude, intDeltaLongitude
 				);
 
 	#else	// Use raw degrees operations
