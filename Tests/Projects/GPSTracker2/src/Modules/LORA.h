@@ -35,7 +35,7 @@ public:
 	};
 
 	HardwareSerial*	m_serial;
-	U8				m_deviceID;
+	U16				m_deviceID;
 	char			m_strVersion[8];
 	
 	U8				m_sendBuffer[256];
@@ -47,7 +47,7 @@ public:
 
 public:
 
-	LORA( U8 _deviceID ) {
+	LORA( U16 _deviceID ) {
 		m_serial = nullptr;
 		m_deviceID = _deviceID;
 		m_sendBuffer[0] = '\0';
@@ -59,7 +59,10 @@ public:
 	bool	Begin( HardwareSerial& _serial, U32 _baudRate, U8 _pinRX, U8 _pinTX );
 
 	bool	SetMode( bool _sleep );
-	bool	Send( const U8* _payload, U32 _payloadLength );
+
+	// Send payload to target device (use ID=0 to broadcast, i.e. send to all devices)
+	void	Send( U16 _targetDeviceID, const char* _payload, U8 _payloadLength );
+	void	Sendf( U16 _targetDeviceID, const char* _payload, ... );
 
 	const char*	LastErrorString() { return m_strLastError; }	// Returns the last error as a readable string
 	const char*	LastReplyCode();								// Returns only the last error code as a readable string

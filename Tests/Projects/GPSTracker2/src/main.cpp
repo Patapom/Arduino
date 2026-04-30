@@ -44,6 +44,9 @@ GPS		gps( Serial1 );
 #define	PIN_GPS_RX	17
 #define	PIN_GPS_TX	16
 
+RawDegrees	homeLatitude { 49, 516223500, false };	// Home Latitude 49.516223500
+RawDegrees	homeLongitude { 124, 362310167, true };	// Home Longitude -124.362310167
+
 // LORA
 #include "Modules/LORA.h"
 
@@ -173,7 +176,19 @@ void	loop() {
 	gps.ReadGPSData();
 
 	ShowGPSData();
-	
+
+	// Send delta position through LORA
+	RawDegrees	deltaLatitude;
+	RawDegrees	deltaLongitude;
+
+	GPS::Subtract( homeLatitude, gps.m_latitude, deltaLatitude );
+	GPS::Subtract( homeLongitude, gps.m_longitude, deltaLongitude );
+
+	lora.Sendf( 0,	// Broadcast to all!
+				 "%d,%d",  deltaLatitude.negative  ? -S32( deltaLatitude.billionths )  : deltaLatitude.billionths
+						, deltaLongitude.negative ? -S32( deltaLongitude.billionths ) : deltaLongitude.billionths
+				);
+
 	delay( 1000 );
 }
 
@@ -204,9 +219,8 @@ void	ShowGPSData() {
 
 	if ( gps.m_locationQuality != GPS::Invalid ) {
 //		display.printf( "> Location %f, %f\r\n", gps.lat(), gps.lng() );
-		display.printf( "> Location %s%d.%09d, %%s%d.%09d\r\n",
-			gps.m_latitude.negative ? "-" : "", gps.m_latitude.deg, gps.m_latitude.billionths,
-			gps.m_longitude.negative ? "-" : "", gps.m_longitude.deg, gps.m_longitude.billionths );
+		display.printf( "> Latitude %s%d.%09d\r\n", gps.m_latitude.negative ? "-" : "", gps.m_latitude.deg, gps.m_latitude.billionths );
+		display.printf( "> Longitude %s%d.%09d\r\n", gps.m_longitude.negative ? "-" : "", gps.m_longitude.deg, gps.m_longitude.billionths );
 	}
 }
 

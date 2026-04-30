@@ -93,9 +93,37 @@ bool	LORA::SetMode( bool _sleep ) {
 	return false;
 }
 
-bool	LORA::Send( const U8* _payload, U32 _payloadLength ) {
-	return true;
+void	LORA::Send( U16 _targetDeviceID, const char* _payload, U8 _payloadLength ) {
+// Syntax is:
+//	AT+SEND=<Address>,<Payload Length>,<Data>
+//	<Address>0~65535, When the <Address> is 0,
+//	it will send data to all address (From 0 to
+//	65535.)
+//	<Payload Length> Maximum 240bytes
+//	<Data>ASCII Format
+//	Example : Send HELLO string to the Address 50,
+//	AT+SEND=50,5,HELLO
+
+	if ( _payloadLength > 240 )
+		throw "Payload size exceeds maximum value of 240 characters!";
+
+	Writef( F("AT+SEND=%d,%d,%s"), _targetDeviceID, _payloadLength, _payload );
 }
+
+void	LORA::Sendf( U16 _targetDeviceID, const char* _payload, ... ) {
+	va_list	arg;
+	va_list	copy;
+	va_start( arg, _payload );
+	va_copy( copy, arg );
+
+	char	payload[256];
+	int		payloadLength = vsnprintf( payload, sizeof(payload), (const char*) _payload, copy );
+
+	va_end( copy );
+
+	Send( _targetDeviceID, payload, payloadLength );
+}
+
 
 const char*	LORA::LastReplyCode() {
 	switch ( m_lastReplyCode ) {

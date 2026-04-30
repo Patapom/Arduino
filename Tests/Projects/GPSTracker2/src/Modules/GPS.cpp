@@ -148,5 +148,27 @@ void	GPS::DateTime::ToLocal( DateTime& _localDateTime ) {
 }
 
 void	GPS::Subtract( const RawDegrees& a, const RawDegrees& b, RawDegrees& result ) {
-//	a.billionths
+	S16	degA = S16( a.deg );
+	if ( a.negative )
+		degA = -degA;
+	S32	billionthA = S32( a.billionths );
+
+	S16	degB = S16( b.deg );
+	if ( b.negative )
+		degB = -degB;
+	S32	billionthB = S32( b.billionths );
+
+	S32	deltaDeg = degA - degB;
+	S32	deltaBilionths = billionthA - billionthB;
+	if ( deltaBilionths < 0 ) {
+		deltaDeg--;
+		deltaBilionths += 1000000000;
+	} else if ( deltaBilionths >= 1000000000 ) {
+		deltaDeg--;
+		deltaBilionths -= 1000000000;
+	}
+
+	result.negative = deltaDeg < 0;
+	result.deg = deltaDeg < 0 ? -deltaDeg : deltaDeg;
+	result.billionths = deltaBilionths;
 }
