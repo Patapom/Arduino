@@ -132,7 +132,8 @@ void	setup() {
 //	delay( 1000 );
 
 	// Try to find a fix for 15 seconds
-	if ( !gps.FindFix( 15000 ) ) {
+//	if ( !gps.FindFix( 15000 ) ) {
+	if ( !gps.FindFix( -1 ) ) {
 		display.println( "Initialization failed..." );
 		display.println( "Couldn't find any satellite!" );
 		while ( 1 );

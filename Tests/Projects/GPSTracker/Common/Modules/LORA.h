@@ -65,8 +65,8 @@ public:
 	void	Sendf( U16 _targetDeviceID, const char* _payload, ... );
 
 	// Tries to read a LORA message
-	// Returns the size of the message string or 0 if nothing is received
-	U8		Receive();
+	// Returns a pointer to the message string or NULL if nothing is received
+	const char*	Receive( U16& _transmitterID, U8& _payloadLength, S16& _RSSI, S16& _SNR, bool& _error );
 
 	const char*	LastErrorString() { return m_strLastError; }	// Returns the last error as a readable string
 	const char*	LastReplyCode();								// Returns only the last error code as a readable string

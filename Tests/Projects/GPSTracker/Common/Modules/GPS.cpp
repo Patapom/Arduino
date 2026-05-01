@@ -2,55 +2,17 @@
 
 // Inspired by Robojax's code (https://robojax.com/learn/arduino/?vid=robojax_GPS_TinyGPSPlus)
 //
-// example received:
-//	GPGSV,4,3,14,21,12,321,22,26,25,048,16,27,04,112,,29,00,003,*78
-//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
-//	$GPGLL,4930.96847,N,12421.72920,W,220821.00,A,A*70
-//	$GPRMC,220822.00,A,4930.96861,N,12421.72885,W,0.465,,300925,,,A*6A
-//	$GPVTG,,T,,M,0.465,N,0.861,K,A*2B
-//	$GPGGA,220822.00,4930.96861,N,12421.72885,W,1,09,0.96,72.8,M,-17.5,M,,*59
-//	$GPGSA,A,3,16,31,03,09,26,21,04,07,11,,,,1.56,0.96,1.23*04
-//	$GPGSV,4,1,14,03,22,171,18,04,63,102,20,06,14,264,,07,38,244,14*7C
-//	$GPGSV,4,2,14,09,72,301,09,11,15,303,12,16,48,088,26,20,12,324,*71
-//	$GPGSV,4,3,14,21,12,321,23,26,25,048,16,27,04,112,,29,00,003,*79
-//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
-//	$GPGLL,4930.96861,N,12421.72885,W,220822.00,A,A*79
-//	$GPRMC,220823.00,A,4930.96871,N,12421.72858,W,0.301,,300925,,,A*6F
-//	$GPVTG,,T,,M,0.301,N,0.558,K,A*29
-//	$GPGGA,220823.00,4930.96871,N,12421.72858,W,1,09,0.96,72.9,M,-17.5,M,,*58
-//	$GPGSA,A,3,16,31,03,09,26,21,04,07,11,,,,1.56,0.96,1.23*04
-//	$GPGSV,4,1,14,03,22,171,18,04,63,102,19,06,14,264,,07,38,244,14*76
-//	$GPGSV,4,2,14,09,72,301,09,11,15,303,12,16,48,088,26,20,12,324,*71
-//	$GPGSV,4,3,14,21,12,321,22,26,25,048,17,27,04,112,,29,00,003,*79
-//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
-//	$GPGLL,4930.96871,N,12421.72858,W,220823.00,A,A*79
-//	$GPRMC,220824.00,A,4930.96893,N,12421.72849,W,0.234,,300925,,,A*63
-//	$GPVTG,,T,,M,0.234,N,0.433,K,A*22
-//	$GPGGA,220824.00,4930.96893,N,12421.72849,W,1,09,0.96,73.0,M,-17.5,M,,*5B
-//	$GPGSA,A,3,16,31,03,09,26,21,04,07,11,,,,1.56,0.96,1.23*04
-//	$GPGSV,4,1,14,03,22,171,18,04,63,102,19,06,14,264,,07,38,244,14*76
-//	$GPGSV,4,2,14,09,72,301,09,11,15,303,12,16,48,088,26,20,12,324,*71
-//	$GPGSV,4,3,14,21,12,321,22,26,25,048,16,27,04,112,,29,00,003,*78
-//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
-//	$GPGLL,4930.96893,N,12421.72849,W,220824.00,A,A*72
-
 bool	GPS::FindFix( U32 _timeOut_ms ) {
 
 #if 0 // Basic serial printing of GPS data
-	if ( Serial1.available() ) {
-		Serial.print( (char) Serial1.read() );
+	while ( true ) {
+		if ( m_serial.available() ) {
+			Serial.print( (char) Serial1.read() );
+		} else {
+			delay( 1 );
+		}
 	}
-	return;
 #endif
-
-//	if ( Serial1.available() == 0 || !GPS.encode( Serial1.read() ) ) {
-//		if ( (millis() - startTime_ms) > 5000 && GPS.charsProcessed() < 10 ) {
-//			display.println( "No GPS detected: check wiring." );
-//			while(true);
-//		}
-//		delay( 100 );
-//		return;
-//	}
 
 	U32	startTime_ms = millis();
 	U32	now_ms = startTime_ms;
@@ -59,6 +21,8 @@ bool	GPS::FindFix( U32 _timeOut_ms ) {
 	U32	satellitesCount = 0;
 	while ( !m_hasFix && (now_ms - startTime_ms) < _timeOut_ms ) {
 		ReadGPSData();
+
+//Serial.printf( "Start %d - Now %d\r\n", startTime_ms, now_ms );
 
 		if ( m_GPS.satellites.isValid() && m_GPS.satellites.value() != satellitesCount ) {
 			satellitesCount = m_GPS.satellites.value();
@@ -81,12 +45,50 @@ Serial.printf( "Satellites count %d\r\n", satellitesCount );
 		now_ms = millis();
 	}
 
+	if ( m_GPS.satellites.isValid() ) {
+		Serial.printf( "Found fix with %d satellites\r\n", m_GPS.satellites.value() );
+	} else {
+		Serial.printf( "Found fix. No satellites count info.\r\n" );
+	}
+
 	return m_hasFix;
 }
 
 // Read GPS data while it's available
 void	GPS::ReadGPSData() {
 	while ( m_serial.available() ) {
+		// example received:
+		//	GPGSV,4,3,14,21,12,321,22,26,25,048,16,27,04,112,,29,00,003,*78
+		//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
+		//	$GPGLL,4930.96847,N,12421.72920,W,220821.00,A,A*70
+		//	$GPRMC,220822.00,A,4930.96861,N,12421.72885,W,0.465,,300925,,,A*6A
+		//	$GPVTG,,T,,M,0.465,N,0.861,K,A*2B
+		//	$GPGGA,220822.00,4930.96861,N,12421.72885,W,1,09,0.96,72.8,M,-17.5,M,,*59
+		//	$GPGSA,A,3,16,31,03,09,26,21,04,07,11,,,,1.56,0.96,1.23*04
+		//	$GPGSV,4,1,14,03,22,171,18,04,63,102,20,06,14,264,,07,38,244,14*7C
+		//	$GPGSV,4,2,14,09,72,301,09,11,15,303,12,16,48,088,26,20,12,324,*71
+		//	$GPGSV,4,3,14,21,12,321,23,26,25,048,16,27,04,112,,29,00,003,*79
+		//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
+		//	$GPGLL,4930.96861,N,12421.72885,W,220822.00,A,A*79
+		//	$GPRMC,220823.00,A,4930.96871,N,12421.72858,W,0.301,,300925,,,A*6F
+		//	$GPVTG,,T,,M,0.301,N,0.558,K,A*29
+		//	$GPGGA,220823.00,4930.96871,N,12421.72858,W,1,09,0.96,72.9,M,-17.5,M,,*58
+		//	$GPGSA,A,3,16,31,03,09,26,21,04,07,11,,,,1.56,0.96,1.23*04
+		//	$GPGSV,4,1,14,03,22,171,18,04,63,102,19,06,14,264,,07,38,244,14*76
+		//	$GPGSV,4,2,14,09,72,301,09,11,15,303,12,16,48,088,26,20,12,324,*71
+		//	$GPGSV,4,3,14,21,12,321,22,26,25,048,17,27,04,112,,29,00,003,*79
+		//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
+		//	$GPGLL,4930.96871,N,12421.72858,W,220823.00,A,A*79
+		//	$GPRMC,220824.00,A,4930.96893,N,12421.72849,W,0.234,,300925,,,A*63
+		//	$GPVTG,,T,,M,0.234,N,0.433,K,A*22
+		//	$GPGGA,220824.00,4930.96893,N,12421.72849,W,1,09,0.96,73.0,M,-17.5,M,,*5B
+		//	$GPGSA,A,3,16,31,03,09,26,21,04,07,11,,,,1.56,0.96,1.23*04
+		//	$GPGSV,4,1,14,03,22,171,18,04,63,102,19,06,14,264,,07,38,244,14*76
+		//	$GPGSV,4,2,14,09,72,301,09,11,15,303,12,16,48,088,26,20,12,324,*71
+		//	$GPGSV,4,3,14,21,12,321,22,26,25,048,16,27,04,112,,29,00,003,*78
+		//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
+		//	$GPGLL,4930.96893,N,12421.72849,W,220824.00,A,A*72
+
 		m_GPS.encode( m_serial.read() );
 	}
 
@@ -232,4 +234,40 @@ Serial.printf( "delta = %d.%09d\r\n", deltaDeg, deltaBilionths );
 	result.negative = deltaDeg < 0;
 	result.deg = deltaDeg < 0 ? -deltaDeg : deltaDeg;
 	result.billionths = deltaBilionths;
+}
+
+const double	EARTH_RADIUS_METERS = 6371000.0;
+
+float	GPS::ComputeDirection( double  _currentLatitude, double _currentLongitude, double _targetLatitude, double _targetLongitude, float& _distance_meters ) {
+	_currentLatitude *= DEG_TO_RAD;
+	_currentLongitude *= DEG_TO_RAD;
+	_targetLatitude *= DEG_TO_RAD;
+	_targetLongitude *= DEG_TO_RAD;
+
+	double	lat1 = _currentLatitude;
+	double	lat2 = _targetLatitude;
+	double	deltaLat = _targetLatitude - _currentLatitude;
+	double	deltaLon = _targetLongitude - _currentLongitude;
+
+	// Haversine formula
+	//	• Compute the angle a of the arc between the current & target locations
+	//	• Return the perimeter of the great arc subtending this angle
+	//
+	double a =	sin(deltaLat/2) * sin(deltaLat/2) +
+				sin(deltaLon/2) * sin(deltaLon/2) * cos(lat1) * cos(lat2);
+
+	double arcLength = 2 * EARTH_RADIUS_METERS * asin( sqrt( max( 0.0, a ) ) );
+//	double arcLength = 2 * EARTH_RADIUS_METERS * atan2( sqrt( a ), sqrt( 1-a ) );
+
+	_distance_meters = float( arcLength );
+
+	// Compute bearing
+	double	y = sin(deltaLon) * cos(lat2);
+	double	x = cos(lat1) * sin(lat2) -
+				sin(lat1)*cos(lat2)*cos(deltaLon);
+
+	double	bearing = atan2( y, x ) * RAD_TO_DEG;
+	if ( bearing < 0 ) bearing += 360;	// Normalisation 0–360
+
+	return float( bearing );
 }

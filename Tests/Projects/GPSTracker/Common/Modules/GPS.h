@@ -4,6 +4,10 @@
 
 #include <TinyGPSPlus.h>
 
+// TODO:
+//	• Use "UBX-MGA-INI-POS_LLH" to specify initial lat/lon/elevation (cf. u-blox-F10-SPG-6.00_InterfaceDescription_UBX-23002975.pdf)
+//		→ Use "UBX-INF-TEST" ? (although it's marked as "output" only ??? How do we make the module spit a test sequence?)
+
 class	GPS {
 	// Source for EMA: https://www.investopedia.com/ask/answers/difference-between-simple-exponential-moving-average/
 	static constexpr double	EXPONENTIAL_MOVING_AVERAGE_TIME_PERIOD = 10;
@@ -96,4 +100,7 @@ public:
 
 public:	// Helpers
 	static void	Subtract( const RawDegrees& a, const RawDegrees& b, RawDegrees& result );
+
+	// Computes the bearing angle in 0° (N) → 90° (E) → 180° (S) → 270° (W) and  the distance to the target in meters
+	static float	ComputeDirection( double  _currentLatitude, double _currentLongitude, double _targetLatitude, double _targetLongitude, float& _distance_meters );
 };

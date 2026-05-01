@@ -192,14 +192,13 @@ void	setup() {
 
 	if ( !lora.Begin( Serial2, LORA_BAUD, PIN_LORA_RX, PIN_LORA_TX ) ) {
 		display.println( "Initialization failed..." );
-		display.printf( "Last error → %s\r\n", lora.LastErrorString() );
-		display.printf( "Return → %s\r\n", lora.m_receiveBuffer );
+		display.printf( "Error!\r\n-> %s\r\n", lora.LastErrorString() );
 		while ( 1 );
 	}
 
 //*/
 
-/*	// =======================================================
+//*	// =======================================================
 	display.println( "Initializing GPS..." );
 
 //	Serial1.begin( GPSBaud, SERIAL_8N1, pinRX, pinTX );
@@ -209,7 +208,8 @@ void	setup() {
 //	delay( 1000 );
 
 	// Try to find a fix for 15 seconds
-	if ( !gps.FindFix( 15000 ) ) {
+//	if ( !gps.FindFix( 15000 ) ) {
+	if ( !gps.FindFix( -1 ) ) {
 		display.println( "Initialization failed..." );
 		display.println( "Couldn't find any satellite!" );
 		while ( 1 );
@@ -230,8 +230,45 @@ void	loop() {
 //		ShowMagnetometerData();
 
 //*	// Wait for LORA messages
-	if ( lora.Receive() ) {
-		display.printf( "Received %s\r\n", lora.m_receiveBuffer );
+	U16			transmitterID;
+	U8			payloadLength;
+	S16			RSSI, SNR;
+	bool		error;
+	const char*	payload = lora.Receive( transmitterID, payloadLength, RSSI, SNR, error );
+	if ( payload == nullptr ) {
+		if ( error ) {
+			Serial.printf( "Error reading message: %s\r\n", lora.LastErrorString() );
+		}
+		return;
 	}
+
+	// Process latitude/longitude
+//	display.printf( "Received \"%s\" (%d, %d, %d)\r\n", payload, transmitterID, RSSI, SNR );
+
+	char*	strDeltaLatitude = (char*) payload;
+	char*	strDeltaLongitude = strstr( strDeltaLatitude, "," );
+	if ( strDeltaLongitude == nullptr ) {
+		display.print( "Invalid lat/lon message!" );
+		return;
+	}
+	*strDeltaLongitude++ = '\0';
+
+	int	deltaLatitude = atoi( strDeltaLatitude );
+	int	deltaLongitude = atoi( strDeltaLongitude );
+
+	double	targetLatitude = homeLatitude + deltaLatitude / 1000000000.0;
+	double	targetLongitude = homeLongitude + deltaLongitude / 1000000000.0;
+
+//Serial.printf( "Lat/Lon = %f / %f\r\n", targetLatitude, targetLongitude );
+
+	// Compute direction & distance
+//	double	currentLatitude = homeLatitude;
+//	double	currentLongitude = homeLongitude;
+	double	currentLatitude = gps.m_avgLatitude;
+	double	currentLongitude = gps.m_avgLongitude;
+
+	float	distance_m;
+	float	bearing = GPS::ComputeDirection( currentLatitude, currentLongitude, targetLatitude, targetLongitude, distance_m );
+	display.printf( "Dir %3.1f' @ %.1fm\r\n", bearing, distance_m );
 //*/
 }

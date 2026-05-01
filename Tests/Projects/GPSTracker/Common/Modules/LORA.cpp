@@ -8,7 +8,6 @@ bool	LORA::Begin( HardwareSerial& _serial, U32 _baudRate, U8 _pinRX, U8 _pinTX )
 
 	// Check we got the expected response
 	Write( F("AT\r\n") );
-//DebugRead();
 	if ( Expect( F("+OK\r\n"), 1000 ) != RESPONSE_TYPE::OK ) {
 		SetLastErrorString( "Received \"%s\" instead of \"+OK\" (REPLY=%s)", m_receiveBuffer, LastReplyCode() );
 		return false;
@@ -124,14 +123,82 @@ void	LORA::Sendf( U16 _targetDeviceID, const char* _payload, ... ) {
 	Send( _targetDeviceID, payload, payloadLength );
 }
 
-U8		LORA::Receive() {
-	return ReadLine();
-//	+RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>
-//	<Address> Transmitter Address ID
-//	<Length> Data Length
-//	<Data> ASCll Format Data
-//	<RSSI> Received Signal Strength Indicator
-//	<SNR> Signal-to-noise ratio
+const char*	LORA::Receive( U16& _transmitterID, U8& _payloadLength, S16& _RSSI, S16& _SNR, bool& _error ) {
+	_transmitterID = -1;
+	_payloadLength = 0;
+	_error = false;
+
+	U8	messageLength = ReadLine();
+	if ( messageLength < 5 )
+		return nullptr;	// Nothing received...
+
+	// We're expecting a message of the form:
+	//	+RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>
+	//
+	// With:
+	//		<Address>	= Transmitter Address ID
+	//		<Length>	= Data Length
+	//		<Data>		= ASCll Format Data
+	//		<RSSI>		= Received Signal Strength Indicator
+	//		<SNR> 		= Signal-to-noise ratio
+	//
+	if ( m_receiveBuffer[0] != '+' ||
+		 m_receiveBuffer[1] != 'R' ||
+		 m_receiveBuffer[2] != 'C' ||
+		 m_receiveBuffer[3] != 'V' ||
+		 m_receiveBuffer[4] != '=' )
+	{
+		return nullptr;	// Not a "+RCV=" message → ignore...
+	}
+
+	// Parse transmitter ID
+	char*	strTransmitterID = m_receiveBuffer + 5;
+	char*	strPayloadLength = strstr( strTransmitterID, "," );
+	if ( strPayloadLength == nullptr ) {
+		_error = true;
+		SetLastErrorString( "Failed to parse transmitter ID!" );
+		return NULL;
+	}
+	*strPayloadLength++ = '\0';
+	_transmitterID = atoi( strTransmitterID );
+
+	// Parse payload length
+	char*	strPayload = strstr( strPayloadLength, "," );
+	if ( strPayload == nullptr ) {
+		_error = true;
+		SetLastErrorString( "Failed to parse payload length!" );
+		return NULL;
+	}
+	*strPayload++ = '\0';
+	int	payloadLength = atoi( strPayloadLength );
+	if ( payloadLength < 0 || payloadLength > 240 ) {
+		_error = true;
+		SetLastErrorString( "Payload length %d out of [0,240] range!", payloadLength );
+		return NULL;
+	}
+	if ( strPayload + payloadLength - m_receiveBuffer >= messageLength ) {
+		_error = true;
+		SetLastErrorString( "Payload exceeds message length! (received truncated message?)" );
+		return NULL;
+	}
+	_payloadLength = payloadLength;
+
+	// Parse RSSI
+	char*	strRSSI = strPayload + payloadLength;
+			*strRSSI++ = '\0';	// Terminate payload string with a proper NUL character
+
+	char*	strSNR = strstr( strRSSI, "," );
+	if ( strSNR == nullptr ) {
+		_error = true;
+		SetLastErrorString( "Failed to parse SNR!" );
+		return NULL;
+	}
+	*strSNR++ = '\0';
+	_RSSI = atoi( strRSSI );
+	_SNR = atoi( strSNR );
+
+	// Return payload
+	return strPayload;
 }
 
 const char*	LORA::LastReplyCode() {
@@ -139,6 +206,7 @@ const char*	LORA::LastReplyCode() {
 		case RESPONSE_TYPE::INVALID: return "INVALID";
 		case RESPONSE_TYPE::OK: return "OK";
 		case RESPONSE_TYPE::ERROR: return "ERROR";
+		case RESPONSE_TYPE::TIME_OUT: return "TIME OUT";
 	}
 
 	throw "Unsupported error type!";
@@ -209,6 +277,8 @@ LORA::RESPONSE_TYPE	LORA::Expect( const char* _strReply, U32 _timeOut_ms ) {
 
 //DEBUG( "Expecting \"%s\"\r\n", _strReply );
 
+	int	strReplyLength = strlen( (const char*) _strReply );
+
 	U32	start = millis();
 	while ( millis() - start < _timeOut_ms ) {
 		// Wait for reply
@@ -217,8 +287,19 @@ LORA::RESPONSE_TYPE	LORA::Expect( const char* _strReply, U32 _timeOut_ms ) {
 			continue;
 		}
 
+		// Ensure it's not a "+RCV="
+		if ( m_receiveBufferLength >= 5 ) {
+			if ( m_receiveBuffer[0] == '+' &&
+				 m_receiveBuffer[1] == 'R' &&
+				 m_receiveBuffer[2] == 'C' &&
+				 m_receiveBuffer[3] == 'V' &&
+				 m_receiveBuffer[4] == '=' )
+				{
+				continue;	// Skip...
+			}
+		}
+
 		// Compare to expected string
-		int	strReplyLength = strlen( (const char*) _strReply );
 		int	minLength = strReplyLength < m_receiveBufferLength ? strReplyLength : m_receiveBufferLength;
 		return strncmp( (const char*) m_receiveBuffer, (const char*) _strReply, minLength ) == 0 ? RESPONSE_TYPE::OK : RESPONSE_TYPE::ERROR;
 	}
