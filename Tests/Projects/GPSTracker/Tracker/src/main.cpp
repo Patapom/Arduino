@@ -142,6 +142,15 @@ void	setup() {
 	display.println( "Awaiting GPS location data..." );
 //*/
 
+
+	// =======================================================
+	display.println( "BUZZZZ..." );
+
+	ledcAttachPin( 27, 0 );
+	ledcSetup( 0, 2000, 8 );	// 2 kHz
+//	ledcWrite( 0, 128 );		// Bzzz!
+	ledcWrite( 0, 0 );
+
 	startTime_ms = millis();
 }
 
@@ -150,19 +159,29 @@ bool	findingFix = false;
 
 int		displayCounter = 0;
 int		lastDisplayTime_ms = -1000;
+int		lastBroadcastTime_ms = -1000;
 
 void	ShowGPSDateTime();
 void	ShowGPSData();
+void	BroadcastGPSData();
 
 void	loop() {
+	int	now_ms = millis();
+
 //	Serial.println( "COUCOU!" );
 //	delay( 1000 );
 //	return;
 
+	// Funky localization sound
+//	static int 	counter = 0;
+//	ledcWrite( 0, counter++ & 0xFF );		// Bzzz!
+
+	U8	sine = U8( 128 + 127 * sin( 2*PI * (now_ms - startTime_ms) / 1000.0f ) );
+	ledcWrite( 0, sine );		// Bzzz!
+
 /*	/////////////////////////////////////////////////////////////////////
 	// Update display
 	//
-	int	now_ms = millis();
 	if ( now_ms - lastDisplayTime_ms > 1000 ) {
 		displayCounter++;
 
@@ -184,7 +203,16 @@ void	loop() {
 
 //	ShowGPSData();
 
-	// Send delta position through LORA
+	// Broadcast position every second
+	if ( now_ms - lastBroadcastTime_ms > 1000 ) {
+		lastBroadcastTime_ms = now_ms;
+		BroadcastGPSData();
+	}
+}
+
+// Send delta position through LORA (we're only sending the billionth of degrees relative to home, usually 3 to 4 characters long for short distances)
+void	BroadcastGPSData() {
+
 	#if 1	// Use simple double precision floats
 
 	double	deltaLatitude = gps.m_avgLatitude - homeLatitude;
@@ -221,8 +249,6 @@ Serial.printf( "Delta lon = %d.%09d\r\n", deltaLongitude.negative ? -deltaLongit
 						, deltaLongitude.negative ? -S32( deltaLongitude.billionths ) : deltaLongitude.billionths
 				);
 #endif
-
-	delay( 1000 );
 }
 
 void	ShowGPSData() {

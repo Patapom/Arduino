@@ -243,7 +243,7 @@ void	loop() {
 	}
 
 	// Process latitude/longitude
-//	display.printf( "Received \"%s\" (%d, %d, %d)\r\n", payload, transmitterID, RSSI, SNR );
+Serial.printf( "Received \"%s\" (%d, %d, %d)\r\n", payload, transmitterID, RSSI, SNR );
 
 	char*	strDeltaLatitude = (char*) payload;
 	char*	strDeltaLongitude = strstr( strDeltaLatitude, "," );

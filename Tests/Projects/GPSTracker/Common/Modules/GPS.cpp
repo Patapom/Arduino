@@ -16,6 +16,7 @@ bool	GPS::FindFix( U32 _timeOut_ms ) {
 
 	U32	startTime_ms = millis();
 	U32	now_ms = startTime_ms;
+	U32	lastProgress_ms = now_ms;
 
 	m_hasFix = false;
 	U32	satellitesCount = 0;
@@ -43,6 +44,11 @@ Serial.printf( "Satellites count %d\r\n", satellitesCount );
 
 		delay( 100 );
 		now_ms = millis();
+
+		if ( now_ms - lastProgress_ms > 1000 ) {
+			lastProgress_ms = now_ms;
+			Serial.print( "." );
+		}
 	}
 
 	if ( m_GPS.satellites.isValid() ) {
