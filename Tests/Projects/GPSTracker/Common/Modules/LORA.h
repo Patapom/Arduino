@@ -2,7 +2,7 @@
 
 #define DEBUG_ENABLED
 
-#include "Global.h"
+#include "../Global.h"
 #include <HardwareSerial.h>
 
 // 
@@ -63,6 +63,10 @@ public:
 	// Send payload to target device (use ID=0 to broadcast, i.e. send to all devices)
 	void	Send( U16 _targetDeviceID, const char* _payload, U8 _payloadLength );
 	void	Sendf( U16 _targetDeviceID, const char* _payload, ... );
+
+	// Tries to read a LORA message
+	// Returns the size of the message string or 0 if nothing is received
+	U8		Receive();
 
 	const char*	LastErrorString() { return m_strLastError; }	// Returns the last error as a readable string
 	const char*	LastReplyCode();								// Returns only the last error code as a readable string

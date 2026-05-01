@@ -124,6 +124,15 @@ void	LORA::Sendf( U16 _targetDeviceID, const char* _payload, ... ) {
 	Send( _targetDeviceID, payload, payloadLength );
 }
 
+U8		LORA::Receive() {
+	return ReadLine();
+//	+RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>
+//	<Address> Transmitter Address ID
+//	<Length> Data Length
+//	<Data> ASCll Format Data
+//	<RSSI> Received Signal Strength Indicator
+//	<SNR> Signal-to-noise ratio
+}
 
 const char*	LORA::LastReplyCode() {
 	switch ( m_lastReplyCode ) {

@@ -22,7 +22,7 @@
 //		→ Pas besoin d'attendre un fix au setup...
 //		→ Par contre, pas de sleep avant d'avoir un fix !
 //
-#include "Global.h"
+//#include <Global.h>
 
 #include <Arduino.h>
 
@@ -31,7 +31,7 @@
 // TFT screen (ST7789 v3.0)
 #include <Adafruit_GFX.h>		// Core graphics library
 #include <Adafruit_ST7789.h>	// Hardware-specific library for ST7789
-#include "Modules/Display.h"
+#include <Display.h>
 
 #define TFT_MOSI	23	// SDA Pin on ESP32
 #define TFT_SCLK	18	// SCL Pin on ESP32
@@ -44,25 +44,15 @@ Adafruit_ST7789	tft = Adafruit_ST7789( TFT_CS, TFT_DC, TFT_RST );
 TFTDisplay		display( tft );
 
 // GPS Module (Neo 6M)
-#include "Modules/GPS.h"
+#include <GPS.h>
 GPS		gps( Serial1 );
 
 #define	GPS_BAUD	9600
 #define	PIN_GPS_RX	17
 #define	PIN_GPS_TX	16
 
-// Home latitude
-double	homeLatitude = 49.516223500;
-double	homeLongitude = -124.362310167;
-
-//RawDegrees	homeLatitude { 49, 516223500, false };	// Home Latitude 49.516223500
-//RawDegrees	homeLongitude { 124, 362310167, true };	// Home Longitude -124.362310167
-// Minimum latitude is the bottom-left corner of Lasqueti so we can only get positive values from the delta location
-//RawDegrees	minLatitude {   49, 516100000, false };
-//RawDegrees	minLongitude { 124, 362500000, true };
-
 // LORA
-#include "Modules/LORA.h"
+#include <LORA.h>
 
 #define	LORA_BAUD	115200
 #define	PIN_LORA_RX	35

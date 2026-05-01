@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Global.h"
+#include "../Global.h"
+
 #include <TinyGPSPlus.h>
 
 class	GPS {
