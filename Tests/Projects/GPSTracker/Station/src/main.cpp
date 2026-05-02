@@ -208,10 +208,15 @@ void	setup() {
 //	delay( 1000 );
 
 	// Try to find a fix for 15 seconds
-//	if ( !gps.FindFix( 15000 ) ) {
-	if ( !gps.FindFix( -1 ) ) {
+//	GPS::FIX_STATUS	fixStatus = gps.FindFix( 15000 );
+	GPS::FIX_STATUS	fixStatus = gps.FindFix( -1 );	// No time out
+	if ( fixStatus != GPS::FIX_STATUS::FOUND_FIX ) {
 		display.println( "Initialization failed..." );
-		display.println( "Couldn't find any satellite!" );
+		switch ( fixStatus ) {
+			case GPS::FIX_STATUS::ERROR_TIME_OUT: display.println( "Couldn't find any satellite!" ); break;
+			case GPS::FIX_STATUS::ERROR_NO_GPS_MODULE: display.println( "GPS module not found after 5s. Check wiring!" ); break;
+			default: display.println( "Couldn't find any satellite!" ); break;
+		}
 		while ( 1 );
 	}
 

@@ -27,6 +27,13 @@ public:
 		void	ToLocal( DateTime& _localTime );
 	};
 
+	enum class FIX_STATUS {
+		UNKNOWN = -1,
+		FOUND_FIX,				// Successfully found a fix (read Quality field and satellites count for overall quality)
+		ERROR_TIME_OUT,			// The search for a fix timed out without success
+		ERROR_NO_GPS_MODULE,	// Returns failure after 5s without any life sign from the 
+	};
+
 	// A copy of the TinyGPS version with added information
 	enum Quality {
 		Invalid = '0',		// No fix, invalid location
@@ -47,7 +54,7 @@ private:
 public:
 
 	bool			m_hasFix;
-	bool			m_lostFix;
+	U32				m_satellitesCount = 0;
 
 	// Location
 	U32				m_lastValidLocation_Time_ms;
@@ -75,7 +82,7 @@ public:
 public:
 	GPS( HardwareSerial& _serial ) : m_serial( _serial ) {
 		m_hasFix = false;
-		m_lostFix = false;
+		m_satellitesCount = 0;
 		m_lastValidLocation_Time_ms = -1;
 		m_lastValidDateTime_Time_ms = -1;
 
@@ -89,7 +96,7 @@ public:
 	}
 
 	// Wait for a satellite fix
-	bool	FindFix( U32 _timeOut_ms=-1 );
+	FIX_STATUS	FindFix( U32 _timeOut_ms=-1 );
 
 	double	lat() const;
 	double	lng() const;

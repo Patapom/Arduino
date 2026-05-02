@@ -2,7 +2,7 @@
 
 // Inspired by Robojax's code (https://robojax.com/learn/arduino/?vid=robojax_GPS_TinyGPSPlus)
 //
-bool	GPS::FindFix( U32 _timeOut_ms ) {
+GPS::FIX_STATUS	GPS::FindFix( U32 _timeOut_ms ) {
 
 #if 0 // Basic serial printing of GPS data
 	while ( true ) {
@@ -19,15 +19,15 @@ bool	GPS::FindFix( U32 _timeOut_ms ) {
 	U32	lastProgress_ms = now_ms;
 
 	m_hasFix = false;
-	U32	satellitesCount = 0;
+	m_satellitesCount = 0;
 	while ( !m_hasFix && (now_ms - startTime_ms) < _timeOut_ms ) {
 		ReadGPSData();
 
 //Serial.printf( "Start %d - Now %d\r\n", startTime_ms, now_ms );
 
-		if ( m_GPS.satellites.isValid() && m_GPS.satellites.value() != satellitesCount ) {
-			satellitesCount = m_GPS.satellites.value();
-Serial.printf( "Satellites count %d\r\n", satellitesCount );
+		if ( m_GPS.satellites.isValid() && m_GPS.satellites.value() != m_satellitesCount ) {
+			m_satellitesCount = m_GPS.satellites.value();
+Serial.printf( "Satellites count %d\r\n", m_satellitesCount );
 		}
 
 		if ( m_GPS.location.isValid() ) {
@@ -39,7 +39,7 @@ Serial.printf( "Satellites count %d\r\n", satellitesCount );
 		if ( now_ms - startTime_ms > 5000 && m_GPS.charsProcessed() < 10 ) {
 			// No characters received from the module...
 			Serial.println( "No GPS detected: check wiring." );
-			return false;
+			return FIX_STATUS::ERROR_NO_GPS_MODULE;
 		}
 
 		delay( 100 );
@@ -52,12 +52,13 @@ Serial.printf( "Satellites count %d\r\n", satellitesCount );
 	}
 
 	if ( m_GPS.satellites.isValid() ) {
-		Serial.printf( "Found fix with %d satellites\r\n", m_GPS.satellites.value() );
+		m_satellitesCount = m_GPS.satellites.value();
+		Serial.printf( "Found fix with %d satellites\r\n", m_satellitesCount );
 	} else {
 		Serial.printf( "Found fix. No satellites count info.\r\n" );
 	}
 
-	return m_hasFix;
+	return m_hasFix ? FIX_STATUS::FOUND_FIX : FIX_STATUS::ERROR_TIME_OUT;
 }
 
 // Read GPS data while it's available
