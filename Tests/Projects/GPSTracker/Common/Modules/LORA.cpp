@@ -108,6 +108,9 @@ void	LORA::Send( U16 _targetDeviceID, const char* _payload, U8 _payloadLength ) 
 
 	Writef( F("AT+SEND=%d,%d,%s\r\n"), _targetDeviceID, _payloadLength, _payload );
 }
+void	LORA::Send( U16 _targetDeviceID, const char* _payload ) {
+	Send( _targetDeviceID, _payload, strlen( _payload ) );
+}
 
 void	LORA::Sendf( U16 _targetDeviceID, const char* _payload, ... ) {
 	va_list	arg;
@@ -131,6 +134,8 @@ const char*	LORA::Receive( U16& _transmitterID, U8& _payloadLength, S16& _RSSI, 
 	U8	messageLength = ReadLine();
 	if ( messageLength < 5 )
 		return nullptr;	// Nothing received...
+
+Serial.printf( "LORA RAW = %s", m_receiveBuffer );
 
 	// We're expecting a message of the form:
 	//	+RCV=<Address>,<Length>,<Data>,<RSSI>,<SNR>

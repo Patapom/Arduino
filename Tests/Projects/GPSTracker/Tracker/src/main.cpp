@@ -161,9 +161,12 @@ int		displayCounter = 0;
 int		lastDisplayTime_ms = -1000;
 int		lastBroadcastTime_ms = -1000;
 
+bool	buzzerEnabled = false;
+
 void	ShowGPSDateTime();
 void	ShowGPSData();
 void	BroadcastGPSData();
+bool	ProcessCommand( U16 _transmitterID, const char* _message, U8 _messageLength );
 
 void	loop() {
 	int	now_ms = millis();
@@ -172,12 +175,24 @@ void	loop() {
 //	delay( 1000 );
 //	return;
 
-	// Funky localization sound
-//	static int 	counter = 0;
-//	ledcWrite( 0, counter++ & 0xFF );		// Bzzz!
+	if ( buzzerEnabled ) {
+		// Funky localization sound
+//		static int 	counter = 0;
+//		ledcWrite( 0, counter++ & 0xFF );		// Bzzz!
 
-	U8	sine = U8( 128 + 127 * sin( 2*PI * (now_ms - startTime_ms) / 1000.0f ) );
-	ledcWrite( 0, sine );		// Bzzz!
+		#if 1	// FUNKY! :D 
+			U8	sine = U8( 128 + 127 * sin( 2*PI * (now_ms - startTime_ms) / 1000.0f ) );
+sine >>= 5;
+			ledcWrite( 0, sine );		// Bzzz!
+		#else	// Change frequency
+Actually poses a problem as it reconfigures the timer every time...
+//			U32	frequency = U32( 1500.0f + 500.0f * sin( 2*PI * (now_ms - startTime_ms) / 1000.0f ) );	// Oscillates between 500 Hz and 2000 Hz
+//			ledcChangeFrequency( 0, frequency, 8 );
+//			ledcWrite( 0, 128 );
+		#endif
+	} else {
+		ledcWrite( 0, 0 );
+	}
 
 /*	/////////////////////////////////////////////////////////////////////
 	// Update display
@@ -197,17 +212,32 @@ void	loop() {
 //*/
 
 	////////////////////////////////////////////////////////////////////
+	// Read LORA
+	//
+	U16		transmitterID;
+	U8		payloadLength;
+	S16		RSSI, SNR;
+	bool	error;
+	const char*	message = lora.Receive( transmitterID, payloadLength, RSSI, SNR, error );
+	if ( message != nullptr ) {
+		ProcessCommand( transmitterID, message, payloadLength );
+	} else if ( error ) {
+		Serial.printf( "Error reading message: %s\r\n", lora.LastErrorString() );
+	}
+
+
+	////////////////////////////////////////////////////////////////////
 	// Update GPS
 	//
 	gps.ReadGPSData();
 
 //	ShowGPSData();
 
-	// Broadcast position every second
-	if ( now_ms - lastBroadcastTime_ms > 1000 ) {
-		lastBroadcastTime_ms = now_ms;
-		BroadcastGPSData();
-	}
+//	// Broadcast position every second
+//	if ( now_ms - lastBroadcastTime_ms > 1000 ) {
+//		lastBroadcastTime_ms = now_ms;
+//		BroadcastGPSData();
+//	}
 }
 
 // Send delta position through LORA (we're only sending the billionth of degrees relative to home, usually 3 to 4 characters long for short distances)
@@ -227,7 +257,7 @@ void	BroadcastGPSData() {
 display.printf( "Dlat/lng = %d / %d\r\n", intDeltaLatitude, intDeltaLongitude );
 
 	lora.Sendf( 0,	// Broadcast to all!
-				"%d,%d", intDeltaLatitude, intDeltaLongitude
+				"G%d,%d", intDeltaLatitude, intDeltaLongitude	// Prefix with G to indicate GPS data
 				);
 
 	#else	// Use raw degrees operations
@@ -250,6 +280,26 @@ Serial.printf( "Delta lon = %d.%09d\r\n", deltaLongitude.negative ? -deltaLongit
 				);
 #endif
 }
+
+bool	ProcessCommand( U16 _transmitterID, const char* _message, U8 _messageLength ) {
+Serial.printf( "Processing command \"%s\"\r\n", _message );
+
+	// Process the "BUZZ=<ON/OFF>" command
+	if ( strstr( _message, "CBUZZ=" ) == _message ) {
+		_message += 6;
+		_messageLength -= 6;
+		buzzerEnabled = _messageLength == 2 && _message[0] == 'O' && _message[1] == 'N';
+
+		display.println( buzzerEnabled ? "Buzzer enabled" : "Buzzer disabled" );
+
+		// Send ACK
+		lora.Send( _transmitterID, buzzerEnabled ? "ACKBUZZ1" : "ACKBUZZ0" );
+		return true;
+	}
+
+	return false;
+}
+
 
 void	ShowGPSData() {
 

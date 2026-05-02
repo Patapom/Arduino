@@ -221,7 +221,14 @@ void	setup() {
 	startTime_ms = millis();
 }
 
+int		lastCommandTime_ms = 0;
+bool	enableRemoteBuzzer = false;
+
+void	ProcessMessage( const char* _payload, U8 _payloadLength );
+
 void	loop() {
+	int	now_ms = millis();
+
 //	Serial.println( "COUCOU!" );
 //	delay( 1000 );
 //	return;
@@ -229,7 +236,21 @@ void	loop() {
 //	if ( bno.isFullyCalibrated() )
 //		ShowMagnetometerData();
 
-//*	// Wait for LORA messages
+//*	////////////////////////////////////////////////////////////////////
+	// Send commands to the tracker module
+	if ( now_ms - lastCommandTime_ms > 3500 ) {
+		lastCommandTime_ms = now_ms;
+
+		enableRemoteBuzzer = !enableRemoteBuzzer;
+		lora.Send( 2, enableRemoteBuzzer ? "CBUZZ=ON" : "CBUZZ=OFF" );
+
+		display.println( enableRemoteBuzzer ? "Remote buzzer ON" : "Remote buzzer OFF" );
+	}
+//*/
+
+
+//*	////////////////////////////////////////////////////////////////////
+	// Wait for LORA messages
 	U16			transmitterID;
 	U8			payloadLength;
 	S16			RSSI, SNR;
@@ -242,7 +263,15 @@ void	loop() {
 		return;
 	}
 
-	// Process latitude/longitude
+	if ( payloadLength == 0 ) {
+		return;
+	} else if ( payload[0] != 'G' ) {
+		// Process something else...
+		ProcessMessage( payload, payloadLength );
+		return;
+	}
+
+	// Process a GPS latitude/longitude
 Serial.printf( "Received \"%s\" (%d, %d, %d)\r\n", payload, transmitterID, RSSI, SNR );
 
 	char*	strDeltaLatitude = (char*) payload;
@@ -271,4 +300,13 @@ Serial.printf( "Received \"%s\" (%d, %d, %d)\r\n", payload, transmitterID, RSSI,
 	float	bearing = GPS::ComputeDirection( currentLatitude, currentLongitude, targetLatitude, targetLongitude, distance_m );
 	display.printf( "Dir %3.1f' @ %.1fm\r\n", bearing, distance_m );
 //*/
+}
+
+void	ProcessMessage( const char* _payload, U8 _payloadLength ) {
+	if ( strstr( _payload, "ACK" ) == _payload ) {
+		// Process command acknowledge
+Serial.printf( "Recognized ACK for command %s\r\n", _payload+3 );
+	} else {
+Serial.printf( "Unknown payload \"%s\"\r\n", _payload );
+	}
 }

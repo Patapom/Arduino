@@ -62,6 +62,7 @@ public:
 
 	// Send payload to target device (use ID=0 to broadcast, i.e. send to all devices)
 	void	Send( U16 _targetDeviceID, const char* _payload, U8 _payloadLength );
+	void	Send( U16 _targetDeviceID, const char* _payload );
 	void	Sendf( U16 _targetDeviceID, const char* _payload, ... );
 
 	// Tries to read a LORA message
