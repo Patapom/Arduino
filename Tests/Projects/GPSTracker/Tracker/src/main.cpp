@@ -131,6 +131,9 @@ void	setup() {
 
 //	delay( 1000 );
 
+	// Provide guess for initial position
+	gps.UBXSendInitialPosition( homeLatitude, homeLongitude, homeAltitude_m );
+
 	// Try to find a fix for 15 seconds
 //	GPS::FIX_STATUS	fixStatus = gps.FindFix( 15000 );
 	GPS::FIX_STATUS	fixStatus = gps.FindFix( -1 );	// No time out
@@ -149,7 +152,7 @@ void	setup() {
 
 
 	// =======================================================
-	display.println( "BUZZZZ..." );
+	display.println( "Initializing buzzer..." );
 
 	ledcAttachPin( 27, 0 );
 	ledcSetup( 0, 2000, 8 );	// 2 kHz

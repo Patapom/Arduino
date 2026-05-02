@@ -4,8 +4,10 @@
 
 #include <TinyGPSPlus.h>
 
+// U-BLOX Neo-6M documentation:	u-blox-F10-SPG-6.00_InterfaceDescription_UBX-23002975.pdf
+//
 // TODO:
-//	• Use "UBX-MGA-INI-POS_LLH" to specify initial lat/lon/elevation (cf. u-blox-F10-SPG-6.00_InterfaceDescription_UBX-23002975.pdf)
+//	• Use "UBX-MGA-INI-POS_LLH" to specify initial lat/lon/elevation
 //		→ Use "UBX-INF-TEST" ? (although it's marked as "output" only ??? How do we make the module spit a test sequence?)
 
 class	GPS {
@@ -104,6 +106,24 @@ public:
 	bool	isDateTimeValid() const { return m_lastValidDateTime_Time_ms != -1; }
 
 	void	ReadGPSData();
+
+public:	// U-BLOX Specific methods (Typically used for the Neo-6M GPS module)
+
+	// Computes the 2 bytes checksum of a data buffer
+	// Source: section 3.4 of source u-blox documentation
+	void	UBXChecksum( uint8_t* data, uint16_t len, uint8_t& ck_a, uint8_t& ck_b );
+
+	// Sends a well-formatted UBX frame
+	void	UBXSend( uint8_t cls, uint8_t id, uint8_t* payload, uint16_t len );
+
+	// Waits for the module to acknowledge our command (Cf. sections 3.9.1 & 3.9.2)
+	//	cls, the class of the command we need acknowledgment for
+	//	id, the ID of the command we need acknowledgment for
+	bool	UBXWaitForAck( uint8_t cls, uint8_t id, uint32_t timeout = 1000 );
+
+	// Sends the initial position via the UBX-MGA-INI-POS_LLH frame (cf. section 3.12.8.2)
+	//	_latitude and _longitude are in DEGREES
+	void	UBXSendInitialPosition( double _latitude, double _longitude, double _altitude_m );
 
 public:	// Helpers
 	static void	Subtract( const RawDegrees& a, const RawDegrees& b, RawDegrees& result );

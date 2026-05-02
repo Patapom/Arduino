@@ -206,6 +206,33 @@ void	setup() {
 	Serial1.begin( GPS_BAUD, SERIAL_8N1, PIN_GPS_RX, PIN_GPS_TX );
 
 //	delay( 1000 );
+//	// Empty buffer
+	while ( Serial1.available() )
+		Serial1.read();
+	Serial1.flush();
+
+	// Provide guess for initial position
+	gps.UBXSendInitialPosition( homeLatitude, homeLongitude, homeAltitude_m );
+
+	// Wait for ACK
+//gps.UBXSend( 0x0A, 0x04, nullptr, 0 );	// UBX-MON-VER => Not sure what it's supposed to return?
+//
+//// Apparently never comes: command ignored or just no ACK on this command?
+//while (  true ) {
+//	if ( Serial1.available() == 0 )
+//		continue;
+//
+//	int	v = Serial1.read();
+//	Serial.print( v, HEX );
+//	Serial.print( " (" );
+//	Serial.print( (char ) v );
+//	Serial.print( ") " );
+//}
+//	if ( gps.UBXWaitForAck( 0x13, 0x40, 10000 ) )
+//		Serial.println( "ACK!" );
+//	else
+//		Serial.println( "NOT ACK!" );
+
 
 	// Try to find a fix for 15 seconds
 //	GPS::FIX_STATUS	fixStatus = gps.FindFix( 15000 );

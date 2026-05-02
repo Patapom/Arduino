@@ -13,6 +13,7 @@ typedef signed char		S8;
 // Home latitude
 constexpr double	homeLatitude = 49.516223500;
 constexpr double	homeLongitude = -124.362310167;
+constexpr double	homeAltitude_m = 60.0;
 
 //RawDegrees	homeLatitude { 49, 516223500, false };	// Home Latitude 49.516223500
 //RawDegrees	homeLongitude { 124, 362310167, true };	// Home Longitude -124.362310167

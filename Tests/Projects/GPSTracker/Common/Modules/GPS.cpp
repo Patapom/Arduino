@@ -96,7 +96,10 @@ void	GPS::ReadGPSData() {
 		//	$GPGSV,4,4,14,30,08,244,,31,05,062,11*76
 		//	$GPGLL,4930.96893,N,12421.72849,W,220824.00,A,A*72
 
-		m_GPS.encode( m_serial.read() );
+		char	C = (char) m_serial.read();
+//Serial.print( C );
+
+		m_GPS.encode( C );
 	}
 
 	// Extract location if available
@@ -277,4 +280,115 @@ float	GPS::ComputeDirection( double  _currentLatitude, double _currentLongitude,
 	if ( bearing < 0 ) bearing += 360;	// Normalisation 0–360
 
 	return float( bearing );
+}
+
+void	GPS::UBXChecksum( uint8_t* data, uint16_t len, uint8_t& ck_a, uint8_t& ck_b ) {
+	ck_a = 0;
+	ck_b = 0;
+
+	for ( U16 i=0; i < len; i++ ) {
+		ck_a += data[i];
+		ck_b += ck_a;
+	}
+}
+
+void	GPS::UBXSend( uint8_t cls, uint8_t id, uint8_t* payload, uint16_t len ) {
+	// [SYNC][CLASS][ID][LENGTH][PAYLOAD][CK_A][CK_B]
+	// 
+	//	SYNC = 0xB5 0x62
+	//	CLASS = ex: 0x13 (MGA)
+	//	ID = ex: 0x40 (INI)
+	//	LENGTH = payload size (little endian)
+	//	PAYLOAD = data
+	//	CHECKSUM = computed
+	uint8_t ck_a, ck_b;
+
+	uint8_t	header[4] = { cls, id, (uint8_t)(len & 0xFF), (uint8_t)(len >> 8) };
+	UBXChecksum( header, 4, ck_a, ck_b );
+	UBXChecksum( payload, len, ck_a, ck_b );
+
+	m_serial.write( 0xB5 );
+	m_serial.write( 0x62 );
+
+	m_serial.write( header, 4 );
+	m_serial.write( payload, len );
+
+	m_serial.write( ck_a );
+	m_serial.write( ck_b );
+}
+
+bool	GPS::UBXWaitForAck( uint8_t cls, uint8_t id, uint32_t timeout ) {
+	uint32_t	start = millis();
+
+	uint8_t	step = 0;
+	uint8_t	ackClass = 0, ackID = 0;
+
+	while ( millis() - start < timeout ) {
+		if ( !m_serial.available() ) {
+			delay( 1 );
+			continue;
+		}
+
+		uint8_t	b = m_serial.read();
+
+		switch ( step ) {
+			// Expect the 0x85 0x62 header
+			case 0: if ( b == 0xB5 ) step++; break;
+			case 1: if ( b == 0x62 ) step++; else step = 0; break;
+
+			// Expect USB-ACK class ID (0x05)
+			case 2: if ( b == 0x05 ) step++; else step = 0; break;
+
+			// Expect ACK (0x01) or NAK msg ID (0x00)
+			case 3:
+				if ( b == 0x01 || b == 0x00 ) {
+					ackID = b; // ACK or NAK
+					step++;
+				} else step = 0;
+				break;
+
+			// Expect payload length 2 (U16)
+			case 4: if ( b == 0x02 ) step++; else step = 0; break;
+			case 5: if ( b == 0x00 ) step++; else step = 0; break;
+
+			// Acknowledegd class ID
+			case 6: ackClass = b; step++; break;
+			// Acknowledged message ID
+			case 7: ackID = b; step++; break;
+
+			// Ignore checksum
+			case 8: step++; break;
+			case 9:
+				// Message end
+				if ( ackClass == cls && ackID == id ) {
+					return true; // ACK reçu
+				}
+
+				// Wrong class and/or message IDs
+				step = 0;
+				break;
+		}
+	}
+
+	return false; // Timeout or NAK
+}
+
+void	GPS::UBXSendInitialPosition( double _latitude, double _longitude, double _altitude_m ) {
+	uint8_t	payload[20] = {0};
+
+	int32_t	lat = _latitude * 1e7;
+	int32_t	lon = _longitude * 1e7;
+	int32_t	alt = _altitude_m * 100; // m → cm
+
+	payload[0] = 0x01; // type = position
+
+	memcpy( payload + 4, &lat, 4 );
+	memcpy( payload + 8, &lon, 4 );
+	memcpy( payload + 12, &alt, 4 );
+
+	uint32_t positionAccuracy = 10000; // 10 m
+	memcpy( payload + 16, &positionAccuracy, 4 );
+
+	// Send UBX-MGA-INI-POS_LLH
+	UBXSend( 0x13, 0x40, payload, 20 );
 }
