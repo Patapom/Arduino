@@ -55,6 +55,11 @@ static const int		pinSDA = , pinSCL = ;
 LORA	lora( 1 );	// STATION ID
 
 
+bool	FindFixProgress( const GPS::Data& _data, U32 _elapsedTime_ms, void* _parameter ) {
+	Serial.print( "." );
+	return true;	// Continue...
+}
+
 void	ShowGPSData();
 
 int	startTime_ms;
@@ -235,8 +240,8 @@ void	setup() {
 
 
 	// Try to find a fix for 15 seconds
-//	GPS::FIX_STATUS	fixStatus = gps.FindFix( 15000 );
-	GPS::FIX_STATUS	fixStatus = gps.FindFix( -1 );	// No time out
+//	GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, 15000 );
+	GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, nullptr, -1 );	// No time out
 	if ( fixStatus != GPS::FIX_STATUS::FOUND_FIX ) {
 		display.println( "Initialization failed..." );
 		switch ( fixStatus ) {
@@ -325,8 +330,8 @@ Serial.printf( "Received \"%s\" (%d, %d, %d)\r\n", payload, transmitterID, RSSI,
 	// Compute direction & distance
 //	double	currentLatitude = homeLatitude;
 //	double	currentLongitude = homeLongitude;
-	double	currentLatitude = gps.m_avgLatitude;
-	double	currentLongitude = gps.m_avgLongitude;
+	double	currentLatitude = gps.m_data.avgLatitude;
+	double	currentLongitude = gps.m_data.avgLongitude;
 
 	float	distance_m;
 	float	bearing = GPS::ComputeDirection( currentLatitude, currentLongitude, targetLatitude, targetLongitude, distance_m );

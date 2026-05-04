@@ -1,8 +1,44 @@
 #include "GPS.h"
 
-// Inspired by Robojax's code (https://robojax.com/learn/arduino/?vid=robojax_GPS_TinyGPSPlus)
-//
-GPS::FIX_STATUS	GPS::FindFix( U32 _timeOut_ms ) {
+// Parallel task constantly monitoring GPS information and updating data in the thread-safe queue
+static bool	FindFixProgress( const GPS::Data& _data, U32 _elapsedTime_ms, void* _parameter ) {
+	GPS*	gps = (GPS*) _parameter;
+	gps->CommitData();	// Commit whatever is there...
+	return !gps->GetKillTask();
+}
+
+void	GPS::Task( void* pvParameters ) {
+
+	GPS*	that = (GPS*) pvParameters;
+
+	// Start monitoring
+	that->m_killTask = false;
+	while ( !that->m_killTask ) {
+
+		// Read any available characters & update GPS data
+		that->ReadGPSData();
+
+		// Check if we have a fix
+		if ( !that->m_GPS.location.isValid() ) {
+			GPS::FIX_STATUS	status = that->FindFix( FindFixProgress, that );
+			if ( status == GPS::FIX_STATUS::ERROR_NO_GPS_MODULE ) {
+				that->m_killTask = true;	// Exit task with an error...
+			} else if ( status == GPS::FIX_STATUS::SEARCH_ABORTED_BY_USER ) {
+				return;	// Exit task...
+			} else if ( status != GPS::FIX_STATUS::FOUND_FIX ) {
+				throw "Unhandled fix status!";
+			}
+		}
+
+		// We have a fix!
+		that->CommitData();	// Commit whatever data are there...
+
+		// Wait a bit
+		vTaskDelay( pdMS_TO_TICKS(5) );
+	}
+}
+
+GPS::FIX_STATUS	GPS::FindFix( FixProgressCallback _Progresscallback, void* _parameter, U32 _timeOut_ms ) {
 
 #if 0 // Basic serial printing of GPS data
 	while ( true ) {
@@ -18,47 +54,55 @@ GPS::FIX_STATUS	GPS::FindFix( U32 _timeOut_ms ) {
 	U32	now_ms = startTime_ms;
 	U32	lastProgress_ms = now_ms;
 
-	m_hasFix = false;
-	m_satellitesCount = 0;
-	while ( !m_hasFix && (now_ms - startTime_ms) < _timeOut_ms ) {
+	int	satellitesCount = m_data.satellitesCount;
+
+	m_data.fixStatus = FIX_STATUS::NO_FIX;	// Start with no fix...
+	while ( m_data.fixStatus != FIX_STATUS::FOUND_FIX && (now_ms - startTime_ms) < _timeOut_ms ) {
 		ReadGPSData();
 
 //Serial.printf( "Start %d - Now %d\r\n", startTime_ms, now_ms );
 
-		if ( m_GPS.satellites.isValid() && m_GPS.satellites.value() != m_satellitesCount ) {
-			m_satellitesCount = m_GPS.satellites.value();
-Serial.printf( "Satellites count %d\r\n", m_satellitesCount );
-		}
+// Notify when sat count changes
+//if ( m_data.satellitesCount != satellitesCount ) {
+//	satellitesCount = m_data.satellitesCount;
+//	Serial.printf( "Satellites count %d\r\n", m_data.satellitesCount );
+//}
 
 		if ( m_GPS.location.isValid() ) {
 			// Found a fix!
-			m_hasFix = true;
-			break;
+			m_data.fixStatus = FIX_STATUS::FOUND_FIX;
+
+			if ( m_data.satellitesCount > 0 ) {
+				Serial.printf( "Found fix with %d satellites\r\n", m_data.satellitesCount );
+			} else {
+				Serial.printf( "Found fix. No satellites count info.\r\n" );
+			}
+
+			return m_data.fixStatus;
 		}
 
 		if ( now_ms - startTime_ms > 5000 && m_GPS.charsProcessed() < 10 ) {
 			// No characters received from the module...
-			Serial.println( "No GPS detected: check wiring." );
-			return FIX_STATUS::ERROR_NO_GPS_MODULE;
+//Serial.println( "No GPS detected: check wiring." );
+			m_data.fixStatus = FIX_STATUS::ERROR_NO_GPS_MODULE;
+			return m_data.fixStatus;
 		}
 
 		delay( 100 );
 		now_ms = millis();
 
-		if ( now_ms - lastProgress_ms > 1000 ) {
+		if ( _Progresscallback != nullptr, now_ms - lastProgress_ms > 1000 ) {
 			lastProgress_ms = now_ms;
-			Serial.print( "." );
+			if ( !(*_Progresscallback)( m_data, now_ms, _parameter ) ) {
+				m_data.fixStatus = FIX_STATUS::SEARCH_ABORTED_BY_USER;
+				return m_data.fixStatus;
+			}
 		}
 	}
 
-	if ( m_GPS.satellites.isValid() ) {
-		m_satellitesCount = m_GPS.satellites.value();
-		Serial.printf( "Found fix with %d satellites\r\n", m_satellitesCount );
-	} else {
-		Serial.printf( "Found fix. No satellites count info.\r\n" );
-	}
-
-	return m_hasFix ? FIX_STATUS::FOUND_FIX : FIX_STATUS::ERROR_TIME_OUT;
+	// Time out!
+	m_data.fixStatus = FIX_STATUS::ERROR_TIME_OUT;
+	return m_data.fixStatus;
 }
 
 // Read GPS data while it's available
@@ -102,12 +146,27 @@ void	GPS::ReadGPSData() {
 		m_GPS.encode( C );
 	}
 
+	m_data.lastUpdate_ms = millis();
+
+	// Read HDOP (our primary measure of quality)
+	if ( m_GPS.hdop.isValid() ) {
+		m_data.HDOP = m_GPS.hdop.hdop();
+	} else {
+		m_data.HDOP = 10;	// Very bad!
+	}
+
+	// Read satellites count
+	if ( m_GPS.satellites.isValid() && m_GPS.satellites.value() != m_data.satellitesCount ) {
+		m_data.satellitesCount = m_GPS.satellites.value();
+	}
+
 	// Extract location if available
 	if ( m_GPS.location.isValid() ) {
-		m_locationQuality = (Quality) m_GPS.location.FixQuality();
+		m_data.locationQuality = (Quality) m_GPS.location.FixQuality();
 
-		m_latitude = m_GPS.location.lat();
-		m_longitude = m_GPS.location.lng();
+		// Read immediate value
+		m_data.latitude = m_GPS.location.lat();
+		m_data.longitude = m_GPS.location.lng();
 
 // Conversion from raw degrees:
 // double ret = m_latitude.deg + m_latitude.billionths / 1000000000.0;
@@ -115,15 +174,40 @@ void	GPS::ReadGPSData() {
 
 		// Update exponential moving average
 		if ( m_avgCount == 0 ) {
-			m_avgLatitude = m_latitude;
-			m_avgLongitude = m_longitude;
+			// First value
+			m_data.avgLatitude = m_data.latitude;
+			m_data.avgLongitude = m_data.longitude;
 		} else {
-			m_avgLatitude = m_latitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLatitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
-			m_avgLongitude = m_longitude * EXPONENTIAL_MOVING_AVERAGE_FACTOR + m_avgLongitude * (1.0 - EXPONENTIAL_MOVING_AVERAGE_FACTOR);
+			// Adapt average speed depending on HDOP quality
+			const float	MAX_HDOP = 10.0f;										// Worst quality (inusable)
+			const float	TIME_PERIOD_WORST = 10;									// Small contribution when low quality
+			const float	TIME_PERIOD_BEST = 2;									// Large contribution when high quality
+
+			#if 1
+				float	qualityFactor = 1.0f - min( 1.0f, m_data.HDOP / MAX_HDOP );	// 1 for good quality, 0 for bad quality
+				float	timePeriod = TIME_PERIOD_WORST + (TIME_PERIOD_BEST - TIME_PERIOD_WORST) * qualityFactor;
+				float	blendFactor = 2.0f / (1 + timePeriod);						// Should yield 0.666 contribution for best signals (fast update, small smoothing) and 0.1818 for worst signals (slow update, large smoothing)
+			#else
+				float	blendFactor = EXPONENTIAL_MOVING_AVERAGE_FACTOR;			// Fixed, non adaptable
+			#endif
+
+			m_data.avgLatitude = m_data.latitude * blendFactor + m_data.avgLatitude * (1.0 - blendFactor);
+			m_data.avgLongitude = m_data.longitude * blendFactor + m_data.avgLongitude * (1.0 - blendFactor);
 		}
 		m_avgCount++;
 
-		m_lastValidLocation_Time_ms = millis();
+		m_data.lastValidLocation_Time_ms = m_data.lastUpdate_ms;
+	}
+
+	// Extract minor information (altitude, course & speed)
+	if ( m_GPS.altitude.isValid() ) {
+		m_data.altitude = m_GPS.altitude.meters();
+	}
+	if ( m_GPS.course.isValid() ) {
+		m_data.course_degrees = m_GPS.course.deg();
+	}
+	if ( m_GPS.speed.isValid() ) {
+		m_data.speed_kmph = m_GPS.speed.kmph();
 	}
 
 // So apparently we can get a "valid" time and date that is clearly wrong, even without a location fix...
@@ -131,14 +215,14 @@ void	GPS::ReadGPSData() {
 //
 	// Extract UTC date & time if available
 	if ( m_GPS.time.isValid() && m_GPS.date.isValid() ) {
-		m_dateTime.Y = m_GPS.date.year();
-		m_dateTime.M = m_GPS.date.month();
-		m_dateTime.D = m_GPS.date.day();
-		m_dateTime.h = m_GPS.time.hour();
-		m_dateTime.m = m_GPS.time.minute();
-		m_dateTime.s = m_GPS.time.second();
+		m_data.dateTime.Y = m_GPS.date.year();
+		m_data.dateTime.M = m_GPS.date.month();
+		m_data.dateTime.D = m_GPS.date.day();
+		m_data.dateTime.h = m_GPS.time.hour();
+		m_data.dateTime.m = m_GPS.time.minute();
+		m_data.dateTime.s = m_GPS.time.second();
 
-		m_lastValidDateTime_Time_ms = millis();
+		m_data.lastValidDateTime_Time_ms = m_data.lastUpdate_ms;
 	}
 }
 

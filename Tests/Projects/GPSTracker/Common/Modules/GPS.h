@@ -30,10 +30,14 @@ public:
 	};
 
 	enum class FIX_STATUS {
-		UNKNOWN = -1,
-		FOUND_FIX,				// Successfully found a fix (read Quality field and satellites count for overall quality)
-		ERROR_TIME_OUT,			// The search for a fix timed out without success
-		ERROR_NO_GPS_MODULE,	// Returns failure after 5s without any life sign from the 
+		// Fix/No fix
+		NO_FIX = 0,					// No satellite fix
+		FOUND_FIX,					// Successfully found a fix (read HDOP, satellites count and Quality field for overall quality)
+
+		// Errors
+		ERROR_NO_GPS_MODULE = -1,	// Returns failure after 5s without any life sign from the 
+		ERROR_TIME_OUT = -2,		// The search for a fix timed out without success
+		SEARCH_ABORTED_BY_USER = -3,// User callback returned false to abort search
 	};
 
 	// A copy of the TinyGPS version with added information
@@ -49,63 +53,109 @@ public:
 		Simulated = '8'		// Simulated position (testing)
 	};
 
+	struct Data {
+		FIX_STATUS	fixStatus = FIX_STATUS::NO_FIX;
+		U8			satellitesCount = 0;
+		float 		HDOP = 10;	// Horizontal Dilution of Precision.
+								// Typical values are:
+								//		< 1		Excellent	~1–3 m
+								//		1 – 2	Very good	~3–5 m
+								//		2 – 5	OK			~5–15 m
+								//		> 5		Bad 		> 20 m
+								//		> 10	Very bad	inutilisable		
+
+		// Location
+		U32			lastValidLocation_Time_ms = -1;
+
+		Quality		locationQuality = Quality::Invalid;
+
+		// We're storing latitudes and longitudes as 64-bits double precision which should be enough to account
+		//	for the precision of the raw measures sent by the module which can go up to 1e-9 units
+		// If we're assuming degree values between -180 and +180 degrees and 9 digits of precision, we need to store a number with an magnitude of 1e12 = 39.86 bits of precision
+		// We know 64-bits floats use 53 bits of mantissa and 11 bits of exponent, which is largely enough to accommodate our needs here...
+		//
+		double		latitude;
+		double		longitude;
+
+		// These values are accumulated using an exponential moving average (EMA) with a common smoothing length of 10 values when accuracy (HDOP) is low or all the way down to 2 values when accuracy is high
+		double		avgLatitude;
+		double		avgLongitude;
+
+		float		altitude = 0.0;
+
+		float 		course_degrees = 0.0;
+		float		speed_kmph = 0;
+
+		// UTC date & time
+		U32			lastValidDateTime_Time_ms = -1;
+		DateTime	dateTime;
+
+		// Time of the last data update
+		U32 		lastUpdate_ms = 0;
+	};
+
 private:
 	HardwareSerial&	m_serial;
 	TinyGPSPlus		m_GPS;
 
+	int				m_avgCount = 0;	// Counter of accumulated location values for the moving average
+
+	bool			m_killTask;		// A boolean used to finish the monitoring task
+	QueueHandle_t 	m_queue;		// Lock-free global queue for R/W
+
+
 public:
 
-	bool			m_hasFix;
-	U32				m_satellitesCount = 0;
-
-	// Location
-	U32				m_lastValidLocation_Time_ms;
-	Quality			m_locationQuality;
-
-	// We're storing latitudes and longitudes as 64-bits double precision which should be enough to account
-	//	for the precision of the raw measures sent by the module which can go up to 1e-9 units
-	// If we're assuming degree values between -180 and +180 degrees and 9 digits of precision, we need
-	// 	to store a number with an magnitude of 1e12 = 39.86 bits of precision
-	// We know 64-bits floats use 53 bits of mantissa and 11 bits of exponent, which is largely enough
-	//	to accommodate our needs here...
-	//
-	double			m_latitude;
-	double			m_longitude;
-
-	// These values are accumulated using an exponential moving average (EMA) with a common smoothing length of 10 values
-	double			m_avgLatitude;
-	double			m_avgLongitude;
-	int				m_avgCount;
-
-	// UTC date & time
-	U32				m_lastValidDateTime_Time_ms;
-	DateTime		m_dateTime;
+	// Immediate GPS data (not thread safe! Use GetGPSData() when using a monitor task)
+	Data			m_data;
 
 public:
 	GPS( HardwareSerial& _serial ) : m_serial( _serial ) {
-		m_hasFix = false;
-		m_satellitesCount = 0;
-		m_lastValidLocation_Time_ms = -1;
-		m_lastValidDateTime_Time_ms = -1;
-
-		m_locationQuality = Invalid;
-
-		// Initialze running average
-		m_avgLatitude = 0;
-		m_avgLongitude = 0;
-		m_avgCount = 0;
 //		m_serial.onReceive( )
+
+		m_queue = xQueueCreate( 1, sizeof(Data) );	// Size 1 = real time
 	}
 
+	// Start GPS task that will find fixes and update the GPS data on its own
+	void	StartMonitoringTask() {
+		xTaskCreatePinnedToCore(
+			Task,
+			"GPS Task",
+			4096,	// Stack depth
+			this,	// PV Parameters
+			1,		// Priority
+			NULL,	// Task handle
+			1		// Core 1 (core 0 often used for WiFi)
+		);
+	}
+
+	// Will kill the task as soon as possible...
+	void	KillTask() { m_killTask = true; }
+	bool	GetKillTask() { return m_killTask; }
+
+	// Attempts to read the GPS data from the lock-free queue
+	// Returns true if the read was successful, or false if the read timed out
+	bool	GetGPSData( Data& _data, U32 _timeOut_ms=1000 ) {
+		return xQueueReceive( m_queue, &_data, pdMS_TO_TICKS(_timeOut_ms) );
+	}
+
+	// Commits the data to the queue for any consumer to read
+	void	CommitData() {
+		xQueueOverwrite( m_queue, &m_data );
+	}
+
+	// Callback to monitor the progress when searching for a fix
+	// Returns true to continue the search, false to stop...
+	typedef bool	(*FixProgressCallback)( const GPS::Data& _data, U32 _elapsedTime_ms, void* _parameter );
+
 	// Wait for a satellite fix
-	FIX_STATUS	FindFix( U32 _timeOut_ms=-1 );
+	FIX_STATUS	FindFix( FixProgressCallback _Progresscallback, void* _parameter, U32 _timeOut_ms=-1 );
 
-	double	lat() const;
-	double	lng() const;
+//	bool	isDateTimeValid() const { return m_lastValidDateTime_Time_ms != -1; }
 
-	bool	isDateTimeValid() const { return m_lastValidDateTime_Time_ms != -1; }
-
+	// Read GPS data from the module into the immediate structure (not thread safe!)
 	void	ReadGPSData();
+
 
 public:	// U-BLOX Specific methods (Typically used for the Neo-6M GPS module)
 
@@ -130,4 +180,7 @@ public:	// Helpers
 
 	// Computes the bearing angle in 0° (N) → 90° (E) → 180° (S) → 270° (W) and  the distance to the target in meters
 	static float	ComputeDirection( double  _currentLatitude, double _currentLongitude, double _targetLatitude, double _targetLongitude, float& _distance_meters );
+
+private:
+	static void	Task( void* pvParameters );
 };
