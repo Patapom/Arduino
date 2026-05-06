@@ -1,10 +1,13 @@
 #include "GPS.h"
 
 // Parallel task constantly monitoring GPS information and updating data in the thread-safe queue
-static bool	FindFixProgress( const GPS::Data& _data, U32 _elapsedTime_ms, void* _parameter ) {
+bool	GPS::FindFixProgress( const GPS::Data& _data, U32 _elapsedTime_ms, void* _parameter ) {
 	GPS*	gps = (GPS*) _parameter;
 	gps->CommitData();	// Commit whatever is there...
-	return !gps->GetKillTask();
+
+//Serial.print( "." );
+
+	return !gps->m_killTask;
 }
 
 void	GPS::Task( void* pvParameters ) {
@@ -13,6 +16,8 @@ void	GPS::Task( void* pvParameters ) {
 
 	// Start monitoring
 	that->m_killTask = false;
+	that->m_taskRunning = true;
+
 	while ( !that->m_killTask ) {
 
 		// Read any available characters & update GPS data
@@ -20,22 +25,32 @@ void	GPS::Task( void* pvParameters ) {
 
 		// Check if we have a fix
 		if ( !that->m_GPS.location.isValid() ) {
+//Serial.println( "Find fix" );
+
 			GPS::FIX_STATUS	status = that->FindFix( FindFixProgress, that );
 			if ( status == GPS::FIX_STATUS::ERROR_NO_GPS_MODULE ) {
+//Serial.println( "Killing task" );
 				that->m_killTask = true;	// Exit task with an error...
 			} else if ( status == GPS::FIX_STATUS::SEARCH_ABORTED_BY_USER ) {
-				return;	// Exit task...
+				break;	// Exit task...
 			} else if ( status != GPS::FIX_STATUS::FOUND_FIX ) {
 				throw "Unhandled fix status!";
 			}
 		}
 
 		// We have a fix!
-		that->CommitData();	// Commit whatever data are there...
+		that->CommitData();	// Commit whatever is there...
 
 		// Wait a bit
 		vTaskDelay( pdMS_TO_TICKS(5) );
 	}
+
+//Serial.println( "Exiting task" );
+
+	that->m_taskRunning = false;
+
+	// Tasks can't return apparently...
+	vTaskDelete( NULL );
 }
 
 GPS::FIX_STATUS	GPS::FindFix( FixProgressCallback _Progresscallback, void* _parameter, U32 _timeOut_ms ) {
@@ -61,12 +76,6 @@ GPS::FIX_STATUS	GPS::FindFix( FixProgressCallback _Progresscallback, void* _para
 		ReadGPSData();
 
 //Serial.printf( "Start %d - Now %d\r\n", startTime_ms, now_ms );
-
-// Notify when sat count changes
-//if ( m_data.satellitesCount != satellitesCount ) {
-//	satellitesCount = m_data.satellitesCount;
-//	Serial.printf( "Satellites count %d\r\n", m_data.satellitesCount );
-//}
 
 		if ( m_GPS.location.isValid() ) {
 			// Found a fix!

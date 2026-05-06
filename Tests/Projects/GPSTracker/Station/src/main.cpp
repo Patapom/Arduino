@@ -239,6 +239,9 @@ void	setup() {
 //		Serial.println( "NOT ACK!" );
 
 
+	#if 1	// Async task
+		gps.StartMonitoringTask();
+	#else	// Sync task
 	// Try to find a fix for 15 seconds
 //	GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, 15000 );
 	GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, nullptr, -1 );	// No time out
@@ -253,6 +256,7 @@ void	setup() {
 	}
 
 	display.println( "Awaiting GPS location data..." );
+	#endif
 //*/
 
 	startTime_ms = millis();
@@ -262,6 +266,7 @@ int		lastCommandTime_ms = 0;
 bool	enableRemoteBuzzer = false;
 
 void	ProcessMessage( const char* _payload, U8 _payloadLength );
+void	DisplayGPSStatus( const GPS::Data& _data );
 
 void	loop() {
 	int	now_ms = millis();
@@ -273,7 +278,14 @@ void	loop() {
 //	if ( bno.isFullyCalibrated() )
 //		ShowMagnetometerData();
 
-//*	////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////
+	// Read GPS status
+	GPS::Data	GPSData;
+	if ( gps.GetGPSData( GPSData ) ) {
+		DisplayGPSStatus( GPSData );
+	}
+
+/*	////////////////////////////////////////////////////////////////////
 	// Send commands to the tracker module
 	if ( now_ms - lastCommandTime_ms > 3500 ) {
 		lastCommandTime_ms = now_ms;
@@ -345,5 +357,21 @@ void	ProcessMessage( const char* _payload, U8 _payloadLength ) {
 Serial.printf( "Recognized ACK for command %s\r\n", _payload+3 );
 	} else {
 Serial.printf( "Unknown payload \"%s\"\r\n", _payload );
+	}
+}
+
+void	DisplayGPSStatus( const GPS::Data& _data ) {
+	delay( 1000 );
+
+	switch ( _data.fixStatus ) {
+		case GPS::FIX_STATUS::ERROR_NO_GPS_MODULE:
+			display.printf( "No GPS module detected! Task aborted...\r\n" );
+			break;
+		case GPS::FIX_STATUS::NO_FIX:
+			display.printf( "Searching fix! %d satellites.\r\n", _data.satellitesCount );
+			break;
+		case GPS::FIX_STATUS::FOUND_FIX:
+			display.printf( "HDOP %f.\r\n", _data.HDOP );
+			break;
 	}
 }

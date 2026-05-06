@@ -241,6 +241,7 @@ Actually poses a problem as it reconfigures the timer every time...
 
 //	ShowGPSData();
 
+envoyer lat++ chaque seconde, on s'en servira comme identifiant de commande...
 //	// Broadcast position every second
 //	if ( now_ms - lastBroadcastTime_ms > 1000 ) {
 //		lastBroadcastTime_ms = now_ms;

@@ -100,6 +100,7 @@ private:
 
 	int				m_avgCount = 0;	// Counter of accumulated location values for the moving average
 
+	bool			m_taskRunning = false;
 	bool			m_killTask;		// A boolean used to finish the monitoring task
 	QueueHandle_t 	m_queue;		// Lock-free global queue for R/W
 
@@ -129,19 +130,19 @@ public:
 		);
 	}
 
+	// Tells if the task is still running
+	// It could have stopped for the following reason:
+	//	• The user called KillTask()
+	//	• The task failed to find the GPS module after 5s (can't monitor, need to check wiring)
+	bool	IsTaskRunning() const { return m_taskRunning; }
+
 	// Will kill the task as soon as possible...
 	void	KillTask() { m_killTask = true; }
-	bool	GetKillTask() { return m_killTask; }
 
 	// Attempts to read the GPS data from the lock-free queue
 	// Returns true if the read was successful, or false if the read timed out
 	bool	GetGPSData( Data& _data, U32 _timeOut_ms=1000 ) {
 		return xQueueReceive( m_queue, &_data, pdMS_TO_TICKS(_timeOut_ms) );
-	}
-
-	// Commits the data to the queue for any consumer to read
-	void	CommitData() {
-		xQueueOverwrite( m_queue, &m_data );
 	}
 
 	// Callback to monitor the progress when searching for a fix
@@ -176,6 +177,7 @@ public:	// U-BLOX Specific methods (Typically used for the Neo-6M GPS module)
 	void	UBXSendInitialPosition( double _latitude, double _longitude, double _altitude_m );
 
 public:	// Helpers
+
 	static void	Subtract( const RawDegrees& a, const RawDegrees& b, RawDegrees& result );
 
 	// Computes the bearing angle in 0° (N) → 90° (E) → 180° (S) → 270° (W) and  the distance to the target in meters
@@ -183,4 +185,10 @@ public:	// Helpers
 
 private:
 	static void	Task( void* pvParameters );
+	static bool	FindFixProgress( const GPS::Data& _data, U32 _elapsedTime_ms, void* _parameter );
+
+	// Commits the data to the queue for any consumer to read
+	void	CommitData() {
+		xQueueOverwrite( m_queue, &m_data );	
+	}
 };
