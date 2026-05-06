@@ -242,17 +242,17 @@ void	setup() {
 	#if 1	// Async task
 		gps.StartMonitoringTask();
 	#else	// Sync task
-	// Try to find a fix for 15 seconds
-//	GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, 15000 );
-	GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, nullptr, -1 );	// No time out
-	if ( fixStatus != GPS::FIX_STATUS::FOUND_FIX ) {
-		display.println( "Initialization failed..." );
-		switch ( fixStatus ) {
-			case GPS::FIX_STATUS::ERROR_TIME_OUT: display.println( "Couldn't find any satellite!" ); break;
-			case GPS::FIX_STATUS::ERROR_NO_GPS_MODULE: display.println( "GPS module not found after 5s. Check wiring!" ); break;
-			default: display.println( "Couldn't find any satellite!" ); break;
-		}
-		while ( 1 );
+		// Try to find a fix for 15 seconds
+//		GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, 15000 );
+		GPS::FIX_STATUS	fixStatus = gps.FindFix( FindFixProgress, nullptr, -1 );	// No time out
+		if ( fixStatus != GPS::FIX_STATUS::FOUND_FIX ) {
+			display.println( "Initialization failed..." );
+			switch ( fixStatus ) {
+				case GPS::FIX_STATUS::ERROR_TIME_OUT: display.println( "Couldn't find any satellite!" ); break;
+				case GPS::FIX_STATUS::ERROR_NO_GPS_MODULE: display.println( "GPS module not found after 5s. Check wiring!" ); break;
+				default: display.println( "Couldn't find any satellite!" ); break;
+			}
+			while ( 1 );
 	}
 
 	display.println( "Awaiting GPS location data..." );
@@ -360,6 +360,8 @@ Serial.printf( "Unknown payload \"%s\"\r\n", _payload );
 	}
 }
 
+bool	findingFix = false;
+bool	foundFix = false;
 void	DisplayGPSStatus( const GPS::Data& _data ) {
 	delay( 1000 );
 
@@ -367,11 +369,28 @@ void	DisplayGPSStatus( const GPS::Data& _data ) {
 		case GPS::FIX_STATUS::ERROR_NO_GPS_MODULE:
 			display.printf( "No GPS module detected! Task aborted...\r\n" );
 			break;
+
 		case GPS::FIX_STATUS::NO_FIX:
-			display.printf( "Searching fix! %d satellites.\r\n", _data.satellitesCount );
+			if ( !findingFix ) {
+				if ( foundFix )
+					display.printf( "Lost fix! Searching\r\n" );
+				else
+					display.printf( "Searching fix" );
+			} else {
+				findingFix = true;
+				display.print( "." );
+			}
 			break;
+
 		case GPS::FIX_STATUS::FOUND_FIX:
-			display.printf( "HDOP %f.\r\n", _data.HDOP );
+			if ( findingFix ) {
+				display.println();
+				findingFix = false;
+			}
+
+			display.printf( "Lon/Lat %.3f, %.3f (HDOP %.2f)\r\n", _data.avgLongitude, _data.avgLatitude, _data.HDOP );
+			findingFix = false;
+			foundFix = true;
 			break;
 	}
 }

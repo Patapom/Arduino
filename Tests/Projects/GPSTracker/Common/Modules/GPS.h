@@ -142,7 +142,12 @@ public:
 	// Attempts to read the GPS data from the lock-free queue
 	// Returns true if the read was successful, or false if the read timed out
 	bool	GetGPSData( Data& _data, U32 _timeOut_ms=1000 ) {
-		return xQueueReceive( m_queue, &_data, pdMS_TO_TICKS(_timeOut_ms) );
+		if ( m_taskRunning )
+			return xQueueReceive( m_queue, &_data, pdMS_TO_TICKS(_timeOut_ms) );
+
+		// No need for async...
+		_data = m_data;
+		return true;
 	}
 
 	// Callback to monitor the progress when searching for a fix

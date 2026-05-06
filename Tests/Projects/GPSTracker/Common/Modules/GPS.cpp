@@ -116,6 +116,9 @@ GPS::FIX_STATUS	GPS::FindFix( FixProgressCallback _Progresscallback, void* _para
 
 // Read GPS data while it's available
 void	GPS::ReadGPSData() {
+	if ( !m_serial.available() )
+		return;	// Nothing to read...
+
 	while ( m_serial.available() ) {
 		// example received:
 		//	GPGSV,4,3,14,21,12,321,22,26,25,048,16,27,04,112,,29,00,003,*78
@@ -165,7 +168,7 @@ void	GPS::ReadGPSData() {
 	}
 
 	// Read satellites count
-	if ( m_GPS.satellites.isValid() && m_GPS.satellites.value() != m_data.satellitesCount ) {
+	if ( m_GPS.satellites.isValid() ) {
 		m_data.satellitesCount = m_GPS.satellites.value();
 	}
 
@@ -188,16 +191,16 @@ void	GPS::ReadGPSData() {
 			m_data.avgLongitude = m_data.longitude;
 		} else {
 			// Adapt average speed depending on HDOP quality
-			const float	MAX_HDOP = 10.0f;										// Worst quality (inusable)
-			const float	TIME_PERIOD_WORST = 10;									// Small contribution when low quality
-			const float	TIME_PERIOD_BEST = 2;									// Large contribution when high quality
+			const float	MAX_HDOP = 10.0f;			// Worst quality (unusable)
+			const float	TIME_PERIOD_WORST = 10;		// Small contribution when low quality
+			const float	TIME_PERIOD_BEST = 2;		// Large contribution when high quality
 
 			#if 1
 				float	qualityFactor = 1.0f - min( 1.0f, m_data.HDOP / MAX_HDOP );	// 1 for good quality, 0 for bad quality
-				float	timePeriod = TIME_PERIOD_WORST + (TIME_PERIOD_BEST - TIME_PERIOD_WORST) * qualityFactor;
-				float	blendFactor = 2.0f / (1 + timePeriod);						// Should yield 0.666 contribution for best signals (fast update, small smoothing) and 0.1818 for worst signals (slow update, large smoothing)
+				float	timePeriod = TIME_PERIOD_WORST + qualityFactor * (TIME_PERIOD_BEST - TIME_PERIOD_WORST);
+				float	blendFactor = 2.0f / (1 + timePeriod);				// Should yield 0.666 contribution for best signals (fast update, small smoothing) and 0.1818 for worst signals (slow update, large smoothing)
 			#else
-				float	blendFactor = EXPONENTIAL_MOVING_AVERAGE_FACTOR;			// Fixed, non adaptable
+				float	blendFactor = EXPONENTIAL_MOVING_AVERAGE_FACTOR;	// Fixed, non adaptable
 			#endif
 
 			m_data.avgLatitude = m_data.latitude * blendFactor + m_data.avgLatitude * (1.0 - blendFactor);
@@ -236,7 +239,7 @@ void	GPS::ReadGPSData() {
 }
 
 // Converts a UTC time into a local PST time
-time_t gpsToUnixUTC( struct tm& t ) {
+time_t	gpsToUnixUTC( struct tm& t ) {
 	static const int days_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
 	int year = t.tm_year + 1900;
