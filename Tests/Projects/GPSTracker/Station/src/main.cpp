@@ -163,10 +163,20 @@ tft.setRotation(3);
 	display.Clear( 0xFF, 0xF0, 0x10 );
 	display.SetTextProperties( 2, 0, 0, 0 );
 
-	testBMP.Open24( "/Test24.bmp" );
-	display.DrawBitmap( testBMP, 180, 0 );
+//	testBMP.Open24( "/Test24.bmp" );
+//	display.DrawBitmap( testBMP, 180, 0 );
 
-	while ( 1 );
+	testBMP.CreateTest( 200, 200 );
+	S16	X = 0, Y = 0;
+	while ( 1 ) {
+//		display.DrawBitmap( testBMP, X++, Y++ );
+
+		X = 0.5f * (280 * (1.0f + cos( 0.001f * millis() )) - testBMP.m_width);
+		Y = 0.5f * (240 * (1.0f + sin( 0.001f * millis() )) - testBMP.m_height);
+		display.DrawBitmap( testBMP, X, Y );
+		
+		delay( 10 );
+	}
 
 	digitalWrite( TFT_CS, HIGH );
 //*/
