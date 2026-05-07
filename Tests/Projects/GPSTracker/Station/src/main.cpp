@@ -9,9 +9,13 @@
 // File system & SD card libraries
 #include <SD.h>
 #include <FS.h>
+#include <LittleFS.h>
+
+LittleFSFS	fileSys;
 
 // TFT screen (ST7789 v3.0)
 #include <Display.h>
+#include <BMPFile.h>
 
 #if 1	// Use TFT_eSPI library
 	TFT_eSPI	tft = TFT_eSPI();
@@ -69,6 +73,8 @@ void	ShowGPSData();
 
 int	startTime_ms;
 
+BMP		testBMP( fileSys );
+
 void	setup() {
 	Serial.begin( 115200 );
 //	while ( !Serial.isConnected() ) {
@@ -92,6 +98,19 @@ void	setup() {
 	Wire.begin( pinSDA, pinSCL );
 //	Wire.begin( pinSDA, pinSCL, 100000 );
 
+
+	// =======================================================
+	// Checking LittleFS
+	if ( !fileSys.begin() ) {
+		Serial.println( "Failed to initialize file system!" );
+		while ( 1 );
+	}
+//	if ( fileSys.exists( "/Test24.bmp" ) ) {
+//		Serial.println( "File FOUND!" );
+//	} else {
+//		Serial.println( "File doesn't exist!" );
+//	}
+	
 
 //*	// =======================================================
 	Serial.println( "Initializing TFT Screen..." );
@@ -143,6 +162,11 @@ tft.setRotation(3);
 
 	display.Clear( 0xFF, 0xF0, 0x10 );
 	display.SetTextProperties( 2, 0, 0, 0 );
+
+	testBMP.Open24( "/Test24.bmp" );
+	display.DrawBitmap( testBMP, 180, 0 );
+
+	while ( 1 );
 
 	digitalWrite( TFT_CS, HIGH );
 //*/

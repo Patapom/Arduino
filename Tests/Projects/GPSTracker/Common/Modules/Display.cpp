@@ -7,6 +7,19 @@ void	TFTDisplay::Clear( U16 RGB ) {
 	m_tft.fillScreen( RGB );
 }
 
+void	TFTDisplay::DrawBitmap( const BMP& _bitmap, S16 _x, S16 _y ) {
+	m_tft.pushImage( _x, _y, _bitmap.m_width, _bitmap.m_height, _bitmap.m_bitmap );
+
+//	// Push the pixel row to screen, pushImage will crop the line if needed
+//	// y is decremented as the BMP image is drawn bottom up
+//	tft.pushImage(x, y--, w, 1, (U16*)lineBuffer);
+//	}
+//	tft.setSwapBytes(oldSwapBytes);
+//	Serial.print("Loaded in "); Serial.print(millis() - startTime);
+//	Serial.println(" ms");
+
+}
+
 void	TFTDisplay::SetTextProperties( U8 _size, U16 _cursorX, U16 _cursorY, U16 _color ) {
 	m_tft.setTextWrap( false );
 //	m_tft.fillScreen(TFT_BLACK);

@@ -3,8 +3,9 @@
 #include "../Global.h"
 
 //#include <Adafruit_ST7789.h>	// Hardware-specific library for ST7789
-
 #include <TFT_eSPI.h>
+
+#include "../Helpers/BMPFile.h"	// Bitmap class
 
 class	TFTDisplay {
 public:
@@ -24,6 +25,8 @@ public:
 	void	Clear() { Clear( m_backColor ); }
 	void	Clear( U16 RGB );
 	void	Clear( U8 R, U8 G, U8 B ) { Clear( RGB16( R, G, B ) ); }
+
+	void	DrawBitmap( const BMP& _bitmap, S16 _x, S16 _y );
 
 	void	SetTextProperties( U8 _size, U16 _cursorX, U16 _cursorY, U16 _color );
 
