@@ -2,20 +2,24 @@
 
 #include "../Global.h"
 
-#include <Adafruit_ST7789.h>	// Hardware-specific library for ST7789
+//#include <Adafruit_ST7789.h>	// Hardware-specific library for ST7789
 
-class Adafruit_ST7789;
+#include <TFT_eSPI.h>
 
 class	TFTDisplay {
 public:
-	Adafruit_ST7789&	m_tft;
+//	Adafruit_ST7789&	m_tft;
+	TFT_eSPI&			m_tft;
 
 	U16		m_backColor;
 
 public:
-	TFTDisplay( Adafruit_ST7789& _tft ) : m_tft( _tft ) {
+	TFTDisplay( TFT_eSPI& _tft ) : m_tft( _tft ) {
 		m_backColor = 0;
 	}
+//	TFTDisplay( Adafruit_ST7789& _tft ) : m_tft( _tft ) {
+//		m_backColor = 0;
+//	}
 
 	void	Clear() { Clear( m_backColor ); }
 	void	Clear( U16 RGB );

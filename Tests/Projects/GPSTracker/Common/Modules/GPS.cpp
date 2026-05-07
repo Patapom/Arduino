@@ -67,7 +67,11 @@ GPS::FIX_STATUS	GPS::FindFix( FixProgressCallback _Progresscallback, void* _para
 
 	U32	startTime_ms = millis();
 	U32	now_ms = startTime_ms;
+
 	U32	lastProgress_ms = now_ms;
+
+	U32	lastProcessedCharactersCount = 0;
+	U32	lastProcessedCharactersTime_ms = now_ms;
 
 	int	satellitesCount = m_data.satellitesCount;
 
@@ -90,8 +94,14 @@ GPS::FIX_STATUS	GPS::FindFix( FixProgressCallback _Progresscallback, void* _para
 			return m_data.fixStatus;
 		}
 
-		if ( now_ms - startTime_ms > 5000 && m_GPS.charsProcessed() < 10 ) {
-			// No characters received from the module...
+		// Check we're constantly receiving new characters from the module
+		U32	processedCharactersCount = m_GPS.charsProcessed();
+		if ( processedCharactersCount != lastProcessedCharactersCount ) {
+			// Ok... Module is alive!
+			lastProcessedCharactersCount = processedCharactersCount;
+			lastProcessedCharactersTime_ms = now_ms;
+		} else if ( now_ms - lastProcessedCharactersTime_ms > 5000 ) {
+			// No characters received from the module for more than 5 seconds...
 //Serial.println( "No GPS detected: check wiring." );
 			m_data.fixStatus = FIX_STATUS::ERROR_NO_GPS_MODULE;
 			return m_data.fixStatus;

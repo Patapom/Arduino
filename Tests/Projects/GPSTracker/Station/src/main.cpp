@@ -13,6 +13,9 @@
 // TFT screen (ST7789 v3.0)
 #include <Display.h>
 
+#if 1	// Use TFT_eSPI library
+	TFT_eSPI	tft = TFT_eSPI();
+#else
 #define TFT_MOSI	23	// SDA Pin on ESP32
 #define TFT_SCLK	18	// SCL Pin on ESP32
 #define TFT_RST		33
@@ -21,6 +24,8 @@
 
 // Initialize Adafruit ST7789 TFT library
 Adafruit_ST7789	tft = Adafruit_ST7789( TFT_CS, TFT_DC, TFT_RST );
+#endif
+
 TFTDisplay		display( tft );
 
 // GPS Module (Neo 6M)
@@ -91,8 +96,50 @@ void	setup() {
 //*	// =======================================================
 	Serial.println( "Initializing TFT Screen..." );
 
-	tft.init( 240, 280, SPI_MODE0 );	// Init ST7789 display 135x240 pixel
-	tft.setRotation( 3 );
+//	tft.init( 240, 280, SPI_MODE0 );	// Init ST7789 display 135x240 pixel
+
+	tft.init();
+
+/*	//tft.writecommand( 0x01 ); // SWRESET
+	//delay( 200 );
+	//tft.fillScreen(TFT_RED);
+	//while ( 1 );
+
+	//tft.writecommand(0x11); // SLEEP OUT
+	//delay(120);
+	//tft.writecommand(0x29); // DISPLAY ON
+
+	tft.writecommand(0x01); // SWRESET
+	delay(150);
+	tft.writecommand(0x11); // SLEEP OUT
+	delay(150);
+	tft.writecommand(0x29); // DISPLAY ON
+
+	tft.setRotation(3);
+	tft.writecommand(0x21); // display inversion ON
+
+	while ( 1 ){
+	tft.fillScreen(TFT_WHITE);
+	delay(1000);
+	tft.fillScreen(TFT_RED);
+	delay(1000);
+	}
+tft.setRotation(3);
+
+  tft.fillScreen(TFT_RED);
+  delay(1000);
+  tft.fillScreen(TFT_GREEN);
+  delay(1000);
+  tft.fillScreen(TFT_BLUE);
+  delay(1000);
+
+  tft.fillScreen(TFT_BLACK);
+  tft.drawPixel(120, 120, TFT_WHITE);
+  while( 1 );
+*/
+
+
+	tft.setRotation( 1 );
 
 	display.Clear( 0xFF, 0xF0, 0x10 );
 	display.SetTextProperties( 2, 0, 0, 0 );
@@ -372,19 +419,19 @@ void	DisplayGPSStatus( const GPS::Data& _data ) {
 
 		case GPS::FIX_STATUS::NO_FIX:
 			if ( !findingFix ) {
+				findingFix = true;
 				if ( foundFix )
 					display.printf( "Lost fix! Searching\r\n" );
 				else
 					display.printf( "Searching fix" );
 			} else {
-				findingFix = true;
 				display.print( "." );
 			}
 			break;
 
 		case GPS::FIX_STATUS::FOUND_FIX:
 			if ( findingFix ) {
-				display.println();
+				display.println( "" );
 				findingFix = false;
 			}
 
