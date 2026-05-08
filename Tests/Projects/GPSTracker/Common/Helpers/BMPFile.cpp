@@ -58,7 +58,7 @@ bool	BMP::Open24( const char* _fileName ) {
 			U8	r = *sourcePtr++;
 
 			*targetPtr++ = SwapBytes( ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3) );	// RGB format
-			*targetPtr++ = SwapBytes( ((b & 0xF8) << 8) | ((g & 0xFC) << 3) | (r >> 3) );	// BGR format
+//			*targetPtr++ = SwapBytes( ((b & 0xF8) << 8) | ((g & 0xFC) << 3) | (r >> 3) );	// BGR format
 		}
 	}
 
