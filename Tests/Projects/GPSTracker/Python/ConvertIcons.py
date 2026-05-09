@@ -44,22 +44,25 @@ def ProcessImage( _image ):
 
 	return out
 
+def ProcessFolder( _source, _dest ):
+	_dest.mkdir( exist_ok=True )
+
+	for sourceFileName in _source.glob( "*.bmp" ):
+		targetFileName = _dest / sourceFileName.name
+
+		img = Image.open( sourceFileName )
+		out = ProcessImage( img )
+
+		out.save( targetFileName )
+
 # Sauvegarder en BMP
 #img = Image.open( "../Resources/Icons/Battery Charge/charge0.bmp" )
 #out = ProcessImage( img )
 #out.save( "output.bmp" )
 
-src = Path( "../Resources/Icons/Battery Charge/" )
-dst = Path( "../Resources/Processed Icons/Battery Charge/" )
-dst.mkdir( exist_ok=True )
-
-for file in src.glob( "*.bmp" ):
-
-	img = Image.open( file )
-	out = ProcessImage( img )
-
-	targetFileName = dst / file.name
-	out.save( targetFileName )
+ProcessFolder( Path( "../Resources/Icons/Battery Charge/" ), Path( "../Resources/Processed Icons/Battery Charge/" ) )
+ProcessFolder( Path( "../Resources/Icons/Signal Strength/" ), Path( "../Resources/Processed Icons/Signal Strength/" ) )
+ProcessFolder( Path( "../Resources/Icons/Wifi Strength/" ), Path( "../Resources/Processed Icons/Wifi Strength/" ) )
 
 #	w, h = img.size
 #
