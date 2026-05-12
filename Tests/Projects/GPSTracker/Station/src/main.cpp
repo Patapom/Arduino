@@ -164,6 +164,56 @@ tft.setRotation(3);
 	display.SetTextProperties( 2, 0, 0, 0 );
 
 #if 1
+	testBMP.Open24( "/Battery Charge/charging.bmp" );
+	display.DrawBitmap( testBMP, 16*1, 16 );
+	testBMP.Open24( "/Battery Charge/charge0.bmp" );
+	display.DrawBitmap( testBMP, 16*2, 16 );
+	testBMP.Open24( "/Battery Charge/charge1.bmp" );
+	display.DrawBitmap( testBMP, 16*3, 16 );
+	testBMP.Open24( "/Battery Charge/charge2.bmp" );
+	display.DrawBitmap( testBMP, 16*4, 16 );
+	testBMP.Open24( "/Battery Charge/charge3.bmp" );
+	display.DrawBitmap( testBMP, 16*5, 16 );
+	testBMP.Open24( "/Battery Charge/charge4.bmp" );
+	display.DrawBitmap( testBMP, 16*6, 16 );
+
+	testBMP.Open24( "/Wifi Strength/signal0.bmp" );
+	display.DrawBitmap( testBMP, 16*1, 16*2 );
+	testBMP.Open24( "/Wifi Strength/signal1.bmp" );
+	display.DrawBitmap( testBMP, 16*2, 16*2 );
+	testBMP.Open24( "/Wifi Strength/signal2.bmp" );
+	display.DrawBitmap( testBMP, 16*3, 16*2 );
+	testBMP.Open24( "/Wifi Strength/signal3.bmp" );
+	display.DrawBitmap( testBMP, 16*4, 16*2 );
+	testBMP.Open24( "/Wifi Strength/signal4.bmp" );
+	display.DrawBitmap( testBMP, 16*5, 16*2 );
+
+	testBMP.Open24( "/Signal Strength/signal0.bmp" );
+	display.DrawBitmap( testBMP, 16*1, 16*3 );
+	testBMP.Open24( "/Signal Strength/signal1.bmp" );
+	display.DrawBitmap( testBMP, 16*2, 16*3 );
+	testBMP.Open24( "/Signal Strength/signal2.bmp" );
+	display.DrawBitmap( testBMP, 16*3, 16*3 );
+	testBMP.Open24( "/Signal Strength/signal3.bmp" );
+	display.DrawBitmap( testBMP, 16*4, 16*3 );
+	testBMP.Open24( "/Signal Strength/signal4.bmp" );
+	display.DrawBitmap( testBMP, 16*5, 16*3 );
+	testBMP.Open24( "/Signal Strength/pin.bmp" );
+	display.DrawBitmap( testBMP, 16*6, 16*3 );
+	testBMP.Open24( "/Signal Strength/satellite.bmp" );
+	display.DrawBitmap( testBMP, 16*7, 16*3 );
+
+	testBMP.Open24( "/Arrows/left.bmp" );
+	display.DrawBitmap( testBMP, 16*1, 16*4 );
+	testBMP.Open24( "/Arrows/right.bmp" );
+	display.DrawBitmap( testBMP, 16*2, 16*4 );
+	testBMP.Open24( "/Arrows/up.bmp" );
+	display.DrawBitmap( testBMP, 16*3, 16*4 );
+	testBMP.Open24( "/Arrows/down.bmp" );
+	display.DrawBitmap( testBMP, 16*4, 16*4 );
+
+	while ( 1 );
+#elif 1
 	testBMP.Open24( "/Test24.bmp" );
 	display.DrawBitmap( testBMP, (280 - testBMP.m_width) / 2, (240 - testBMP.m_height) / 2 );
 

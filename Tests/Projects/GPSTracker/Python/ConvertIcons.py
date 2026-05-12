@@ -63,6 +63,7 @@ def ProcessFolder( _source, _dest ):
 ProcessFolder( Path( "../Resources/Icons/Battery Charge/" ), Path( "../Resources/Processed Icons/Battery Charge/" ) )
 ProcessFolder( Path( "../Resources/Icons/Signal Strength/" ), Path( "../Resources/Processed Icons/Signal Strength/" ) )
 ProcessFolder( Path( "../Resources/Icons/Wifi Strength/" ), Path( "../Resources/Processed Icons/Wifi Strength/" ) )
+ProcessFolder( Path( "../Resources/Icons/Arrows/" ), Path( "../Resources/Processed Icons/Arrows/" ) )
 
 #	w, h = img.size
 #

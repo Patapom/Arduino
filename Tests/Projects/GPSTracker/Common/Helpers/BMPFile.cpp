@@ -43,6 +43,7 @@ bool	BMP::Open24( const char* _fileName ) {
 	U8	tempScanline[tempScanlineSize];
 
 //	m_scanlineSize = (m_width * 3 + 3) & ~3;
+	delete[] m_bitmap;
 	m_bitmap = new U16[m_height * m_width];	// Final format is R5G6B5
 
 	U16*	scanline = m_bitmap + m_width * (m_height-1);	// Reverse order because BMP files are stored in reversed order!
