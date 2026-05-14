@@ -5,29 +5,32 @@ BMP::~BMP() {
 	delete[] m_bitmap;
 }
 
-bool	BMP::Open24( const char* _fileName ) {
-	if ( !m_fileSystem.exists( _fileName ) )
+bool	BMP::Open24( fs::FS& _fileSystem, const char* _fileName ) {
+	if ( !_fileSystem.exists( _fileName ) )
 		return false;
 
-	File	file = m_fileSystem.open( _fileName );
+	File	file = _fileSystem.open( _fileName );
+	return Open24( file );
+}
 
+bool	BMP::Open24( fs::File& _file ) {
 	// Ensure we're reading the right format
-	if ( read16( file ) != 0x4D42 ) {
+	if ( Read16( _file ) != 0x4D42 ) {
 		Serial.println( "BMP format not recognized." );
-		file.close();
+		_file.close();
 		return false;
 	}
 
-	read32( file );
-	read32( file );
-	U32	seekOffset = read32( file );	// Offset to actual bitmap data
-	read32( file );
-	m_width = read32( file );
-	m_height = read32( file );
+	Read32( _file );
+	Read32( _file );
+	U32	seekOffset = Read32( _file );	// Offset to actual bitmap data
+	Read32( _file );
+	m_width = Read32( _file );
+	m_height = Read32( _file );
 
-	if ( (read16( file ) != 1) || (read16( file ) != 24) || (read32( file ) != 0) ) {
+	if ( (Read16( _file ) != 1) || (Read16( _file ) != 24) || (Read32( _file ) != 0) ) {
 		Serial.println( "Only 24-bits BMPs are supported..." );
-		file.close();
+		_file.close();
 		return false;
 	}
 
@@ -36,7 +39,7 @@ bool	BMP::Open24( const char* _fileName ) {
 //	bool oldSwapBytes = tft.getSwapBytes();
 //	tft.setSwapBytes(true);
 
-	file.seek( seekOffset );
+	_file.seek( seekOffset );
 
 	U16	padding = (4 - ((m_width * 3) & 3)) & 3;
 	U16	tempScanlineSize = m_width * 3 + padding;
@@ -48,7 +51,7 @@ bool	BMP::Open24( const char* _fileName ) {
 
 	U16*	scanline = m_bitmap + m_width * (m_height-1);	// Reverse order because BMP files are stored in reversed order!
 	for ( U16 Y=0; Y < m_height; Y++, scanline-=m_width ) {
-		file.read( tempScanline, tempScanlineSize );
+		_file.read( tempScanline, tempScanlineSize );
 		U8*  sourcePtr = tempScanline;
 		U16* targetPtr = scanline;
 
@@ -63,7 +66,7 @@ bool	BMP::Open24( const char* _fileName ) {
 		}
 	}
 
-	file.close();
+	_file.close();
 
 	return true;
 }
@@ -97,14 +100,14 @@ void	BMP::CreateTest( U16 _w, U16 _h ) {
 // These read 16- and 32-bit types from the SD card file.
 // BMP data is stored little-endian, Arduino is little-endian too.
 // May need to reverse subscript order if porting elsewhere.
-U16 BMP::read16( File& f ) {
+U16 BMP::Read16( File& f ) {
 	U16 result;
 	((U8*) &result)[0] = f.read(); // LSB
 	((U8*) &result)[1] = f.read(); // MSB
 	return result;
 }
 
-U32	BMP::read32( File& f ) {
+U32	BMP::Read32( File& f ) {
 	U32 result;
 	((U8*) &result)[0] = f.read(); // LSB
 	((U8*) &result)[1] = f.read();
@@ -139,14 +142,14 @@ void drawBmp( const char* filename, U16 x, U16 y ) {
 
 	if (read16(bmpFS) == 0x4D42)
 	{
-	read32(bmpFS);
-	read32(bmpFS);
-	seekOffset = read32(bmpFS);
-	read32(bmpFS);
-	w = read32(bmpFS);
-	h = read32(bmpFS);
+	Read32(bmpFS);
+	Read32(bmpFS);
+	seekOffset = Read32(bmpFS);
+	Read32(bmpFS);
+	w = Read32(bmpFS);
+	h = Read32(bmpFS);
 
-	if ((read16(bmpFS) == 1) && (read16(bmpFS) == 24) && (read32(bmpFS) == 0))
+	if ((read16(bmpFS) == 1) && (read16(bmpFS) == 24) && (Read32(bmpFS) == 0))
 	{
 		y += h - 1;
 

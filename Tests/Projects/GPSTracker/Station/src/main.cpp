@@ -16,6 +16,7 @@ LittleFSFS	fileSys;
 // TFT screen (ST7789 v3.0)
 #include <Display.h>
 #include <BMPFile.h>
+#include <IconsPalette.h>
 
 #if 1	// Use TFT_eSPI library
 	TFT_eSPI	tft = TFT_eSPI();
@@ -73,7 +74,12 @@ void	ShowGPSData();
 
 int	startTime_ms;
 
+#define USE_PALETTE
+#ifdef USE_PALETTE
+IconsPalette	palette( 22 );
+#else
 BMP		testBMP( fileSys );
+#endif
 
 void	setup() {
 	Serial.begin( 115200 );
@@ -163,7 +169,45 @@ tft.setRotation(3);
 	display.Clear( 0xFF, 0xF0, 0x10 );
 	display.SetTextProperties( 2, 0, 0, 0 );
 
-#if 1
+#ifdef USE_PALETTE
+	palette.Append( fileSys, "/Battery Charge/charging.bmp" );
+	palette.Append( fileSys, "/Battery Charge/charge0.bmp" );
+	palette.Append( fileSys, "/Battery Charge/charge1.bmp" );
+	palette.Append( fileSys, "/Battery Charge/charge2.bmp" );
+	palette.Append( fileSys, "/Battery Charge/charge3.bmp" );
+	palette.Append( fileSys, "/Battery Charge/charge4.bmp" );
+
+	palette.Append( fileSys, "/Wifi Strength/signal0.bmp" );
+	palette.Append( fileSys, "/Wifi Strength/signal1.bmp" );
+	palette.Append( fileSys, "/Wifi Strength/signal2.bmp" );
+	palette.Append( fileSys, "/Wifi Strength/signal3.bmp" );
+	palette.Append( fileSys, "/Wifi Strength/signal4.bmp" );
+
+	palette.Append( fileSys, "/Signal Strength/signal0.bmp" );
+	palette.Append( fileSys, "/Signal Strength/signal1.bmp" );
+	palette.Append( fileSys, "/Signal Strength/signal2.bmp" );
+	palette.Append( fileSys, "/Signal Strength/signal3.bmp" );
+	palette.Append( fileSys, "/Signal Strength/signal4.bmp" );
+	palette.Append( fileSys, "/Signal Strength/pin.bmp" );
+	palette.Append( fileSys, "/Signal Strength/satellite.bmp" );
+
+	palette.Append( fileSys, "/Arrows/left.bmp" );
+	palette.Append( fileSys, "/Arrows/right.bmp" );
+	palette.Append( fileSys, "/Arrows/up.bmp" );
+	palette.Append( fileSys, "/Arrows/down.bmp" );
+
+	while ( 1 ) {
+		float	time = 0.001 * millis();
+		S16	offsetX = 80.0 * (1.0 + cos( time ));
+		S16	offsetY = 60.0 * (1.0 + sin( time ));
+		palette.DrawBitmaps( display, 0, 6,  offsetX + 16*1, offsetY + 16*1 );	// Draw bitmaps 0→5 (battery charge)
+		palette.DrawBitmaps( display, 6, 5,  offsetX + 16*1, offsetY + 16*2 );	// Draw bitmaps 6→10 (wifi strength)
+		palette.DrawBitmaps( display, 11, 7, offsetX + 16*1, offsetY + 16*3 );	// Draw bitmaps 11→17 (signal strength)
+		palette.DrawBitmaps( display, 18, 4, offsetX + 16*1, offsetY + 16*4 );	// Draw bitmaps 18→21 (arrows)
+		delay( 10 );
+	}
+
+#elif 1
 	testBMP.Open24( "/Battery Charge/charging.bmp" );
 	display.DrawBitmap( testBMP, 16*1, 16 );
 	testBMP.Open24( "/Battery Charge/charge0.bmp" );
@@ -212,12 +256,10 @@ tft.setRotation(3);
 	testBMP.Open24( "/Arrows/down.bmp" );
 	display.DrawBitmap( testBMP, 16*4, 16*4 );
 
-	while ( 1 );
 #elif 1
 	testBMP.Open24( "/Test24.bmp" );
 	display.DrawBitmap( testBMP, (280 - testBMP.m_width) / 2, (240 - testBMP.m_height) / 2 );
 
-	while ( 1 );
 #else
 	testBMP.CreateTest( 128, 128 );
 //	testBMP.CreateTest( 256, 255 );	// Too much contiguous memory... Crashes...
@@ -233,6 +275,8 @@ tft.setRotation(3);
 		delay( 10 );
 	}
 #endif
+
+	while ( 1 );
 
 	digitalWrite( TFT_CS, HIGH );
 //*/
