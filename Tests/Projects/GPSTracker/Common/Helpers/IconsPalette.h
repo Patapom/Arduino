@@ -17,7 +17,12 @@ public:
 	U32	Append( fs::File& _file );
 	U32	Append( fs::FS& _fileSystem, const char* _fileName );
 
-	BMP&	operator[]( U8 _index ) { return m_icons[_index]; }
+	const BMP&	operator[]( U8 _index ) const {
+if ( _index >= m_icons.size() )
+	Serial.printf( "Icon index %d out of range!", _index );
+
+		return m_icons[_index];
+	}
 
 	void	DrawBitmaps( TFTDisplay& _display, U8 _startIndex, U8 _count, S16 X, S16 Y ) const;
 };

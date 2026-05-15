@@ -81,6 +81,9 @@ IconsPalette	palette( 22 );
 BMP		testBMP( fileSys );
 #endif
 
+#include <StatusBar.h>
+StatusBar	status( display, palette );
+
 void	setup() {
 	Serial.begin( 115200 );
 //	while ( !Serial.isConnected() ) {
@@ -195,6 +198,29 @@ tft.setRotation(3);
 	palette.Append( fileSys, "/Arrows/right.bmp" );
 	palette.Append( fileSys, "/Arrows/up.bmp" );
 	palette.Append( fileSys, "/Arrows/down.bmp" );
+
+	status.SetRect( 0, 0, display.m_tft.width(), 24 );
+	status.SetMargin( 12, 4 );
+	status.SetIconsRangeBatteryCharge( 0 );
+	status.SetIconsRangeWifiStrength( 6 );
+	status.SetIconsRangeGPSSignalStrength( 11 );
+
+	U8	batteryCharge = 0;
+	U8	wifiStrength = 0;
+	U8	GPSSignalStrength = 0;
+
+	while ( 1 ) {
+		status.Update( StatusBar::BATTERY_CHARGE( batteryCharge - 1 ) );
+		delay( 500 );
+		status.Update( StatusBar::WIFI_STRENGTH( wifiStrength ) );
+		delay( 500 );
+		status.Update( StatusBar::GPS_SIGNAL_STRENGTH( GPSSignalStrength ) );
+		delay( 500 );
+
+		batteryCharge = (batteryCharge + 1) % 6;
+		wifiStrength = (wifiStrength + 1) % 5;
+		GPSSignalStrength = (GPSSignalStrength + 1) % 5;
+	}
 
 	while ( 1 ) {
 		float	time = 0.001 * millis();
