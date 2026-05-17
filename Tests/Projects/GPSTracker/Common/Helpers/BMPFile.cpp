@@ -1,5 +1,5 @@
 #include "BMPFile.h"
-//#include <LittleFS.h>
+#include <Display.h>
 
 BMP::~BMP() {
 	delete[] m_bitmap;
@@ -61,8 +61,8 @@ bool	BMP::Open24( fs::File& _file ) {
 			U8	g = *sourcePtr++;
 			U8	r = *sourcePtr++;
 
-			*targetPtr++ = SwapBytes( ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3) );	// RGB format
-//			*targetPtr++ = SwapBytes( ((b & 0xF8) << 8) | ((g & 0xFC) << 3) | (r >> 3) );	// BGR format
+			*targetPtr++ = TFTDisplay::SwapBytes( ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3) );	// RGB format
+//			*targetPtr++ = TFTDisplay::SwapBytes( ((b & 0xF8) << 8) | ((g & 0xFC) << 3) | (r >> 3) );	// BGR format
 		}
 	}
 
@@ -81,13 +81,13 @@ void	BMP::CreateTest( U16 _w, U16 _h ) {
 	for ( U32 Y=0; Y < m_height; Y++, scanline+=m_width ) {
 		U16*	ptr = scanline;
 		for ( U32 X=0; X < m_width; X++ ) {
-			*ptr++ = SwapBytes( ((RGB >> 8) & 0xF800) | ((RGB >> 5) & 0x7E0) | ((RGB >> 3) & 0x1F) );	// RGB format
-//			*ptr++ = SwapBytes( (RGB >> 19) | ((RGB >> 5) & 0x7E0) | ((RGB << 8) & 0xF800) );			// BGR format
+			*ptr++ = TFTDisplay::SwapBytes( ((RGB >> 8) & 0xF800) | ((RGB >> 5) & 0x7E0) | ((RGB >> 3) & 0x1F) );	// RGB format
+//			*ptr++ = TFTDisplay::SwapBytes( (RGB >> 19) | ((RGB >> 5) & 0x7E0) | ((RGB << 8) & 0xF800) );			// BGR format
 
 // Horizontal gradients for testing purpose
-//*ptr++ = SwapBytes( (X & 0xF8) >> 3 );	// Blue
-//*ptr++ = SwapBytes( (X & 0xFC) << 3 );	// Green
-//*ptr++ = SwapBytes( (X & 0xF8) << 8 );	// Red
+//*ptr++ = TFTDisplay::SwapBytes( (X & 0xF8) >> 3 );	// Blue
+//*ptr++ = TFTDisplay::SwapBytes( (X & 0xFC) << 3 );	// Green
+//*ptr++ = TFTDisplay::SwapBytes( (X & 0xF8) << 8 );	// Red
 
 			RGB = ((X << 17) & 0xFF0000)	// Red gradient on X (looping every 128 pixels)
 				| ((Y << 9) & 0x00FF00)		// Green gradient on Y (looping every 128 pixels)

@@ -84,6 +84,9 @@ BMP		testBMP( fileSys );
 #include <StatusBar.h>
 StatusBar	status( display, palette );
 
+#include "Menus/MenuMain.h"
+MenuMain	menuMain( display, palette );
+
 void	setup() {
 	Serial.begin( 115200 );
 //	while ( !Serial.isConnected() ) {
@@ -91,6 +94,15 @@ void	setup() {
 //	}
 
 	delay( 1000 );
+
+#if 1	// Show available memory
+	Serial.printf( "Free heap → %u\r\n", ESP.getFreeHeap() );
+	Serial.printf( "Min free heap → %u\r\n", ESP.getMinFreeHeap() );
+	Serial.printf( "Max allocatable heap → %u\r\n", ESP.getMaxAllocHeap() );
+
+	Serial.printf( "Total PSRAM → %u\r\n", ESP.getPsramSize() );
+	Serial.printf( "Free PSRAM → %u\r\n", ESP.getFreePsram() );
+#endif
 
 	pinMode( pinCS, OUTPUT );	// SD CS
 	pinMode( TFT_CS, OUTPUT );	// TFT CS
@@ -169,8 +181,20 @@ tft.setRotation(3);
 
 	tft.setRotation( 1 );
 
-	display.Clear( 0xFF, 0xF0, 0x10 );
-	display.SetTextProperties( 2, 0, 0, 0 );
+	display.Clear( 0xFF, 0xC0, 0x10 );
+
+//	display.Clear( 0xFF, 0x00, 0x00 );
+//	tft.fillRect( 120, 0, 120, 240, 0xF800 );
+//	tft.fillRect( 120, 0, 120, 240, TFTDisplay::RGB16( 0xFF, 0x00, 0x00 ) );
+//	display.Clear( 0x00, 0xFF, 0x00 );
+//	tft.fillRect( 120, 0, 120, 240, 0x07E0 );
+//	tft.fillRect( 120, 0, 120, 240, TFTDisplay::RGB16( 0x00, 0xFF, 0x00 ) );
+//	display.Clear( 0x00, 0x00, 0xFF );
+//	tft.fillRect( 120, 0, 120, 240, 0x001F );
+//	tft.fillRect( 120, 0, 120, 240, TFTDisplay::RGB16( 0x00, 0x00, 0xFF ) );
+//	display.Clear( 0xF800 );
+
+	display.SetTextProperties( 1, 0, 0, 0 );
 
 #ifdef USE_PALETTE
 	palette.Append( fileSys, "/Battery Charge/charging.bmp" );
@@ -200,16 +224,31 @@ tft.setRotation(3);
 	palette.Append( fileSys, "/Arrows/down.bmp" );
 
 	status.SetRect( 0, 0, display.m_tft.width(), 24 );
-	status.SetMargin( 12, 4 );
+	status.SetMargin( 16, 4 );
+	status.SetIconStride( 20, 0 );
 	status.SetIconsRangeBatteryCharge( 0 );
 	status.SetIconsRangeWifiStrength( 6 );
 	status.SetIconsRangeGPSSignalStrength( 11 );
+
+	// Setup main menu
+	menuMain.SetWindow( 10, 25, display.m_tft.width() - 2*10, display.m_tft.height() - 25 - 1 );	// Leave 1 line at top and bottom to see window
+	menuMain.SetColors( RGB16( 0, 0, 0 ), RGB16( 0xFF, 0xFF, 0xFF ), RGB16( 0x00, 0x40, 0x00 ), RGB16( 0x00, 0xFF, 0x00 ) );
+	menuMain.PaintBackground();
+
+	U8	menuState = 0;
 
 	U8	batteryCharge = 0;
 	U8	wifiStrength = 0;
 	U8	GPSSignalStrength = 0;
 
 	while ( 1 ) {
+		if ( (menuState++) & 4 )
+			menuMain.MoveUp();
+		else
+			menuMain.MoveDown();
+			
+		menuMain.Paint();
+
 		status.Update( StatusBar::BATTERY_CHARGE( batteryCharge - 1 ) );
 		delay( 500 );
 		status.Update( StatusBar::WIFI_STRENGTH( wifiStrength ) );

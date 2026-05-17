@@ -3,8 +3,6 @@
 #include "../Global.h"
 #include <FS.h>
 
-//class File;
-
 class BMP {
 	friend class Display;
 public:
@@ -26,7 +24,4 @@ public:
 private:
 	U16		Read16( fs::File& _file );
 	U32		Read32( fs::File& _file );
-
-	// TFT display expects big-endian bytes!!!!
-	U16		SwapBytes( U16 _bytes ) { return ((_bytes & 0xFF) << 8) | (_bytes >> 8); }
 };

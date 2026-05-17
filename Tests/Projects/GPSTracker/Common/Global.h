@@ -23,3 +23,5 @@ constexpr double	homeAltitude_m = 60.0;
 //RawDegrees	minLatitude {   49, 516100000, false };
 //RawDegrees	minLongitude { 124, 362500000, true };
 
+// RGB24 → RGB16
+#define RGB16( R, G, B )  U16( (B & 0x1F) | ((G & 0xFC) << 3) | ((R & 0xF8) << 8) )

@@ -17,6 +17,7 @@ public:
 public:
 	TFTDisplay( TFT_eSPI& _tft ) : m_tft( _tft ) {
 		m_backColor = 0;
+		m_tft.setSwapBytes( false );
 	}
 //	TFTDisplay( Adafruit_ST7789& _tft ) : m_tft( _tft ) {
 //		m_backColor = 0;
@@ -37,5 +38,9 @@ public:
 	void 	PrintTest();
 	void 	PrintTest2();
 
-	static U16	RGB16( U8 R, U8 G, U8 B ) { return (B & 0x1F) | ((G & 0x3F) << 5) | ((R & 0x1F) << 11); }
+	// RGB 24 → 16 bits (big endian, TFT-ready 16-bits color)
+	static U16	RGB16_BigEndian( U8 R, U8 G, U8 B ) { return SwapBytes( RGB16( R, G, B ) ); }
+
+	// TFT display expects big-endian bytes when dealing with raw pixels!!!!
+	static U16	SwapBytes( U16 _bytes ) { return ((_bytes & 0xFF) << 8) | (_bytes >> 8); }
 };
